@@ -1,5 +1,8 @@
 ---
 description: Generate a custom checklist for the current feature based on user requirements.
+scripts:
+  sh: scripts/bash/check-prerequisites.sh --json
+  ps: scripts/powershell/check-prerequisites.ps1 -Json
 ---
 
 ## Checklist Purpose: "Unit Tests for English"
@@ -33,7 +36,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Execution Steps
 
-1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
+1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
    - All file paths must be absolute.
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
@@ -203,171 +206,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - ✅ "Are [edge cases/scenarios] addressed in requirements?"
    - ✅ "Does the spec define [missing aspect]?"
 
-6. **Select Checklist Type** (if not explicitly specified by user):
+6. **Structure Reference**: Generate the checklist following the canonical template in `templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
 
-   Infer from context or ask user to choose:
-
-   | Type | Purpose | Key Categories | When to Use |
-   |------|---------|----------------|-------------|
-   | **requirements** | Validate requirement quality | Completeness, Clarity, Consistency, Measurability, Coverage | Default; after `/speckit.specify` |
-   | **testing** | Test strategy validation | Test Coverage, Test Cases, Edge Cases, Non-Functional Testing | After `/speckit.plan` when testing approach defined |
-   | **deployment** | Release readiness | Production Readiness, Rollback Plan, Monitoring, Documentation | Before deployment |
-   | **security** | Security posture | Threat Model, Auth/Authz, Data Protection, Compliance | For security-sensitive features |
-   | **accessibility** | A11y compliance | Keyboard Nav, Screen Readers, ARIA, Color Contrast | For user-facing features |
-   | **performance** | Performance validation | Load Testing, Optimization, Metrics, Scalability | For performance-critical features |
-   | **api** | API quality | Contracts, Versioning, Error Handling, Documentation | For API-focused features |
-   | **integration** | Integration points | Dependencies, Contracts, Error Handling, Fallbacks | For features with external dependencies |
-   | **custom** | User-defined focus | User-specified categories | When standard types don't fit |
-
-   **Multi-type Checklists:**
-   User can request multiple types in one command: `/speckit.checklist requirements security testing`
-   This creates separate files: `requirements.md`, `security.md`, `testing.md`
-
-7. **Structure Reference**: Generate the checklist following the canonical template at `.uatu/templates/checklist-template.md`. If template is unavailable or needs customization, use this structure:
-
-   ```markdown
-   # {Checklist Title}
-
-   **Feature:** {Feature name from spec.md}
-   **Checklist Type:** {Type from table above}
-   **Purpose:** {1-sentence description of what this checklist validates}
-   **Created:** {ISO date}
-   **Total Items:** {Count}
-
-   ---
-
-   ## Instructions
-
-   This checklist validates the **QUALITY OF REQUIREMENTS**, not implementation.
-   Each item asks whether requirements are well-defined, not whether code works.
-
-   - ✅ Mark item complete when requirement quality aspect is validated
-   - ❌ Leave unchecked if quality issue found
-   - 💬 Add notes with `<!-- ... -->` for context
-
-   ---
-
-   ## {Category 1}
-
-   - [ ] CHK001 - {Requirement quality question} [{Quality Dimension}, {Reference}]
-   - [ ] CHK002 - {Requirement quality question} [{Quality Dimension}, {Reference}]
-
-   ## {Category 2}
-
-   - [ ] CHK003 - {Requirement quality question} [{Quality Dimension}, {Reference}]
-
-   ---
-
-   ## Summary
-
-   **Items Checked:** 0 / {Total}
-   **Completion:** 0%
-
-   **Issues Found:**
-   {Leave blank for user to fill during checklist usage}
-
-   ---
-
-   ## Next Actions
-
-   After completing this checklist:
-   - [ ] Address all unchecked items
-   - [ ] Run `/speckit.analyze` to validate fixes
-   - [ ] Update spec.md / plan.md / tasks.md as needed
-   - [ ] Re-run this checklist to verify improvements
-   ```
-
-8. **Generate Checklist Items by Type**:
-
-   Each checklist type has recommended category structure. Use these as templates:
-
-   **Requirements Checklist** (`requirements.md`):
-   - Requirement Completeness
-   - Requirement Clarity
-   - Requirement Consistency
-   - Acceptance Criteria Quality
-   - Scenario Coverage
-   - Edge Case Coverage
-   - Non-Functional Requirements
-   - Dependencies & Assumptions
-   - Ambiguities & Conflicts
-
-   **Testing Checklist** (`testing.md`):
-   - Test Strategy Completeness
-   - Test Case Coverage
-   - Happy Path Testing Requirements
-   - Edge Case Testing Requirements
-   - Error Handling Testing Requirements
-   - Non-Functional Testing Requirements (performance, security, etc.)
-   - Test Data Requirements
-   - Test Environment Requirements
-   - Automation Requirements
-
-   **Deployment Checklist** (`deployment.md`):
-   - Deployment Prerequisites
-   - Configuration Requirements
-   - Rollback Plan Requirements
-   - Monitoring Requirements
-   - Alerting Requirements
-   - Documentation Requirements
-   - Communication Plan Requirements
-   - Success Criteria Definition
-
-   **Security Checklist** (`security.md`):
-   - Threat Model Completeness
-   - Authentication Requirements
-   - Authorization Requirements
-   - Data Protection Requirements
-   - Input Validation Requirements
-   - Compliance Requirements
-   - Security Testing Requirements
-   - Incident Response Requirements
-
-   **Accessibility Checklist** (`accessibility.md`):
-   - Keyboard Navigation Requirements
-   - Screen Reader Compatibility Requirements
-   - ARIA Requirements
-   - Color Contrast Requirements
-   - Focus Management Requirements
-   - Alternative Text Requirements
-   - Error Identification Requirements
-   - Responsive Design Requirements
-
-   **Performance Checklist** (`performance.md`):
-   - Performance Metrics Definition
-   - Load Requirements
-   - Response Time Requirements
-   - Throughput Requirements
-   - Resource Utilization Requirements
-   - Caching Strategy Requirements
-   - Optimization Requirements
-   - Performance Testing Requirements
-
-   **API Checklist** (`api.md`):
-   - API Contract Completeness
-   - Request/Response Schema Definition
-   - Error Response Definition
-   - Versioning Requirements
-   - Rate Limiting Requirements
-   - Authentication Requirements
-   - Documentation Requirements
-   - Backward Compatibility Requirements
-
-   **Integration Checklist** (`integration.md`):
-   - Integration Point Documentation
-   - External Dependency Requirements
-   - Contract Definition
-   - Error Handling Requirements
-   - Timeout Requirements
-   - Retry Logic Requirements
-   - Fallback Requirements
-   - Circuit Breaker Requirements
-
-9. **Report**: Output full path to created checklist(s), item count per file, and remind user that each run creates new file(s). Summarize:
-   - Checklist type(s) created
+7. **Report**: Output full path to created checklist, item count, and remind user that each run creates a new file. Summarize:
    - Focus areas selected
-   - Total items generated
-   - Recommended usage: "Complete checklist, address unchecked items, then run `/speckit.analyze`"
+   - Depth level
+   - Actor/timing
    - Any explicit user-specified must-have items incorporated
 
 **Important**: Each `/speckit.checklist` command invocation creates a checklist file using short, descriptive names unless file already exists. This allows:
@@ -377,58 +221,6 @@ You **MUST** consider the user input before proceeding (if not empty).
 - Easy identification and navigation in the `checklists/` folder
 
 To avoid clutter, use descriptive types and clean up obsolete checklists when done.
-
----
-
-## Checklist Completion Tracking
-
-After generating a checklist, users can track completion:
-
-1. **Manual Tracking**: User marks items as checked in markdown file
-2. **Progress Calculation**: User can run helper script or manually update summary section
-3. **Validation**: Run `/speckit.analyze` after addressing checklist items to verify improvements
-
-**Auto-generated Summary Section**:
-
-```markdown
-## Completion Status
-
-**Last Updated:** {ISO timestamp}
-**Items Completed:** {checked_count} / {total_count}
-**Completion Percentage:** {percentage}%
-
-### By Category
-
-| Category | Completed | Total | Progress |
-|----------|-----------|-------|----------|
-| Requirement Completeness | 5 | 8 | 62% |
-| Requirement Clarity | 3 | 5 | 60% |
-| Scenario Coverage | 2 | 6 | 33% |
-
-### Issues Identified
-
-{User fills this section as they work through checklist}
-
-1. **CHK003** - "Prominent display" needs quantification (Spec §FR-4)
-2. **CHK007** - Missing accessibility requirements for keyboard navigation
-3. **CHK012** - No error handling requirements for API failures
-
-### Actions Taken
-
-{User documents fixes}
-
-1. ✅ **CHK003** - Updated spec.md with specific sizing (min 300px width)
-2. ✅ **CHK007** - Added WCAG 2.1 keyboard nav requirements to NFR section
-3. 🔄 **CHK012** - In progress - drafting error handling spec
-```
-
-**Integration with /speckit.analyze**:
-
-After completing checklist and making fixes:
-1. Mark items as checked
-2. Document issues and actions in Summary section
-3. Run `/speckit.analyze` to verify improvements reflected in artifacts
-4. If analysis passes, checklist validation is complete
 
 ## Example Checklist Types & Sample Items
 
