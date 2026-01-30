@@ -1,0 +1,581 @@
+#!/bin/bash
+# uatu-install - Per-project Uatu configuration
+# Run in any project directory to install Uatu - The Watcher framework
+#
+# Prerequisites: Run uatu-setup first to install user-level MCPs
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Find uatu root directory (where this script lives)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+UATU_ROOT="$(dirname "$SCRIPT_DIR")"
+TEMPLATES_DIR="$UATU_ROOT/templates"
+
+# Target is current directory
+TARGET_DIR="$(pwd)"
+PROJECT_NAME="$(basename "$TARGET_DIR")"
+CURRENT_DATE="$(date +%Y-%m-%d)"
+
+echo ""
+echo -e "${CYAN}    ██╗   ██╗ █████╗ ████████╗██╗   ██╗${NC}"
+echo -e "${CYAN}    ██║   ██║██╔══██╗╚══██╔══╝██║   ██║${NC}"
+echo -e "${CYAN}    ██║   ██║███████║   ██║   ██║   ██║${NC}"
+echo -e "${CYAN}    ██║   ██║██╔══██║   ██║   ██║   ██║${NC}"
+echo -e "${CYAN}    ╚██████╔╝██║  ██║   ██║   ╚██████╔╝${NC}"
+echo -e "${CYAN}     ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ${NC}"
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo "  Uatu - The Watcher | Project Installation"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo -e "Project: ${BLUE}$PROJECT_NAME${NC}"
+echo -e "Path:    ${BLUE}$TARGET_DIR${NC}"
+echo ""
+
+# Check if already installed
+if [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -q "Uatu" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+    echo -e "${YELLOW}Uatu appears to be already installed.${NC}"
+    read -p "Overwrite existing configuration? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+    echo ""
+fi
+
+# Validate user-level MCPs are installed
+echo -e "${BLUE}Checking user-level MCP servers...${NC}"
+REQUIRED_MCPS=("sequential-thinking" "claude-flow")
+MISSING_MCPS=()
+
+for mcp in "${REQUIRED_MCPS[@]}"; do
+    if claude mcp list 2>/dev/null | grep -q "$mcp"; then
+        echo -e "  ${GREEN}$mcp${NC}"
+    else
+        echo -e "  ${RED}$mcp (missing)${NC}"
+        MISSING_MCPS+=("$mcp")
+    fi
+done
+
+if [ ${#MISSING_MCPS[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${YELLOW}Missing required user-level MCPs: ${MISSING_MCPS[*]}${NC}"
+    echo "   Run 'uatu-setup' first to install them."
+    echo ""
+    read -p "Continue anyway? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Aborted. Run uatu-setup first."
+        exit 1
+    fi
+fi
+echo ""
+
+# Detect if this is an upgrade
+UPGRADE_MODE=false
+CURRENT_VERSION=""
+if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
+    UPGRADE_MODE=true
+    CURRENT_VERSION=$(cat "$TARGET_DIR/.uatu/.version")
+    echo -e "${YELLOW}Detected existing installation (version $CURRENT_VERSION)${NC}"
+    echo -e "${BLUE}Running in upgrade mode - preserving user configuration${NC}"
+    echo ""
+fi
+
+# Create directory structure
+echo -e "${BLUE}Creating directory structure...${NC}"
+mkdir -p "$TARGET_DIR/.uatu/config"
+mkdir -p "$TARGET_DIR/.uatu/guides"
+mkdir -p "$TARGET_DIR/.uatu/tools"
+mkdir -p "$TARGET_DIR/.uatu/hooks"
+mkdir -p "$TARGET_DIR/.uatu/delivery/sprints"
+mkdir -p "$TARGET_DIR/.uatu/delivery/research"
+mkdir -p "$TARGET_DIR/.claude/commands"
+mkdir -p "$TARGET_DIR/.claude/agents"
+mkdir -p "$TARGET_DIR/.specify/memory"
+mkdir -p "$TARGET_DIR/.specify/scripts/bash"
+mkdir -p "$TARGET_DIR/.specify/templates"
+echo -e "  ${GREEN}Directories created${NC}"
+
+# Copy CLAUDE.md
+echo -e "${BLUE}Installing CLAUDE.md...${NC}"
+cp "$TEMPLATES_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+echo -e "  ${GREEN}CLAUDE.md installed${NC}"
+
+# Copy guides
+echo -e "${BLUE}Installing guides...${NC}"
+cp "$TEMPLATES_DIR/.uatu/guides/"*.md "$TARGET_DIR/.uatu/guides/" 2>/dev/null || true
+GUIDE_COUNT=$(ls -1 "$TARGET_DIR/.uatu/guides/"*.md 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}$GUIDE_COUNT guides installed${NC}"
+
+# Copy tools
+echo -e "${BLUE}Installing tools...${NC}"
+if [[ -d "$TEMPLATES_DIR/.uatu/tools" ]]; then
+    cp -r "$TEMPLATES_DIR/.uatu/tools" "$TARGET_DIR/.uatu/"
+    TOOL_COUNT=$(find "$TARGET_DIR/.uatu/tools" -type d -mindepth 1 -maxdepth 1 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}$TOOL_COUNT tools installed${NC}"
+else
+    echo -e "  ${YELLOW}No tools found in templates${NC}"
+fi
+
+# Copy hooks
+echo -e "${BLUE}Installing hooks...${NC}"
+if [[ -d "$TEMPLATES_DIR/.uatu/hooks" ]]; then
+    cp -r "$TEMPLATES_DIR/.uatu/hooks/"* "$TARGET_DIR/.uatu/hooks/" 2>/dev/null || true
+    HOOK_COUNT=$(find "$TARGET_DIR/.uatu/hooks" -type f 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}$HOOK_COUNT hooks installed${NC}"
+else
+    echo -e "  ${YELLOW}No hooks found in templates${NC}"
+fi
+
+# Create project.md (markdown config) - only if not exists or not in upgrade mode
+if [[ ! -f "$TARGET_DIR/.uatu/config/project.md" ]] || [[ "$UPGRADE_MODE" == false ]]; then
+    echo -e "${BLUE}Creating project.md...${NC}"
+    cat > "$TARGET_DIR/.uatu/config/project.md" << EOF
+# Project Configuration - $PROJECT_NAME
+
+> Created: $CURRENT_DATE
+> Framework: Uatu - The Watcher
+
+---
+
+## Project Info
+
+| Field | Value |
+|-------|-------|
+| Name | $PROJECT_NAME |
+| Description | Project description - customize this |
+| Type | monorepo / single-project |
+
+---
+
+## Child Projects
+
+> For monorepos, list child projects. Remove if single project.
+
+| Name | Path | Type | Description |
+|------|------|------|-------------|
+| frontend | frontend/ | primary | Frontend application |
+| backend | backend/ | support | Backend services |
+
+---
+
+## Naming Conventions
+
+### Worktree Pattern
+\`\`\`
+{project}-{NNN}-{type}-{JIRA-KEY}-{short-name}
+\`\`\`
+
+**Examples:**
+- \`$PROJECT_NAME-001-fix-PROJ-123-login-bug\`
+- \`$PROJECT_NAME-002-feat-PROJ-456-new-feature\`
+
+### Branch Pattern
+\`\`\`
+{JIRA-KEY}/{description}
+\`\`\`
+
+**Examples:**
+- \`PROJ-123/fix-login-bug\`
+- \`PROJ-456/add-new-feature\`
+
+---
+
+## Sprint Configuration
+
+| Setting | Value |
+|---------|-------|
+| Current Sprint | $CURRENT_DATE-sprint-1 |
+| Naming Format | {YYYY-MM-DD}-{kebab-name} |
+| Review Cadence | bi-weekly |
+
+---
+
+## Integration Keys
+
+| Service | Key |
+|---------|-----|
+| Jira Project | PROJ |
+| GitHub Org | $PROJECT_NAME |
+
+---
+
+## Feature Folders
+
+| Setting | Value |
+|---------|-------|
+| Base Path | .uatu/delivery/sprints |
+| Pattern | {sprint}/features/{NNN}-{JIRA-KEY}-{short-name} |
+| Next Index | 1 |
+
+---
+
+## Commit Conventions
+
+> Using Angular format (semantic-release compatible)
+
+| Type | Description |
+|------|-------------|
+| feat | New feature (minor version bump) |
+| fix | Bug fix (patch version bump) |
+| docs | Documentation only |
+| style | Code style (formatting) |
+| refactor | Code restructuring |
+| perf | Performance improvements |
+| test | Adding tests |
+| chore | Build/tooling changes |
+
+**Breaking Change:** Add \`BREAKING CHANGE:\` in footer or \`!\` after type
+
+---
+
+## Risk Areas
+
+### Critical
+- payment
+- auth
+- security
+
+### High
+- user
+- data
+
+### Medium
+- form
+- validation
+
+---
+
+*Customize this file for your project needs.*
+EOF
+    echo -e "  ${GREEN}project.md created${NC}"
+else
+    echo -e "  ${YELLOW}project.md already exists (preserved)${NC}"
+fi
+
+# Copy constitution template if it doesn't exist
+if [[ ! -f "$TARGET_DIR/.uatu/config/constitution.md" ]]; then
+    echo -e "${BLUE}Installing constitution...${NC}"
+    if [[ -f "$TEMPLATES_DIR/.uatu/config/constitution.md" ]]; then
+        cp "$TEMPLATES_DIR/.uatu/config/constitution.md" "$TARGET_DIR/.uatu/config/constitution.md"
+    else
+        cat > "$TARGET_DIR/.uatu/config/constitution.md" << 'CONSTITUTION'
+# AI Agent Cognitive Framework Constitution
+
+## Core Principles
+
+### I. Reflective Reasoning
+Agents MUST engage in deep, reflective reasoning before acting.
+
+### II. Cognitive Efficiency
+Agents MUST maintain modular, orthogonal thinking patterns.
+
+### III. Iterative Validation
+Agents MUST test hypotheses iteratively and self-correct.
+
+### IV. Epistemic Contracts
+Agents MUST make assumptions explicit and validate them.
+
+### V. Intentional Agency
+Agents MUST act with clear intent tied to user value.
+
+### VI. Continuous Learning
+Agents MUST learn from outcomes and adapt strategies.
+
+### VII. Context Clarity
+Agents MUST communicate context explicitly.
+
+### VIII. Pragmatic Excellence
+Agents MUST favor working solutions over perfection.
+
+---
+
+**Version**: 1.0.0 | Customize this constitution for your project.
+CONSTITUTION
+    fi
+    echo -e "  ${GREEN}Constitution installed${NC}"
+fi
+
+# Create PROJECT-LEVEL .mcp.json (only project-specific servers)
+echo -e "${BLUE}Creating .mcp.json (project-level servers)...${NC}"
+cat > "$TARGET_DIR/.mcp.json" << EOF
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "$TARGET_DIR"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GH_TOKEN}"
+      }
+    },
+    "atlassian": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"]
+    }
+  }
+}
+EOF
+echo -e "  ${GREEN}.mcp.json created${NC}"
+
+# Copy speckit commands
+echo -e "${BLUE}Installing speckit commands...${NC}"
+if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
+    cp "$TEMPLATES_DIR/.claude/commands/"*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
+    SPECKIT_COUNT=$(ls -1 "$TARGET_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands installed${NC}"
+else
+    echo -e "  ${YELLOW}No speckit commands found in templates${NC}"
+fi
+
+# NOTE: Generic agents are installed ONLY to ~/.claude/agents (user-level)
+# Project-specific agents should be created in .claude/agents/{project-name}/ as needed
+echo -e "${BLUE}Project agents directory created (empty - for project-specific agents only)${NC}"
+
+# Install agents to user's ~/.claude/agents (with confirmation)
+USER_AGENTS_DIR="$HOME/.claude/agents"
+echo -e "${BLUE}Installing user-level agents to ~/.claude/agents...${NC}"
+if [[ -d "$TEMPLATES_DIR/.claude/agents" ]]; then
+    mkdir -p "$USER_AGENTS_DIR"
+
+    # Count existing user agents
+    USER_AGENT_COUNT_BEFORE=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+
+    if [[ "$USER_AGENT_COUNT_BEFORE" -gt 0 ]]; then
+        echo -e "  ${YELLOW}Found $USER_AGENT_COUNT_BEFORE existing user agents${NC}"
+        read -p "  Replace with Uatu agent collection? (y/N) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # Backup existing agents
+            BACKUP_DIR="$HOME/.claude-agents-backup-$(date +%Y%m%d-%H%M%S)"
+            cp -r "$USER_AGENTS_DIR" "$BACKUP_DIR"
+            echo -e "  ${GREEN}Backed up existing agents to $BACKUP_DIR${NC}"
+
+            # Clear and copy new agents
+            rm -rf "$USER_AGENTS_DIR"/*
+
+            # Copy all agents recursively (flattening structure for Claude Code compatibility)
+            # This handles nested subdirectories like templates/base-template-generator.md
+            find "$TEMPLATES_DIR/.claude/agents" -type f -name "*.md" \
+                ! -name "README.md" ! -name "MIGRATION_SUMMARY.md" \
+                -exec cp {} "$USER_AGENTS_DIR/" \; 2>/dev/null || true
+
+            USER_AGENT_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+            echo -e "  ${GREEN}$USER_AGENT_COUNT agents installed to ~/.claude/agents${NC}"
+        else
+            echo -e "  ${YELLOW}Skipped user agent installation${NC}"
+        fi
+    else
+        # No existing agents, install directly (flattening structure)
+        find "$TEMPLATES_DIR/.claude/agents" -type f -name "*.md" \
+            ! -name "README.md" ! -name "MIGRATION_SUMMARY.md" \
+            -exec cp {} "$USER_AGENTS_DIR/" \; 2>/dev/null || true
+        USER_AGENT_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+        echo -e "  ${GREEN}$USER_AGENT_COUNT agents installed to ~/.claude/agents${NC}"
+    fi
+fi
+
+# Generate architecture overview (Mermaid diagram)
+echo -e "${BLUE}Generating architecture overview...${NC}"
+generate_architecture() {
+    local dir="$1"
+    local output="$2"
+
+    cat > "$output" << 'HEADER'
+# Architecture Overview
+
+> Auto-generated by Uatu - The Watcher
+> Regenerate with: `uatu-install` (will update this file)
+
+## Project Structure
+
+```mermaid
+graph TD
+    subgraph Project["Project Root"]
+HEADER
+
+    # Scan top-level directories
+    local indent="        "
+    local node_id=0
+
+    for item in "$dir"/*; do
+        if [[ -d "$item" ]]; then
+            local name=$(basename "$item")
+            # Skip hidden dirs and common non-essential dirs
+            if [[ "$name" != .* ]] && [[ "$name" != "node_modules" ]] && [[ "$name" != "vendor" ]] && [[ "$name" != "dist" ]] && [[ "$name" != "build" ]]; then
+                echo "${indent}D${node_id}[\"${name}/\"]" >> "$output"
+                ((node_id++))
+            fi
+        fi
+    done
+
+    echo "    end" >> "$output"
+    echo '```' >> "$output"
+
+    # Add key files section
+    cat >> "$output" << 'KEYFILES'
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | AI orchestration instructions |
+| `.uatu/config/project.md` | Project configuration |
+| `.uatu/config/constitution.md` | AI behavior principles |
+| `.uatu/guides/` | Workflow documentation |
+| `.claude/commands/` | Speckit slash commands |
+| `.claude/agents/` | Agent definitions |
+
+## Technology Stack
+
+> Update this section with your project's tech stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | - |
+| Backend | - |
+| Database | - |
+| Infrastructure | - |
+
+---
+KEYFILES
+
+    # Add date (outside HEREDOC to allow expansion)
+    echo "" >> "$output"
+    echo "*Last generated: $(date +%Y-%m-%d)*" >> "$output"
+}
+
+generate_architecture "$TARGET_DIR" "$TARGET_DIR/.uatu/config/architecture.md"
+echo -e "  ${GREEN}architecture.md generated${NC}"
+
+# Copy env.example if .env doesn't exist
+if [[ ! -f "$TARGET_DIR/.env" ]]; then
+    echo -e "${BLUE}Creating .env template...${NC}"
+    cat > "$TARGET_DIR/.env" << 'ENVFILE'
+# Uatu - The Watcher | Environment Variables
+# Fill in your values below
+
+# GitHub Token (required for GitHub MCP)
+# Create at: https://github.com/settings/tokens
+# Required scopes: repo, workflow, read:org
+GH_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Optional: Database connection for dbhub MCP
+# DATABASE_URL=postgresql://user:pass@host:5432/dbname
+ENVFILE
+    echo -e "  ${GREEN}.env template created${NC}"
+else
+    echo -e "  ${YELLOW}.env already exists (preserved)${NC}"
+fi
+
+# Create .envrc for direnv
+echo -e "${BLUE}Creating .envrc...${NC}"
+cat > "$TARGET_DIR/.envrc" << 'ENVRC'
+# Load environment variables from .env
+dotenv
+
+# Optional: Set workspace root for docker-compose
+eval "export LOCAL_WORKSPACE_ROOT=${PWD}"
+ENVRC
+echo -e "  ${GREEN}.envrc created${NC}"
+
+# Update .gitignore
+echo -e "${BLUE}Updating .gitignore...${NC}"
+GITIGNORE_ENTRIES=(".env" ".envrc" ".swarm/" ".hive-mind/" "*.db" "*.db-shm" "*.db-wal")
+if [[ -f "$TARGET_DIR/.gitignore" ]]; then
+    for entry in "${GITIGNORE_ENTRIES[@]}"; do
+        if ! grep -q "^${entry}$" "$TARGET_DIR/.gitignore" 2>/dev/null; then
+            echo "$entry" >> "$TARGET_DIR/.gitignore"
+        fi
+    done
+else
+    printf '%s\n' "${GITIGNORE_ENTRIES[@]}" > "$TARGET_DIR/.gitignore"
+fi
+echo -e "  ${GREEN}.gitignore updated${NC}"
+
+# Write version file
+NEW_VERSION=$(cat "$TEMPLATES_DIR/.uatu/.version" 2>/dev/null || echo "1.0.0")
+echo "$NEW_VERSION" > "$TARGET_DIR/.uatu/.version"
+if [[ "$UPGRADE_MODE" == true ]]; then
+    echo -e "${BLUE}Upgraded from version $CURRENT_VERSION to $NEW_VERSION${NC}"
+else
+    echo -e "${BLUE}Installed version $NEW_VERSION${NC}"
+fi
+
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+if [[ "$UPGRADE_MODE" == true ]]; then
+    echo -e "  ${GREEN}Upgrade Complete!${NC}"
+else
+    echo -e "  ${GREEN}Installation Complete!${NC}"
+fi
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "Installed/Updated:"
+echo "  CLAUDE.md                    - Framework instructions"
+echo "  .mcp.json                    - Project-level MCP servers"
+echo "  .env                         - Environment variables template"
+echo "  .envrc                       - Direnv auto-load"
+echo "  .uatu/.version               - Version: $NEW_VERSION"
+echo "  .uatu/config/                - Project config (markdown)"
+echo "  .uatu/config/architecture.md - Auto-generated overview"
+echo "  .uatu/guides/                - Workflow documentation"
+echo "  .uatu/tools/                 - Utility tools (time-tracking, etc.)"
+echo "  .uatu/hooks/                 - Git hooks and automation"
+echo "  .uatu/delivery/sprints/      - Sprint delivery folders"
+echo "  .claude/commands/            - Speckit slash commands"
+echo "  .claude/agents/              - Empty (for project-specific agents)"
+echo "  ~/.claude/agents/            - Generic agents (user-level)"
+echo ""
+if [[ "$UPGRADE_MODE" == true ]]; then
+    echo "Preserved:"
+    echo "  .uatu/config/project.md      - Your project configuration"
+    echo "  .uatu/config/constitution.md - Your project principles"
+    echo ""
+fi
+echo "═══════════════════════════════════════════════════════════════"
+echo "  Next Steps"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "1. Edit .env with your tokens:"
+echo -e "   ${BLUE}nano .env${NC}"
+echo ""
+echo "2. Customize project configuration:"
+echo -e "   ${BLUE}nano .uatu/config/project.md${NC}"
+echo ""
+echo "3. Update architecture overview:"
+echo -e "   ${BLUE}nano .uatu/config/architecture.md${NC}"
+echo ""
+echo "4. Allow direnv (if using):"
+echo -e "   ${BLUE}direnv allow${NC}"
+echo ""
+echo "5. Start Claude Code:"
+echo -e "   ${BLUE}claude${NC}"
+echo ""
+echo "Available Packages:"
+echo "  SOLO  - Native tools + Sequential Thinking"
+echo "  SCOUT - Task subagents for investigation"
+echo "  SQUAD - Claude Flow swarms (quick tasks)"
+echo "  BRAIN - Ruv Swarm (DAA, neural, no timeout)"
+echo "  HIVE  - Claude Flow hive-mind (persistent sessions)"
+echo ""

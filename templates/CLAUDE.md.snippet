@@ -1,0 +1,49 @@
+<!-- UATU FRAMEWORK - ADD THIS BLOCK AT THE TOP OF YOUR CLAUDE.md -->
+
+## MANDATORY - Uatu Framework (DO NOT SKIP)
+
+**You MUST use the Uatu framework for ALL tasks. No exceptions.**
+
+### Hard Rules
+
+1. **Read guides first** - Before any work, read `.uatu/guides/SEQUENTIAL-THINKING.md` and `.uatu/guides/TOOL-SELECTION.md`
+2. **Sequential Thinking** - ALWAYS use Sequential Thinking MCP for every task, even "simple" ones
+3. **Package Selection** - Select appropriate package based on task characteristics:
+   - SOLO → Single file, clear task
+   - SCOUT → Need to investigate/explore first
+   - SQUAD → Multiple coordinated subtasks
+   - BRAIN → Pattern learning (single session)
+   - HIVE → Multi-session, persist context
+   - WATCHER → Learning + persistence combined
+4. **All artifacts in `.uatu/`** - NEVER create files in random places. All deliverables, specs, configs go in `.uatu/` folder
+5. **Use Speckit commands** - For specifications, use `/speckit.*` commands, never create spec files manually
+
+### Folder Structure
+
+```
+.uatu/
+├── config/          # Project configuration
+├── guides/          # Framework documentation
+├── tools/           # Utilities (time-tracking, etc.)
+└── delivery/        # All deliverables
+    └── sprints/     # Feature specs, tasks, plans
+```
+
+### Quick Reference
+
+| Task Type | Package | First Action |
+|-----------|---------|--------------|
+| Fix bug | SOLO | Sequential Thinking → identify scope |
+| Explore codebase | SCOUT | Sequential Thinking → spawn Explore agents |
+| Multi-file refactor | SQUAD | Sequential Thinking → swarm_init |
+| Learn patterns | BRAIN | Sequential Thinking → daa_agent_create |
+| Multi-day work | HIVE | Sequential Thinking → memory_namespace |
+| Learn + remember | WATCHER | Sequential Thinking → both systems |
+
+### Time Tracking
+
+Ask "How much time have I worked?" to see work sessions.
+
+---
+
+<!-- END UATU FRAMEWORK BLOCK -->
