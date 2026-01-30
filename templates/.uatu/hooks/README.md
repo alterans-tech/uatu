@@ -21,7 +21,11 @@ Claude Code supports 6 hook events:
 
 ## Hook Configuration
 
-Hooks are configured in `.claude/hooks.json` (or `mcp.json` under `hooks` key):
+Hooks can be configured in **two locations** (choose one):
+
+### Option 1: Separate hooks file (Recommended)
+
+Create `.claude/hooks.json`:
 
 ```json
 {
@@ -38,6 +42,31 @@ Hooks are configured in `.claude/hooks.json` (or `mcp.json` under `hooks` key):
   ]
 }
 ```
+
+**Pros:** Cleaner separation, easier to manage hooks independently
+
+### Option 2: Add to existing config
+
+Add to `.claude/settings.json` or `mcp.json`:
+
+```json
+{
+  "mcpServers": { ... },
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "scripts": [
+        {
+          "path": ".uatu/hooks/session-start/load-project-context.sh",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Pros:** Single configuration file, all settings in one place
 
 ---
 
@@ -299,12 +328,29 @@ Each hook's `additionalContext` is concatenated.
 
 ## Examples
 
-See individual hook scripts in subdirectories:
-- `session-start/` - Context loading examples
-- `user-prompt-submit/` - Policy enforcement examples
-- `post-tool-use/` - Code formatting examples
-- `stop/` - Cleanup and tracking examples
+Uatu provides two types of hooks:
+
+### Core Hooks (Active by Default)
+
+Located in event-specific directories:
+- `session-start/load-project-context.sh` - Loads project configuration
+- `user-prompt-submit/enforce-sequential-thinking.sh` - Policy enforcement
+- `post-tool-use/format-code.sh` - Auto-formatting
+- `stop/update-jira.sh` - Session tracking (placeholder)
+
+### Example Hooks (Reference Only)
+
+Located in `examples/` directory:
+- `verify-git-branch.sh` - Warn if on protected branch
+- `check-dependencies.sh` - Verify required tools installed
+- `prevent-destructive-ops.sh` - Block dangerous commands
+- `track-tool-usage.sh` - Log tool usage statistics
+- `session-summary.sh` - Generate end-of-session summary
+- `python-example.py` - Python hook example
+
+**To use example hooks:** Copy to appropriate event directory and add to hooks.json
 
 ---
 
+*For comprehensive hook documentation, see `.uatu/guides/HOOKS.md`*
 *For more on Uatu workflows, see `.uatu/guides/WORKFLOW.md`*

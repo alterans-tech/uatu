@@ -23,8 +23,11 @@
 ```
 .uatu/
 ├── config/          # Project configuration
+│   ├── project.md         # Project settings
+│   ├── architecture.md    # Auto-generated tech overview
+│   └── constitution.md    # AI behavior principles
 ├── guides/          # Framework documentation
-├── tools/           # Utilities (time-tracking, etc.)
+├── tools/           # Utilities (architecture-scanner.sh, time-tracking, etc.)
 └── delivery/        # All deliverables
     └── sprints/     # Feature specs, tasks, plans
 ```
@@ -45,10 +48,11 @@
 **If this is an existing configured project:**
 
 1. Read `.uatu/config/project.md` for project context
-2. Read mandatory guides:
+2. Read `.uatu/config/architecture.md` for tech stack overview
+3. Read mandatory guides:
    - `.uatu/guides/SEQUENTIAL-THINKING.md`
    - `.uatu/guides/TOOL-SELECTION.md`
-3. Proceed with user's task using Sequential Thinking
+4. Proceed with user's task using Sequential Thinking
 
 ---
 
@@ -86,6 +90,17 @@
 ---
 
 ## Tools
+
+### Architecture Scanner
+
+Auto-generates `.uatu/config/architecture.md` with project overview.
+
+**Usage:**
+```bash
+.uatu/tools/architecture-scanner.sh
+```
+
+Detects: project type, frameworks, databases, infrastructure, entry points.
 
 ### Time Tracking
 

@@ -83,11 +83,48 @@ echo ""
 # Detect if this is an upgrade
 UPGRADE_MODE=false
 CURRENT_VERSION=""
+BACKUP_DIR=""
+UPDATED_FILES=()
+PRESERVED_FILES=()
+NEW_FILES=()
+
 if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
     UPGRADE_MODE=true
     CURRENT_VERSION=$(cat "$TARGET_DIR/.uatu/.version")
     echo -e "${YELLOW}Detected existing installation (version $CURRENT_VERSION)${NC}"
     echo -e "${BLUE}Running in upgrade mode - preserving user configuration${NC}"
+
+    # Create timestamped backup
+    BACKUP_DIR="$TARGET_DIR/.uatu/.backups/upgrade-$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+    echo -e "  ${CYAN}Creating backup at .uatu/.backups/upgrade-$(date +%Y%m%d-%H%M%S)${NC}"
+
+    # Backup user configuration files
+    if [[ -f "$TARGET_DIR/.uatu/config/project.md" ]]; then
+        cp "$TARGET_DIR/.uatu/config/project.md" "$BACKUP_DIR/"
+        PRESERVED_FILES+=(".uatu/config/project.md")
+    fi
+    if [[ -f "$TARGET_DIR/.uatu/config/constitution.md" ]]; then
+        cp "$TARGET_DIR/.uatu/config/constitution.md" "$BACKUP_DIR/"
+        PRESERVED_FILES+=(".uatu/config/constitution.md")
+    fi
+    if [[ -f "$TARGET_DIR/.env" ]]; then
+        cp "$TARGET_DIR/.env" "$BACKUP_DIR/"
+        PRESERVED_FILES+=(".env")
+    fi
+
+    # Backup CLAUDE.md if it has user customizations (check for Project Info section)
+    if [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -q "\[Ask user\]" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+        # Template version, safe to overwrite
+        UPDATED_FILES+=("CLAUDE.md")
+    elif [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
+        # User has customized it
+        cp "$TARGET_DIR/CLAUDE.md" "$BACKUP_DIR/"
+        PRESERVED_FILES+=("CLAUDE.md (see backup for previous version)")
+        UPDATED_FILES+=("CLAUDE.md (merged with latest template)")
+    fi
+
+    echo -e "  ${GREEN}Backup created${NC}"
     echo ""
 fi
 
@@ -106,40 +143,68 @@ mkdir -p "$TARGET_DIR/.specify/scripts/bash"
 mkdir -p "$TARGET_DIR/.specify/templates"
 echo -e "  ${GREEN}Directories created${NC}"
 
-# Copy CLAUDE.md
+# Copy CLAUDE.md (always update to latest template)
 echo -e "${BLUE}Installing CLAUDE.md...${NC}"
 cp "$TEMPLATES_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
-echo -e "  ${GREEN}CLAUDE.md installed${NC}"
+if [[ "$UPGRADE_MODE" == false ]]; then
+    echo -e "  ${GREEN}CLAUDE.md installed${NC}"
+    NEW_FILES+=("CLAUDE.md")
+else
+    echo -e "  ${GREEN}CLAUDE.md updated${NC}"
+fi
 
-# Copy guides
+# Copy guides (always update - these are framework docs)
 echo -e "${BLUE}Installing guides...${NC}"
 cp "$TEMPLATES_DIR/.uatu/guides/"*.md "$TARGET_DIR/.uatu/guides/" 2>/dev/null || true
 GUIDE_COUNT=$(ls -1 "$TARGET_DIR/.uatu/guides/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo -e "  ${GREEN}$GUIDE_COUNT guides installed${NC}"
+if [[ "$UPGRADE_MODE" == false ]]; then
+    echo -e "  ${GREEN}$GUIDE_COUNT guides installed${NC}"
+    NEW_FILES+=(".uatu/guides/ ($GUIDE_COUNT files)")
+else
+    echo -e "  ${GREEN}$GUIDE_COUNT guides updated${NC}"
+    UPDATED_FILES+=(".uatu/guides/ ($GUIDE_COUNT files)")
+fi
 
-# Copy tools
+# Copy tools (always update - these are framework utilities)
 echo -e "${BLUE}Installing tools...${NC}"
 if [[ -d "$TEMPLATES_DIR/.uatu/tools" ]]; then
-    cp -r "$TEMPLATES_DIR/.uatu/tools" "$TARGET_DIR/.uatu/"
+    cp -r "$TEMPLATES_DIR/.uatu/tools/"* "$TARGET_DIR/.uatu/tools/" 2>/dev/null || true
     TOOL_COUNT=$(find "$TARGET_DIR/.uatu/tools" -type d -mindepth 1 -maxdepth 1 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "  ${GREEN}$TOOL_COUNT tools installed${NC}"
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        echo -e "  ${GREEN}$TOOL_COUNT tools installed${NC}"
+        NEW_FILES+=(".uatu/tools/ ($TOOL_COUNT tools)")
+    else
+        echo -e "  ${GREEN}$TOOL_COUNT tools updated${NC}"
+        UPDATED_FILES+=(".uatu/tools/ ($TOOL_COUNT tools)")
+    fi
 else
     echo -e "  ${YELLOW}No tools found in templates${NC}"
 fi
 
-# Copy hooks
+# Copy hooks (always update - these are framework automation)
 echo -e "${BLUE}Installing hooks...${NC}"
 if [[ -d "$TEMPLATES_DIR/.uatu/hooks" ]]; then
     cp -r "$TEMPLATES_DIR/.uatu/hooks/"* "$TARGET_DIR/.uatu/hooks/" 2>/dev/null || true
+
+    # Make all hook scripts executable (.sh and .py)
+    find "$TARGET_DIR/.uatu/hooks" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} \; 2>/dev/null || true
+
     HOOK_COUNT=$(find "$TARGET_DIR/.uatu/hooks" -type f 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "  ${GREEN}$HOOK_COUNT hooks installed${NC}"
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        echo -e "  ${GREEN}$HOOK_COUNT hooks installed and made executable${NC}"
+        NEW_FILES+=(".uatu/hooks/ ($HOOK_COUNT files)")
+    else
+        echo -e "  ${GREEN}$HOOK_COUNT hooks updated and made executable${NC}"
+        UPDATED_FILES+=(".uatu/hooks/ ($HOOK_COUNT files)")
+    fi
 else
     echo -e "  ${YELLOW}No hooks found in templates${NC}"
 fi
 
-# Create project.md (markdown config) - only if not exists or not in upgrade mode
-if [[ ! -f "$TARGET_DIR/.uatu/config/project.md" ]] || [[ "$UPGRADE_MODE" == false ]]; then
+# Create project.md (markdown config) - only if not exists
+if [[ ! -f "$TARGET_DIR/.uatu/config/project.md" ]]; then
     echo -e "${BLUE}Creating project.md...${NC}"
+    NEW_FILES+=(".uatu/config/project.md")
     cat > "$TARGET_DIR/.uatu/config/project.md" << EOF
 # Project Configuration - $PROJECT_NAME
 
@@ -263,9 +328,10 @@ else
     echo -e "  ${YELLOW}project.md already exists (preserved)${NC}"
 fi
 
-# Copy constitution template if it doesn't exist
+# Copy constitution template if it doesn't exist (preserve user customizations)
 if [[ ! -f "$TARGET_DIR/.uatu/config/constitution.md" ]]; then
     echo -e "${BLUE}Installing constitution...${NC}"
+    NEW_FILES+=(".uatu/config/constitution.md")
     if [[ -f "$TEMPLATES_DIR/.uatu/config/constitution.md" ]]; then
         cp "$TEMPLATES_DIR/.uatu/config/constitution.md" "$TARGET_DIR/.uatu/config/constitution.md"
     else
@@ -304,10 +370,20 @@ Agents MUST favor working solutions over perfection.
 CONSTITUTION
     fi
     echo -e "  ${GREEN}Constitution installed${NC}"
+else
+    if [[ "$UPGRADE_MODE" == true ]]; then
+        echo -e "${BLUE}Constitution found...${NC}"
+        echo -e "  ${YELLOW}Preserved existing (not overwritten)${NC}"
+    fi
 fi
 
 # Create PROJECT-LEVEL .mcp.json (only project-specific servers)
 echo -e "${BLUE}Creating .mcp.json (project-level servers)...${NC}"
+if [[ "$UPGRADE_MODE" == false ]]; then
+    NEW_FILES+=(".mcp.json")
+else
+    UPDATED_FILES+=(".mcp.json")
+fi
 cat > "$TARGET_DIR/.mcp.json" << EOF
 {
   "mcpServers": {
@@ -338,14 +414,74 @@ cat > "$TARGET_DIR/.mcp.json" << EOF
 EOF
 echo -e "  ${GREEN}.mcp.json created${NC}"
 
-# Copy speckit commands
+# Copy speckit commands (always update - these are framework commands)
 echo -e "${BLUE}Installing speckit commands...${NC}"
 if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
     cp "$TEMPLATES_DIR/.claude/commands/"*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
     SPECKIT_COUNT=$(ls -1 "$TARGET_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands installed${NC}"
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands installed${NC}"
+        NEW_FILES+=(".claude/commands/ ($SPECKIT_COUNT files)")
+    else
+        echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands updated${NC}"
+        UPDATED_FILES+=(".claude/commands/ ($SPECKIT_COUNT files)")
+    fi
 else
     echo -e "  ${YELLOW}No speckit commands found in templates${NC}"
+fi
+
+# Create .claude/settings.json with sample hooks configuration
+if [[ ! -f "$TARGET_DIR/.claude/settings.json" ]]; then
+    echo -e "${BLUE}Creating .claude/settings.json with sample hooks configuration...${NC}"
+    NEW_FILES+=(".claude/settings.json")
+    cat > "$TARGET_DIR/.claude/settings.json" << 'SETTINGS'
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "scripts": [
+        {
+          "path": ".uatu/hooks/session-start/load-project-context.sh",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "event": "UserPromptSubmit",
+      "scripts": [
+        {
+          "path": ".uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "event": "PostToolUse",
+      "scripts": [
+        {
+          "path": ".uatu/hooks/post-tool-use/format-code.sh",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "event": "Stop",
+      "scripts": [
+        {
+          "path": ".uatu/hooks/stop/update-jira.sh",
+          "enabled": false
+        }
+      ]
+    }
+  ]
+}
+SETTINGS
+    echo -e "  ${GREEN}.claude/settings.json created${NC}"
+else
+    if [[ "$UPGRADE_MODE" == true ]]; then
+        echo -e "${BLUE}.claude/settings.json found...${NC}"
+        echo -e "  ${YELLOW}Preserved existing (not overwritten)${NC}"
+    fi
 fi
 
 # NOTE: Generic agents are installed ONLY to ~/.claude/agents (user-level)
@@ -395,82 +531,43 @@ if [[ -d "$TEMPLATES_DIR/.claude/agents" ]]; then
     fi
 fi
 
-# Generate architecture overview (Mermaid diagram)
+# Generate architecture overview using scanner script
 echo -e "${BLUE}Generating architecture overview...${NC}"
-generate_architecture() {
-    local dir="$1"
-    local output="$2"
-
-    cat > "$output" << 'HEADER'
+if [[ -f "$TARGET_DIR/.uatu/tools/architecture-scanner.sh" ]]; then
+    bash "$TARGET_DIR/.uatu/tools/architecture-scanner.sh" "$TARGET_DIR" "$TARGET_DIR/.uatu/config/architecture.md" > /dev/null 2>&1
+else
+    echo -e "  ${YELLOW}Warning: architecture-scanner.sh not found, creating basic architecture.md${NC}"
+    cat > "$TARGET_DIR/.uatu/config/architecture.md" << 'EOF'
 # Architecture Overview
 
 > Auto-generated by Uatu - The Watcher
-> Regenerate with: `uatu-install` (will update this file)
+> Regenerate with: `.uatu/tools/architecture-scanner.sh` or `uatu-install`
 
-## Project Structure
+## Project Summary
 
-```mermaid
-graph TD
-    subgraph Project["Project Root"]
-HEADER
+Update this file with your project details or run the architecture scanner:
 
-    # Scan top-level directories
-    local indent="        "
-    local node_id=0
-
-    for item in "$dir"/*; do
-        if [[ -d "$item" ]]; then
-            local name=$(basename "$item")
-            # Skip hidden dirs and common non-essential dirs
-            if [[ "$name" != .* ]] && [[ "$name" != "node_modules" ]] && [[ "$name" != "vendor" ]] && [[ "$name" != "dist" ]] && [[ "$name" != "build" ]]; then
-                echo "${indent}D${node_id}[\"${name}/\"]" >> "$output"
-                ((node_id++))
-            fi
-        fi
-    done
-
-    echo "    end" >> "$output"
-    echo '```' >> "$output"
-
-    # Add key files section
-    cat >> "$output" << 'KEYFILES'
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | AI orchestration instructions |
-| `.uatu/config/project.md` | Project configuration |
-| `.uatu/config/constitution.md` | AI behavior principles |
-| `.uatu/guides/` | Workflow documentation |
-| `.claude/commands/` | Speckit slash commands |
-| `.claude/agents/` | Agent definitions |
-
-## Technology Stack
-
-> Update this section with your project's tech stack
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | - |
-| Backend | - |
-| Database | - |
-| Infrastructure | - |
+```bash
+.uatu/tools/architecture-scanner.sh
+```
 
 ---
-KEYFILES
 
-    # Add date (outside HEREDOC to allow expansion)
-    echo "" >> "$output"
-    echo "*Last generated: $(date +%Y-%m-%d)*" >> "$output"
-}
+*Last generated: $(date +%Y-%m-%d)*
+EOF
+fi
+if [[ "$UPGRADE_MODE" == false ]]; then
+    echo -e "  ${GREEN}architecture.md generated${NC}"
+    NEW_FILES+=(".uatu/config/architecture.md")
+else
+    echo -e "  ${GREEN}architecture.md regenerated${NC}"
+    UPDATED_FILES+=(".uatu/config/architecture.md")
+fi
 
-generate_architecture "$TARGET_DIR" "$TARGET_DIR/.uatu/config/architecture.md"
-echo -e "  ${GREEN}architecture.md generated${NC}"
-
-# Copy env.example if .env doesn't exist
+# Copy env.example if .env doesn't exist (always preserve existing .env)
 if [[ ! -f "$TARGET_DIR/.env" ]]; then
     echo -e "${BLUE}Creating .env template...${NC}"
+    NEW_FILES+=(".env")
     cat > "$TARGET_DIR/.env" << 'ENVFILE'
 # Uatu - The Watcher | Environment Variables
 # Fill in your values below
@@ -485,11 +582,19 @@ GH_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ENVFILE
     echo -e "  ${GREEN}.env template created${NC}"
 else
+    if [[ "$UPGRADE_MODE" == true ]]; then
+        echo -e "${BLUE}.env found...${NC}"
+    fi
     echo -e "  ${YELLOW}.env already exists (preserved)${NC}"
 fi
 
-# Create .envrc for direnv
+# Create .envrc for direnv (always update - this is a simple template)
 echo -e "${BLUE}Creating .envrc...${NC}"
+if [[ "$UPGRADE_MODE" == false ]]; then
+    NEW_FILES+=(".envrc")
+else
+    UPDATED_FILES+=(".envrc")
+fi
 cat > "$TARGET_DIR/.envrc" << 'ENVRC'
 # Load environment variables from .env
 dotenv
@@ -501,7 +606,7 @@ echo -e "  ${GREEN}.envrc created${NC}"
 
 # Update .gitignore
 echo -e "${BLUE}Updating .gitignore...${NC}"
-GITIGNORE_ENTRIES=(".env" ".envrc" ".swarm/" ".hive-mind/" "*.db" "*.db-shm" "*.db-wal")
+GITIGNORE_ENTRIES=(".env" ".envrc" ".swarm/" ".hive-mind/" ".uatu/.backups/" "*.db" "*.db-shm" "*.db-wal")
 if [[ -f "$TARGET_DIR/.gitignore" ]]; then
     for entry in "${GITIGNORE_ENTRIES[@]}"; do
         if ! grep -q "^${entry}$" "$TARGET_DIR/.gitignore" 2>/dev/null; then
@@ -525,32 +630,55 @@ fi
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 if [[ "$UPGRADE_MODE" == true ]]; then
-    echo -e "  ${GREEN}Upgrade Complete!${NC}"
+    echo -e "  ${GREEN}Upgrade Complete!${NC} (v${CURRENT_VERSION} → v${NEW_VERSION})"
 else
-    echo -e "  ${GREEN}Installation Complete!${NC}"
+    echo -e "  ${GREEN}Installation Complete!${NC} (v${NEW_VERSION})"
 fi
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
-echo "Installed/Updated:"
-echo "  CLAUDE.md                    - Framework instructions"
-echo "  .mcp.json                    - Project-level MCP servers"
-echo "  .env                         - Environment variables template"
-echo "  .envrc                       - Direnv auto-load"
-echo "  .uatu/.version               - Version: $NEW_VERSION"
-echo "  .uatu/config/                - Project config (markdown)"
-echo "  .uatu/config/architecture.md - Auto-generated overview"
-echo "  .uatu/guides/                - Workflow documentation"
-echo "  .uatu/tools/                 - Utility tools (time-tracking, etc.)"
-echo "  .uatu/hooks/                 - Git hooks and automation"
-echo "  .uatu/delivery/sprints/      - Sprint delivery folders"
-echo "  .claude/commands/            - Speckit slash commands"
-echo "  .claude/agents/              - Empty (for project-specific agents)"
-echo "  ~/.claude/agents/            - Generic agents (user-level)"
-echo ""
+
 if [[ "$UPGRADE_MODE" == true ]]; then
-    echo "Preserved:"
-    echo "  .uatu/config/project.md      - Your project configuration"
-    echo "  .uatu/config/constitution.md - Your project principles"
+    # Show upgrade summary
+    if [[ ${#UPDATED_FILES[@]} -gt 0 ]]; then
+        echo -e "${CYAN}Updated Files (merged with latest templates):${NC}"
+        for file in "${UPDATED_FILES[@]}"; do
+            echo "  ✓ $file"
+        done
+        echo ""
+    fi
+
+    if [[ ${#PRESERVED_FILES[@]} -gt 0 ]]; then
+        echo -e "${YELLOW}Preserved Files (user customizations kept):${NC}"
+        for file in "${PRESERVED_FILES[@]}"; do
+            echo "  ✓ $file"
+        done
+        echo ""
+    fi
+
+    if [[ -n "$BACKUP_DIR" ]]; then
+        echo -e "${CYAN}Backup Location:${NC}"
+        echo "  $BACKUP_DIR"
+        echo "  (Previous versions saved here for reference)"
+        echo ""
+    fi
+else
+    # Show new installation summary
+    echo "Installed:"
+    echo "  CLAUDE.md                    - Framework instructions"
+    echo "  .mcp.json                    - Project-level MCP servers"
+    echo "  .env                         - Environment variables template"
+    echo "  .envrc                       - Direnv auto-load"
+    echo "  .uatu/.version               - Version: $NEW_VERSION"
+    echo "  .uatu/config/                - Project config (markdown)"
+    echo "  .uatu/config/architecture.md - Auto-generated overview"
+    echo "  .uatu/guides/                - Workflow documentation"
+    echo "  .uatu/tools/                 - Utility tools (time-tracking, etc.)"
+    echo "  .uatu/hooks/                 - Git hooks and automation"
+    echo "  .uatu/delivery/sprints/      - Sprint delivery folders"
+    echo "  .claude/commands/            - Speckit slash commands"
+    echo "  .claude/settings.json        - Hooks configuration (sample)"
+    echo "  .claude/agents/              - Empty (for project-specific agents)"
+    echo "  ~/.claude/agents/            - Generic agents (user-level)"
     echo ""
 fi
 echo "═══════════════════════════════════════════════════════════════"

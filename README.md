@@ -35,6 +35,9 @@ your-monorepo/
 │   │   ├── SEQUENTIAL-THINKING.md      # Task analysis patterns
 │   │   ├── TOOL-SELECTION.md           # Tool selection guide
 │   │   └── CLAUDE-FLOW-SELECTION.md    # Swarm tool details
+│   ├── tools/
+│   │   ├── architecture-scanner.sh     # Auto-generate architecture.md
+│   │   └── time-tracking/              # Work session tracking
 │   └── delivery/
 │       └── sprints/                    # Feature specs by sprint
 └── .claude/
@@ -104,11 +107,40 @@ Agent categories:
 | `/speckit.analyze` | Cross-artifact consistency |
 | `/speckit.checklist` | Requirements validation |
 
+## Tools
+
+### Architecture Scanner
+
+Auto-generates `.uatu/config/architecture.md` by scanning your codebase.
+
+**What it detects:**
+- Project type (Node.js, Python, Rust, Go, etc.)
+- Frameworks (React, Next.js, Django, Flask, etc.)
+- Databases (PostgreSQL, MySQL, MongoDB, Redis)
+- Infrastructure (Docker, Kubernetes, GitHub Actions)
+- Entry points and directory structure
+
+**Usage:**
+```bash
+.uatu/tools/architecture-scanner.sh
+```
+
+The scanner runs automatically during `uatu-install` and can be rerun anytime.
+
+### Time Tracking
+
+Tracks work sessions across sprints and features.
+
+**Usage:**
+```bash
+python .uatu/tools/time-tracking/worklog.py --project $(pwd) --tz -3
+```
+
 ## Post-Install
 
 1. Edit `.env` with your tokens
 2. Edit `.uatu/config/project.md` with project settings
-3. Update `.uatu/config/architecture.md` with your tech stack
+3. Review `.uatu/config/architecture.md` (auto-generated, can be updated manually or regenerated)
 4. Run `direnv allow`
 
 ## Requirements
