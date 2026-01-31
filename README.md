@@ -1,5 +1,8 @@
 # Uatu - The Watcher
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/alterans/uatu)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 AI orchestration framework for software development. Combines Sequential Thinking, multi-agent swarms, specification-driven workflows, and project management integration.
 
 ## What is Uatu?
