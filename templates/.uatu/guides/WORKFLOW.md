@@ -69,7 +69,7 @@ rainbow-015-fix-RED-2700-cross-project
 ```
 .uatu/
 ├── config/
-│   ├── project.yaml        # Project configuration
+│   ├── project.md          # Project configuration
 │   └── constitution.md     # Project principles
 ├── guides/                 # These reference docs
 │   ├── WORKFLOW.md

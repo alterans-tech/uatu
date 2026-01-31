@@ -167,8 +167,8 @@ Sequential Thinking → daa_agent_create → neural_train → knowledge_share
 
 ### HIVE
 ```
-Sequential Thinking → seraphina_chat → sandbox_create → workflow
-(Thinking scopes the multi-phase plan)
+Sequential Thinking → swarm_init(hierarchical) → memory_persist → workflow
+(Thinking scopes the multi-phase plan with persistence)
 ```
 
 ---

@@ -1,6 +1,6 @@
 # Claude Code Agents Directory
 
-This directory contains specialized agent definitions for the Uatu framework. Agents provide domain-specific expertise and can be spawned individually or coordinated in swarms.
+Specialized agent definitions for the Uatu framework. Agents provide domain-specific expertise and can be spawned individually or coordinated in swarms.
 
 ---
 
@@ -8,15 +8,17 @@ This directory contains specialized agent definitions for the Uatu framework. Ag
 
 **Total Agents**: 62 specialized agents across 9 categories
 
-**Primary Categories**:
-- Core development (11 agents)
-- GitHub integration (13 agents)
-- Firebase operations (12 agents)
-- Language specialists (7 agents)
-- Quality assurance (7 agents)
-- Data engineering (7 agents)
-- Infrastructure (6 agents)
-- SPARC methodology (4 agents)
+| Category | Count | Purpose |
+|----------|-------|---------|
+| core | 11 | General development |
+| firebase | 12 | Firebase platform |
+| languages | 7 | Language specialists |
+| data | 6 | Data & databases |
+| infrastructure | 6 | Cloud & DevOps |
+| specialized | 6 | Domain-specific |
+| quality | 5 | Testing & QA |
+| github | 5 | GitHub integration |
+| sparc | 4 | SPARC methodology |
 
 ---
 
@@ -24,191 +26,87 @@ This directory contains specialized agent definitions for the Uatu framework. Ag
 
 ```
 .claude/agents/
-├── README.md                    # This file
-├── MIGRATION_SUMMARY.md         # Migration history
+├── README.md
 │
-├── core/                        # General development agents (11)
-│   ├── coder.md
-│   ├── tester.md
-│   ├── reviewer.md
-│   ├── debugger.md
+├── core/                     # General development (11)
 │   ├── architect-review.md
 │   ├── backend-architect.md
+│   ├── coder.md
+│   ├── debugger.md
 │   ├── frontend-developer.md
 │   ├── fullstack-developer.md
 │   ├── microservices-architect.md
+│   ├── planner.md
 │   ├── refactoring-specialist.md
-│   └── researcher.md
+│   ├── researcher.md
+│   └── reviewer.md
 │
-├── sparc/                       # SPARC methodology (4)
-│   ├── specification.md         # Requirements analysis
-│   ├── pseudocode.md           # Algorithm design
-│   ├── architecture.md         # System design
-│   └── refinement.md           # Optimization
+├── firebase/                 # Firebase platform (12)
+│   ├── firebase-analytics-specialist.md
+│   ├── firebase-appcheck-specialist.md
+│   ├── firebase-auth-specialist.md
+│   ├── firebase-crashlytics-specialist.md
+│   ├── firebase-firestore-specialist.md
+│   ├── firebase-functions-specialist.md
+│   ├── firebase-hosting-specialist.md
+│   ├── firebase-messaging-specialist.md
+│   ├── firebase-performance-specialist.md
+│   ├── firebase-remote-config-specialist.md
+│   ├── firebase-storage-specialist.md
+│   └── firebase-testlab-specialist.md
 │
-├── github/                      # GitHub integration (13)
-│   ├── pr-manager.md
-│   ├── issue-tracker.md
-│   ├── release-manager.md
-│   ├── repo-architect.md
-│   ├── workflow-automation.md
-│   ├── swarm-pr.md
-│   ├── swarm-issue.md
-│   ├── code-review-swarm.md
-│   ├── release-swarm.md
-│   ├── multi-repo-swarm.md
-│   ├── project-board-sync.md
-│   ├── sync-coordinator.md
-│   └── github-modes.md
-│
-├── firebase/                    # Firebase operations (12)
-│   ├── auth-specialist.md
-│   ├── firestore-specialist.md
-│   ├── functions-specialist.md
-│   ├── hosting-specialist.md
-│   ├── storage-specialist.md
-│   ├── analytics-specialist.md
-│   ├── crashlytics-specialist.md
-│   ├── messaging-specialist.md
-│   ├── performance-specialist.md
-│   ├── remote-config-specialist.md
-│   ├── security-rules-specialist.md
-│   └── emulator-specialist.md
-│
-├── languages/                   # Language specialists (7)
-│   ├── typescript-pro.md
-│   ├── python-pro.md
+├── languages/                # Language specialists (7)
+│   ├── flutter-pro.md
 │   ├── golang-pro.md
-│   ├── rust-pro.md
 │   ├── java-pro.md
 │   ├── javascript-pro.md
-│   └── flutter-pro.md
+│   ├── python-pro.md
+│   ├── rust-pro.md
+│   └── typescript-pro.md
 │
-├── quality/                     # Testing & QA (7)
-│   ├── code-reviewer.md
-│   ├── security-auditor.md
-│   ├── performance-engineer.md
-│   ├── test-automator.md
-│   ├── chaos-engineer.md
-│   ├── accessibility-auditor.md
-│   └── compliance-auditor.md
-│
-├── data/                        # Data engineering (7)
-│   ├── database-optimizer.md
-│   ├── database-admin.md
-│   ├── sql-pro.md
+├── data/                     # Data & databases (6)
 │   ├── data-engineer.md
-│   ├── ml-engineer.md
+│   ├── database-admin.md
+│   ├── database-optimizer.md
 │   ├── llm-architect.md
-│   └── etl-specialist.md
+│   ├── ml-engineer.md
+│   └── sql-pro.md
 │
-├── infrastructure/              # Cloud & DevOps (6)
+├── infrastructure/           # Cloud & DevOps (6)
 │   ├── cloud-architect.md
-│   ├── kubernetes-architect.md
-│   ├── terraform-specialist.md
 │   ├── deployment-engineer.md
+│   ├── kubernetes-architect.md
+│   ├── monitoring-specialist.md
 │   ├── sre-engineer.md
-│   └── monitoring-specialist.md
+│   └── terraform-specialist.md
 │
-├── orchestration/               # Coordination (3)
-│   ├── planner.md
-│   ├── multi-agent-coordinator.md
-│   └── swarm-coordinator.md
-│
-├── swarm/                       # Swarm topologies (3)
-│   ├── hierarchical-coordinator.md
-│   ├── mesh-coordinator.md
-│   └── adaptive-coordinator.md
-│
-├── consensus/                   # Distributed consensus (7)
-│   ├── raft-manager.md
-│   ├── gossip-coordinator.md
-│   ├── quorum-manager.md
-│   ├── crdt-synchronizer.md
-│   ├── byzantine-coordinator.md
-│   ├── performance-benchmarker.md
-│   └── security-manager.md
-│
-├── specialized/                 # Domain-specific (6)
-│   ├── prompt-engineer.md
+├── specialized/              # Domain-specific (6)
+│   ├── agile-coach.md
 │   ├── api-documenter.md
 │   ├── docs-architect.md
-│   ├── blockchain-specialist.md
-│   ├── mobile-architect.md
-│   └── embedded-specialist.md
+│   ├── jira-specialist.md
+│   ├── prompt-engineer.md
+│   └── ui-ux-designer.md
 │
-├── optimization/                # Performance (5)
-│   ├── algorithm-optimizer.md
-│   ├── cache-optimizer.md
-│   ├── query-optimizer.md
-│   ├── bundle-optimizer.md
-│   └── memory-optimizer.md
+├── quality/                  # Testing & QA (5)
+│   ├── chaos-engineer.md
+│   ├── code-reviewer.md
+│   ├── performance-engineer.md
+│   ├── security-auditor.md
+│   └── test-automator.md
 │
-├── templates/                   # Template generators (10)
-│   ├── base-template-generator.md
-│   ├── coordinator-swarm-init.md
-│   ├── github-pr-manager.md
-│   ├── implementer-sparc-coder.md
-│   ├── memory-coordinator.md
-│   ├── migration-plan.md
-│   ├── orchestrator-task.md
-│   ├── performance-analyzer.md
-│   ├── sparc-coordinator.md
-│   └── automation-smart-agent.md
+├── github/                   # GitHub integration (5)
+│   ├── issue-tracker.md
+│   ├── pr-manager.md
+│   ├── release-manager.md
+│   ├── repo-architect.md
+│   └── workflow-automation.md
 │
-├── analysis/                    # Code analysis (2)
-│   ├── static-analyzer.md
-│   └── dependency-analyzer.md
-│
-├── architecture/                # System architecture (1)
-│   └── system-architect.md
-│
-├── development/                 # Development tools (1)
-│   └── ide-integrator.md
-│
-├── devops/                      # CI/CD (1)
-│   └── ci-cd/
-│       └── ops-cicd-github.md
-│
-├── documentation/               # Documentation (1)
-│   └── api-docs/
-│       └── docs-api-openapi.md
-│
-└── testing/                     # Testing frameworks (2)
-    ├── e2e-tester.md
-    └── integration-tester.md
-```
-
----
-
-## Agent File Format
-
-Each agent is a Markdown file with YAML frontmatter:
-
-```markdown
----
-name: agent-name
-type: analyst|architect|coder|validator|coordinator
-description: Agent purpose and capabilities
-model: opus|sonnet|haiku
-capabilities:
-  - capability_1
-  - capability_2
-priority: low|medium|high|critical
-tools:
-  - Read
-  - Write
-  - Bash
-hooks:
-  pre: |
-    # Pre-execution script
-  post: |
-    # Post-execution script
----
-
-# Agent Instructions
-
-Your detailed agent instructions here...
+└── sparc/                    # SPARC methodology (4)
+    ├── architecture.md
+    ├── pseudocode.md
+    ├── refinement.md
+    └── specification.md
 ```
 
 ---
@@ -219,60 +117,47 @@ Your detailed agent instructions here...
 
 | Task | Primary Agent | Supporting |
 |------|---------------|------------|
-| Code implementation | `coder` | `code-reviewer`, `tester` |
-| Bug investigation | `debugger` | `coder`, `tester` |
-| Architecture design | `architect-review` | `system-architect` |
+| Code implementation | `coder` | `reviewer`, `tester` |
+| Bug investigation | `debugger` | `coder` |
+| Architecture design | `architect-review` | `backend-architect` |
 | API development | `backend-architect` | `api-documenter` |
 | UI development | `frontend-developer` | `ui-ux-designer` |
 | Database work | `database-optimizer` | `sql-pro` |
 | Cloud infrastructure | `cloud-architect` | `terraform-specialist` |
-| Security audit | `security-auditor` | `compliance-auditor` |
-| Performance tuning | `performance-engineer` | `algorithm-optimizer` |
-| Testing | `tester` | `test-automator` |
+| Security audit | `security-auditor` | `code-reviewer` |
+| Performance tuning | `performance-engineer` | `database-optimizer` |
+| Testing | `test-automator` | `chaos-engineer` |
 
-### By Complexity
+### By Package
 
-| Complexity | Approach | Package |
-|------------|----------|---------|
-| Simple, single file | Spawn one agent | SOLO |
-| Investigation needed | Spawn 2-3 agents | SCOUT |
-| Coordinated work | Spawn 5-8 agents | SQUAD |
-| Multi-session | Hierarchical swarm | HIVE |
-| Pattern learning | Learning agents | BRAIN |
-| Learn + persist | Combined system | WATCHER |
+| Package | Approach |
+|---------|----------|
+| SOLO | Spawn one agent directly |
+| SCOUT | Spawn 2-3 agents sequentially |
+| SQUAD | Spawn 5-8 agents coordinated via claude-flow |
+| BRAIN | Spawn learning agents via ruv-swarm |
+| HIVE | Hierarchical swarm with persistence |
+| WATCHER | Combined BRAIN + HIVE |
 
 ---
 
 ## Usage Examples
 
-### 1. Single Agent (SOLO)
-```bash
-# Spawn a single specialist
+### Single Agent (SOLO)
+```
 Task tool with subagent_type: "coder"
 prompt: "Implement user authentication"
 ```
 
-### 2. Sequential Agents (SCOUT)
-```bash
-# Investigation → Implementation
+### Sequential Agents (SCOUT)
+```
 1. Task with subagent_type: "researcher"
 2. Task with subagent_type: "coder"
-3. Task with subagent_type: "tester"
+3. Task with subagent_type: "reviewer"
 ```
 
-### 3. Parallel Swarm (SQUAD)
-```javascript
-// Multi-agent coordination
-mcp__claude-flow__swarm_init({ topology: "star" })
-mcp__claude-flow__agent_spawn({ type: "frontend-developer" })
-mcp__claude-flow__agent_spawn({ type: "backend-architect" })
-mcp__claude-flow__agent_spawn({ type: "database-optimizer" })
-mcp__claude-flow__task_orchestrate({ strategy: "parallel" })
+### SPARC Workflow
 ```
-
-### 4. SPARC Workflow
-```bash
-# Specification → Pseudocode → Architecture → Refinement
 1. Task with subagent_type: "specification"
 2. Task with subagent_type: "pseudocode"
 3. Task with subagent_type: "architecture"
@@ -283,71 +168,32 @@ mcp__claude-flow__task_orchestrate({ strategy: "parallel" })
 
 ## Creating Custom Agents
 
-### 1. Choose Category
-Determine which directory fits your agent's domain.
+1. Choose category directory
+2. Create markdown file with YAML frontmatter:
 
-### 2. Create File
-```bash
-cd ~/.claude/agents/{category}/
-touch my-agent.md
-```
-
-### 3. Define Agent
 ```markdown
 ---
 name: my-agent
-type: specialist
-description: Custom agent for specific domain
+description: What this agent does
+tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
-capabilities:
-  - domain_expertise
-  - specialized_analysis
-priority: medium
 ---
 
-# My Custom Agent
+# Agent Instructions
 
-You are a specialist in [domain]...
+You are a specialist in...
 ```
 
-### 4. Test
-```bash
-Task tool with subagent_type: "my-agent"
-```
+3. Test: `Task tool with subagent_type: "my-agent"`
 
 ---
 
 ## Best Practices
 
-### 1. Agent Design
 - **Single Responsibility** - One domain per agent
-- **Clear Capabilities** - Specific, measurable skills
-- **Appropriate Model** - Match complexity to cost
-
-### 2. Agent Spawning
-- **Direct Match** - Spawn immediately for clear tasks
-- **Sequential Thinking** - Use for ambiguous or complex decisions
-- **Always Review** - Use `code-reviewer` after significant code changes
-
-### 3. Swarm Coordination
-- **Star Topology** - One coordinator, multiple workers (SQUAD)
-- **Hierarchical** - Queen-led, persistent (HIVE)
-- **Mesh** - Peer-to-peer collaboration (BRAIN)
-
-### 4. Tool Restrictions
-- Development agents: Full file system access
-- Testing agents: Test runners, limited write
-- Architecture agents: Read-only, analysis tools
-- Documentation agents: Markdown tools, docs/ write access
-
----
-
-## Further Reading
-
-- **AGENTS-GUIDE.md** - Comprehensive agent selection guide
-- **SPARC methodology** - Specification-driven development
-- **CLAUDE-FLOW-SELECTION.md** - Package and swarm patterns
-- **SEQUENTIAL-THINKING.md** - Task analysis framework
+- **Match Model to Task** - Use haiku for simple, sonnet for complex
+- **Always Review** - Use `reviewer` after significant code changes
+- **Spawn Proactively** - Use agents before being asked when task matches
 
 ---
 
