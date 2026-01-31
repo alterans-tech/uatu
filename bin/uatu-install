@@ -41,9 +41,9 @@ echo -e "Path:    ${BLUE}$TARGET_DIR${NC}"
 echo ""
 
 # Check if already installed
-if [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -q "Uatu" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
     echo -e "${YELLOW}Uatu appears to be already installed.${NC}"
-    read -p "Overwrite existing configuration? (y/N) " -n 1 -r
+    read -p "Upgrade existing configuration? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "Aborted."
@@ -113,16 +113,12 @@ if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
         PRESERVED_FILES+=(".env")
     fi
 
-    # Backup CLAUDE.md if it has user customizations (check for Project Info section)
-    if [[ -f "$TARGET_DIR/CLAUDE.md" ]] && grep -q "\[Ask user\]" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
-        # Template version, safe to overwrite
-        UPDATED_FILES+=("CLAUDE.md")
-    elif [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
-        # User has customized it
-        cp "$TARGET_DIR/CLAUDE.md" "$BACKUP_DIR/"
-        PRESERVED_FILES+=("CLAUDE.md (see backup for previous version)")
-        UPDATED_FILES+=("CLAUDE.md (merged with latest template)")
+    # Backup FRAMEWORK.md if it exists
+    if [[ -f "$TARGET_DIR/.uatu/FRAMEWORK.md" ]]; then
+        cp "$TARGET_DIR/.uatu/FRAMEWORK.md" "$BACKUP_DIR/"
+        UPDATED_FILES+=(".uatu/FRAMEWORK.md")
     fi
+    # Note: CLAUDE.md is never overwritten, only appended to
 
     echo -e "  ${GREEN}Backup created${NC}"
     echo ""
@@ -143,14 +139,54 @@ mkdir -p "$TARGET_DIR/.specify/scripts/bash"
 mkdir -p "$TARGET_DIR/.specify/templates"
 echo -e "  ${GREEN}Directories created${NC}"
 
-# Copy CLAUDE.md (always update to latest template)
-echo -e "${BLUE}Installing CLAUDE.md...${NC}"
-cp "$TEMPLATES_DIR/CLAUDE.md" "$TARGET_DIR/CLAUDE.md"
+# Copy FRAMEWORK.md to .uatu/ (always update to latest)
+echo -e "${BLUE}Installing framework instructions...${NC}"
+cp "$TEMPLATES_DIR/.uatu/FRAMEWORK.md" "$TARGET_DIR/.uatu/FRAMEWORK.md"
 if [[ "$UPGRADE_MODE" == false ]]; then
-    echo -e "  ${GREEN}CLAUDE.md installed${NC}"
-    NEW_FILES+=("CLAUDE.md")
+    echo -e "  ${GREEN}.uatu/FRAMEWORK.md installed${NC}"
+    NEW_FILES+=(".uatu/FRAMEWORK.md")
 else
-    echo -e "  ${GREEN}CLAUDE.md updated${NC}"
+    echo -e "  ${GREEN}.uatu/FRAMEWORK.md updated${NC}"
+    UPDATED_FILES+=(".uatu/FRAMEWORK.md")
+fi
+
+# Add Uatu reference to project's CLAUDE.md (append only, never overwrite)
+UATU_REFERENCE='
+---
+
+## Uatu Framework
+
+This project uses [Uatu - The Watcher](https://github.com/alterans-tech/uatu) for AI orchestration.
+
+**Read before working:** `.uatu/FRAMEWORK.md`
+
+Quick reference:
+- Sequential Thinking for task analysis
+- Packages: SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER
+- Skills: `/speckit.*`, `/commit`, `/review-pr`
+- Config: `.uatu/config/project.md`
+'
+
+if [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
+    # Check if reference already exists
+    if ! grep -q ".uatu/FRAMEWORK.md" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+        echo -e "${BLUE}Adding Uatu reference to existing CLAUDE.md...${NC}"
+        echo "$UATU_REFERENCE" >> "$TARGET_DIR/CLAUDE.md"
+        echo -e "  ${GREEN}Uatu reference appended to CLAUDE.md${NC}"
+    else
+        echo -e "  ${YELLOW}CLAUDE.md already has Uatu reference (preserved)${NC}"
+    fi
+else
+    # No CLAUDE.md exists, create minimal one with reference
+    echo -e "${BLUE}Creating minimal CLAUDE.md with Uatu reference...${NC}"
+    cat > "$TARGET_DIR/CLAUDE.md" << EOF
+# $PROJECT_NAME
+
+Project-specific instructions go here.
+$UATU_REFERENCE
+EOF
+    echo -e "  ${GREEN}CLAUDE.md created with Uatu reference${NC}"
+    NEW_FILES+=("CLAUDE.md")
 fi
 
 # Copy guides (always update - these are framework docs)
@@ -664,7 +700,8 @@ if [[ "$UPGRADE_MODE" == true ]]; then
 else
     # Show new installation summary
     echo "Installed:"
-    echo "  CLAUDE.md                    - Framework instructions"
+    echo "  .uatu/FRAMEWORK.md           - Uatu framework instructions"
+    echo "  CLAUDE.md                    - Reference added (or created)"
     echo "  .mcp.json                    - Project-level MCP servers"
     echo "  .env                         - Environment variables template"
     echo "  .envrc                       - Direnv auto-load"
