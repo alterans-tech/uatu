@@ -1,3 +1,5 @@
+> **MUST READ: `.uatu/UATU.md`** — Required framework rules for all tasks.
+
 # Uatu - Development Reference
 
 This is the **source repository** for the Uatu AI orchestration framework. This CLAUDE.md enables the framework to understand and improve itself.
@@ -58,7 +60,7 @@ uatu/
 │   │   ├── config/               # Created at install
 │   │   ├── guides/               # 7 guides
 │   │   ├── hooks/                # 4 active + 6 examples
-│   │   └── tools/                # 3 tools
+│   │   └── tools/                # 4 tools
 │   └── .claude/
 │       ├── skills/               # 9 skills
 │       └── agents/               # 62 agents
@@ -69,9 +71,10 @@ uatu/
 
 ## Components Reference
 
-### Tools (3)
+### Tools (4)
 | Tool | Path | Purpose |
 |------|------|---------|
+| health-check | `.uatu/tools/health-check.sh` | Verify framework installation |
 | architecture-scanner | `.uatu/tools/architecture-scanner.sh` | Auto-generate architecture.md |
 | worktree-helper | `.uatu/tools/worktree-helper.sh` | Git worktree management |
 | time-tracking | `.uatu/tools/time-tracking/worklog.py` | Work session tracking |

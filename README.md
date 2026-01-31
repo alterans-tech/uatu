@@ -190,6 +190,16 @@ Automated actions triggered by Claude Code events:
 
 ## Tools
 
+### Health Check
+
+Verifies framework installation and dependencies.
+
+```bash
+.uatu/tools/health-check.sh
+```
+
+Checks: Claude CLI, Node.js, MCP servers, configuration files, environment variables.
+
 ### Architecture Scanner
 
 Auto-generates `.uatu/config/architecture.md` by analyzing your codebase.

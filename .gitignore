@@ -37,3 +37,6 @@ venv/
 # Logs
 *.log
 logs/
+.envrc
+.hive-mind/
+.uatu/.backups/
