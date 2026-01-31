@@ -73,7 +73,6 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | `/speckit.analyze` | Cross-artifact consistency check |
 | `/speckit.checklist` | Requirements validation |
 | `/speckit.constitution` | Define project principles |
-| `/speckit.taskstoissues` | Convert tasks to GitHub issues |
 | `/commit` | Smart commit with context |
 | `/review-pr` | Comprehensive PR review |
 

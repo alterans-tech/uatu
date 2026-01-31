@@ -119,7 +119,6 @@ rainbow-015-fix-RED-2700-cross-project
 | `/speckit.checklist` | Validate requirements | Domain (ux, security, etc.) | `checklists/{domain}.md` |
 | `/speckit.analyze` | Cross-artifact check | All speckit files | Analysis report (read-only) |
 | `/speckit.implement` | Execute tasks | Reads `tasks.md` | Code changes |
-| `/speckit.taskstoissues` | Create GitHub issues | Reads `tasks.md` | GitHub issues |
 | `/speckit.constitution` | Project principles | User input | `.specify/memory/constitution.md` |
 
 ### Usage Examples
