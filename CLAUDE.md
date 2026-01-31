@@ -168,7 +168,7 @@ touch templates/.uatu/tools/new-tool/new-tool.sh
 
 ## Current Stats
 
-- **80 agents** across 13 categories
+- **62 agents** across 9 categories
 - **10+ skills** (speckit commands + commit + review-pr)
 - **8 guides** (workflow, thinking, tools, packages)
 - **4 active hooks** + 6 examples
@@ -180,18 +180,16 @@ touch templates/.uatu/tools/new-tool/new-tool.sh
 | Category | Count | Examples |
 |----------|-------|----------|
 | core | 11 | coder, tester, reviewer, planner, researcher |
-| data | 6 | database-admin, ml-engineer, llm-architect |
 | firebase | 12 | auth, firestore, functions, hosting, crashlytics |
-| github | 5 | pr-manager, issue-tracker, release-manager |
+| languages | 7 | typescript, python, golang, rust, java, flutter |
+| data | 6 | database-admin, ml-engineer, llm-architect |
 | infrastructure | 6 | cloud-architect, kubernetes, terraform |
-| languages | 7 | typescript, python, golang, rust, java |
+| specialized | 6 | agile-coach, jira-specialist, api-documenter |
+| github | 5 | pr-manager, issue-tracker, release-manager |
 | quality | 5 | debugger, security-auditor, performance-engineer |
 | sparc | 4 | specification, architecture, pseudocode, refinement |
-| specialized | 6 | agile-coach, jira-specialist, api-documenter |
-| consensus | 7 | byzantine-coordinator, raft-manager, gossip |
-| swarm | 3 | hierarchical, mesh, adaptive coordinators |
-| orchestration | 3 | multi-agent-coordinator, swarm-coordinator |
-| optimization | 5 | load-balancer, performance-monitor, topology |
+
+Note: Swarm/consensus/orchestration handled by MCP tools (claude-flow, ruv-swarm).
 
 ---
 
