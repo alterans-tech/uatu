@@ -6,7 +6,7 @@ This directory contains specialized agent definitions for the Uatu framework. Ag
 
 ## Quick Reference
 
-**Total Agents**: 114 specialized agents across 22 categories
+**Total Agents**: 62 specialized agents across 9 categories
 
 **Primary Categories**:
 - Core development (11 agents)
@@ -351,4 +351,4 @@ Task tool with subagent_type: "my-agent"
 
 ---
 
-*Uatu Agent System - 114 specialized agents ready for deployment*
+*Uatu Agent System - 62 specialized agents ready for deployment*

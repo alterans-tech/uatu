@@ -19,6 +19,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UATU_ROOT="$(dirname "$SCRIPT_DIR")"
 TEMPLATES_DIR="$UATU_ROOT/templates"
 
+# Validate templates directory exists
+if [[ ! -d "$TEMPLATES_DIR" ]]; then
+    echo -e "${RED}Error: Templates directory not found at $TEMPLATES_DIR${NC}"
+    echo "Make sure you're running uatu-install from a proper Uatu installation."
+    exit 1
+fi
+
 # Target is current directory
 TARGET_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$TARGET_DIR")"
@@ -94,10 +101,11 @@ if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
     echo -e "${YELLOW}Detected existing installation (version $CURRENT_VERSION)${NC}"
     echo -e "${BLUE}Running in upgrade mode - preserving user configuration${NC}"
 
-    # Create timestamped backup
-    BACKUP_DIR="$TARGET_DIR/.uatu/.backups/upgrade-$(date +%Y%m%d-%H%M%S)"
+    # Create timestamped backup (capture timestamp once to avoid race condition)
+    BACKUP_TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+    BACKUP_DIR="$TARGET_DIR/.uatu/.backups/upgrade-$BACKUP_TIMESTAMP"
     mkdir -p "$BACKUP_DIR"
-    echo -e "  ${CYAN}Creating backup at .uatu/.backups/upgrade-$(date +%Y%m%d-%H%M%S)${NC}"
+    echo -e "  ${CYAN}Creating backup at .uatu/.backups/upgrade-$BACKUP_TIMESTAMP${NC}"
 
     # Backup user configuration files
     if [[ -f "$TARGET_DIR/.uatu/config/project.md" ]]; then

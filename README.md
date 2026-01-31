@@ -17,7 +17,7 @@ Uatu transforms Claude Code into a structured development environment with:
 
 ```bash
 # 1. Clone and setup PATH (one-time)
-git clone https://github.com/your-org/uatu.git
+git clone https://github.com/YOUR-USERNAME/uatu.git  # Replace with your fork
 cd uatu && ./setup.sh && source ~/.zshrc
 
 # 2. Install user-level MCP servers (one-time per machine)
