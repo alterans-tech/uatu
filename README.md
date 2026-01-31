@@ -47,7 +47,7 @@ your-project/
 │   ├── hooks/                          # Automation hooks
 │   └── tools/                          # Utilities
 └── .claude/
-    ├── skills/                         # Speckit slash commands
+    ├── commands/                       # Speckit slash commands
     └── agents/                         # 62 specialized agents
 ```
 
@@ -64,7 +64,9 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | **HIVE** | Distributed | Multi-phase projects, persistent memory |
 | **WATCHER** | Combined | BRAIN + HIVE: learning with cross-session persistence |
 
-## Skills (Slash Commands)
+## Commands (Slash Commands)
+
+Speckit commands for specification-driven development:
 
 | Command | Purpose |
 |---------|---------|
@@ -76,6 +78,11 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | `/speckit.analyze` | Cross-artifact consistency check |
 | `/speckit.checklist` | Requirements validation |
 | `/speckit.constitution` | Define project principles |
+
+Utility commands:
+
+| Command | Purpose |
+|---------|---------|
 | `/commit` | Smart commit with context |
 | `/review-pr` | Comprehensive PR review |
 

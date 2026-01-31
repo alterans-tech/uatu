@@ -378,43 +378,21 @@ cat > "$TARGET_DIR/.mcp.json" << 'EOF'
 EOF
 echo -e "  ${GREEN}.mcp.json created${NC}"
 
-# Copy speckit skills (always update - these are framework skills)
-echo -e "${BLUE}Installing speckit skills...${NC}"
-if [[ -d "$TEMPLATES_DIR/.claude/skills" ]]; then
-    # Create skills directory
-    mkdir -p "$TARGET_DIR/.claude/skills"
-
-    # Copy each skill directory (skill = directory with SKILL.md inside)
-    for skill_dir in "$TEMPLATES_DIR/.claude/skills/"*/; do
-        if [[ -d "$skill_dir" ]]; then
-            skill_name=$(basename "$skill_dir")
-            cp -r "$skill_dir" "$TARGET_DIR/.claude/skills/"
-        fi
-    done
-
-    # Also copy README if exists
-    if [[ -f "$TEMPLATES_DIR/.claude/skills/README.md" ]]; then
-        cp "$TEMPLATES_DIR/.claude/skills/README.md" "$TARGET_DIR/.claude/skills/"
-    fi
-
-    SKILL_COUNT=$(find "$TARGET_DIR/.claude/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-    if [[ "$UPGRADE_MODE" == false ]]; then
-        echo -e "  ${GREEN}$SKILL_COUNT skills installed${NC}"
-        NEW_FILES+=(".claude/skills/ ($SKILL_COUNT skills)")
-    else
-        echo -e "  ${GREEN}$SKILL_COUNT skills updated${NC}"
-        UPDATED_FILES+=(".claude/skills/ ($SKILL_COUNT skills)")
-    fi
-else
-    echo -e "  ${YELLOW}No skills found in templates${NC}"
-fi
-
-# Copy speckit command files (legacy/reference)
+# Copy speckit commands (always update - these are framework commands)
+echo -e "${BLUE}Installing speckit commands...${NC}"
 if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
     mkdir -p "$TARGET_DIR/.claude/commands"
     cp "$TEMPLATES_DIR/.claude/commands/"*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
     COMMAND_COUNT=$(ls -1 "$TARGET_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "  ${GREEN}$COMMAND_COUNT command files installed${NC}"
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        echo -e "  ${GREEN}$COMMAND_COUNT commands installed${NC}"
+        NEW_FILES+=(".claude/commands/ ($COMMAND_COUNT commands)")
+    else
+        echo -e "  ${GREEN}$COMMAND_COUNT commands updated${NC}"
+        UPDATED_FILES+=(".claude/commands/ ($COMMAND_COUNT commands)")
+    fi
+else
+    echo -e "  ${YELLOW}No commands found in templates${NC}"
 fi
 
 # Create .claude/settings.json with sample hooks configuration
@@ -674,7 +652,7 @@ else
     echo "  .uatu/tools/                 - Utility tools (time-tracking, etc.)"
     echo "  .uatu/hooks/                 - Git hooks and automation"
     echo "  .uatu/delivery/sprints/      - Sprint delivery folders"
-    echo "  .claude/commands/            - Speckit slash commands"
+    echo "  .claude/commands/            - Speckit commands (/speckit.*)"
     echo "  .claude/settings.json        - Hooks configuration (sample)"
     echo "  .claude/agents/              - Empty (for project-specific agents)"
     echo "  ~/.claude/agents/            - Generic agents (user-level)"
