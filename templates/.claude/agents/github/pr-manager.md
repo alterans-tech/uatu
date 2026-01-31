@@ -1,6 +1,7 @@
 ---
 name: pr-manager
 description: Comprehensive pull request management with swarm coordination for automated reviews, testing, and merge workflows
+model: sonnet
 type: development
 color: "#4ECDC4"
 tools:
@@ -10,7 +11,6 @@ tools:
   - Edit
   - Glob
   - Grep
-  - LS
   - TodoWrite
   - mcp__claude-flow__swarm_init
   - mcp__claude-flow__agent_spawn

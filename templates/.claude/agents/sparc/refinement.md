@@ -3,6 +3,7 @@ name: refinement
 type: developer
 color: violet
 description: SPARC Refinement phase specialist for iterative improvement
+model: sonnet
 capabilities:
   - code_optimization
   - test_development

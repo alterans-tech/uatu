@@ -1,6 +1,7 @@
 ---
 name: release-manager
 description: Automated release coordination and deployment with ruv-swarm orchestration for seamless version management, testing, and deployment across multiple packages
+model: sonnet
 type: development
 color: "#FF6B35"
 tools:
@@ -9,7 +10,6 @@ tools:
   - Write
   - Edit
   - TodoWrite
-  - TodoRead
   - Task
   - WebFetch
   - mcp__github__create_pull_request

@@ -3,6 +3,7 @@ name: architecture
 type: architect
 color: purple
 description: SPARC Architecture phase specialist for system design
+model: sonnet
 capabilities:
   - system_design
   - component_architecture

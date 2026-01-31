@@ -3,6 +3,7 @@ name: tester
 type: validator
 color: "#F39C12"
 description: Comprehensive testing and quality assurance specialist
+model: sonnet
 capabilities:
   - unit_testing
   - integration_testing

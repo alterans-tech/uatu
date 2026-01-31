@@ -3,6 +3,7 @@ name: pseudocode
 type: architect
 color: indigo
 description: SPARC Pseudocode phase specialist for algorithm design
+model: sonnet
 capabilities:
   - algorithm_design
   - logic_flow

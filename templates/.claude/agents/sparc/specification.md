@@ -3,6 +3,7 @@ name: specification
 type: analyst
 color: blue
 description: SPARC Specification phase specialist for requirements analysis
+model: sonnet
 capabilities:
   - requirements_gathering
   - constraint_analysis

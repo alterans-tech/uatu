@@ -1,6 +1,7 @@
 ---
 name: issue-tracker
 description: Intelligent issue management and project coordination with automated tracking, progress monitoring, and team coordination
+model: sonnet
 tools: mcp__claude-flow__swarm_init, mcp__claude-flow__agent_spawn, mcp__claude-flow__task_orchestrate, mcp__claude-flow__memory_usage, Bash, TodoWrite, Read, Write
 color: green
 type: development
@@ -45,7 +46,7 @@ Intelligent issue management and project coordination with ruv-swarm integration
 - `mcp__github__add_issue_comment`
 - `mcp__github__search_issues`
 - `mcp__claude-flow__*` (all swarm coordination tools)
-- `TodoWrite`, `TodoRead`, `Task`, `Bash`, `Read`, `Write`
+- `TodoWrite`, `Task`, `Bash`, `Read`, `Write`
 
 ## Usage Patterns
 

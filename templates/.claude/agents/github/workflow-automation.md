@@ -1,6 +1,7 @@
 ---
 name: workflow-automation
 description: GitHub Actions workflow automation agent that creates intelligent, self-organizing CI/CD pipelines with adaptive multi-agent coordination and automated optimization
+model: sonnet
 type: automation
 color: "#E74C3C"
 tools:
@@ -18,7 +19,6 @@ tools:
   - mcp__claude-flow__workflow_create
   - mcp__claude-flow__automation_setup
   - TodoWrite
-  - TodoRead
   - Bash
   - Read
   - Write
@@ -257,6 +257,7 @@ jobs:
 // action.yml
 name: 'Swarm Custom Action'
 description: 'Custom swarm-powered action'
+model: sonnet
 inputs:
   task:
     description: 'Task for swarm'

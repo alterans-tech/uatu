@@ -3,6 +3,7 @@ name: researcher
 type: analyst
 color: "#9B59B6"
 description: Deep research and information gathering specialist
+model: sonnet
 capabilities:
   - code_analysis
   - pattern_recognition
