@@ -11,38 +11,39 @@ INPUT=$(cat)
 WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory // ""')
 
 if [ -z "$WORKING_DIR" ]; then
-    # Fallback to PWD if not provided
     WORKING_DIR="$PWD"
 fi
 
-# Check for project config
-PROJECT_CONFIG="$WORKING_DIR/.uatu/config/project.md"
+CONTEXT=""
 
-if [ ! -f "$PROJECT_CONFIG" ]; then
-    # No project config - silent no-op
-    cat <<EOF
-{
-  "additionalContext": "",
-  "error": null
-}
-EOF
-    exit 0
+# Load project.md if exists
+PROJECT_CONFIG="$WORKING_DIR/.uatu/config/project.md"
+if [ -f "$PROJECT_CONFIG" ]; then
+    PROJECT_CONTENT=$(cat "$PROJECT_CONFIG")
+    CONTEXT="PROJECT CONFIG (.uatu/config/project.md):
+
+$PROJECT_CONTENT
+
+"
 fi
 
-# Read project config
-PROJECT_CONTENT=$(cat "$PROJECT_CONFIG")
+# Note other config files that exist
+if [ -f "$WORKING_DIR/.uatu/config/architecture.md" ]; then
+    CONTEXT="${CONTEXT}NOTE: Tech stack overview available at .uatu/config/architecture.md
+"
+fi
 
-# Inject as additional context
-# Use jq to safely escape content for JSON
-CONTEXT=$(jq -n --arg content "$PROJECT_CONTENT" \
-    'CRITICAL: Project configuration loaded from .uatu/config/project.md
-
-$content
-
-This configuration MUST be followed for all naming conventions, folder structures, and project-specific rules.')
+if [ -f "$WORKING_DIR/.uatu/config/constitution.md" ]; then
+    CONTEXT="${CONTEXT}NOTE: AI principles available at .uatu/config/constitution.md
+"
+fi
 
 # Output JSON
-jq -n --arg context "$CONTEXT" '{
-  "additionalContext": $context,
-  "error": null
-}'
+if [ -n "$CONTEXT" ]; then
+    jq -n --arg context "$CONTEXT" '{
+      "additionalContext": $context,
+      "error": null
+    }'
+else
+    echo '{"additionalContext": "", "error": null}'
+fi

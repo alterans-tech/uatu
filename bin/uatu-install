@@ -227,122 +227,36 @@ if [[ ! -f "$TARGET_DIR/.uatu/config/project.md" ]]; then
     echo -e "${BLUE}Creating project.md...${NC}"
     NEW_FILES+=(".uatu/config/project.md")
     cat > "$TARGET_DIR/.uatu/config/project.md" << EOF
-# Project Configuration - $PROJECT_NAME
+# $PROJECT_NAME
 
 > Created: $CURRENT_DATE
-> Framework: Uatu - The Watcher
 
----
-
-## Project Info
+## Project
 
 | Field | Value |
 |-------|-------|
 | Name | $PROJECT_NAME |
-| Description | Project description - customize this |
-| Type | monorepo / single-project |
+| Description | *Add project description* |
+| Jira Key | PROJ |
 
----
+## Conventions
 
-## Child Projects
-
-> For monorepos, list child projects. Remove if single project.
-
-| Name | Path | Type | Description |
-|------|------|------|-------------|
-| frontend | frontend/ | primary | Frontend application |
-| backend | backend/ | support | Backend services |
-
----
-
-## Naming Conventions
-
-### Worktree Pattern
-\`\`\`
-{project}-{NNN}-{type}-{JIRA-KEY}-{short-name}
-\`\`\`
-
-**Examples:**
-- \`$PROJECT_NAME-001-fix-PROJ-123-login-bug\`
-- \`$PROJECT_NAME-002-feat-PROJ-456-new-feature\`
-
-### Branch Pattern
-\`\`\`
-{JIRA-KEY}/{description}
-\`\`\`
-
-**Examples:**
-- \`PROJ-123/fix-login-bug\`
-- \`PROJ-456/add-new-feature\`
-
----
-
-## Sprint Configuration
-
-| Setting | Value |
-|---------|-------|
-| Current Sprint | $CURRENT_DATE-sprint-1 |
-| Naming Format | {YYYY-MM-DD}-{kebab-name} |
-| Review Cadence | bi-weekly |
-
----
-
-## Integration Keys
-
-| Service | Key |
-|---------|-----|
-| Jira Project | PROJ |
-| GitHub Org | $PROJECT_NAME |
-
----
-
-## Feature Folders
-
-| Setting | Value |
-|---------|-------|
-| Base Path | .uatu/delivery/sprints |
-| Pattern | {sprint}/features/{NNN}-{JIRA-KEY}-{short-name} |
-| Next Index | 1 |
-
----
-
-## Commit Conventions
-
-> Using Angular format (semantic-release compatible)
-
-| Type | Description |
-|------|-------------|
-| feat | New feature (minor version bump) |
-| fix | Bug fix (patch version bump) |
-| docs | Documentation only |
-| style | Code style (formatting) |
-| refactor | Code restructuring |
-| perf | Performance improvements |
-| test | Adding tests |
-| chore | Build/tooling changes |
-
-**Breaking Change:** Add \`BREAKING CHANGE:\` in footer or \`!\` after type
-
----
+| Convention | Pattern |
+|------------|---------|
+| Branch | \`{JIRA-KEY}/{description}\` |
+| Commit | Angular format (\`feat:\`, \`fix:\`, \`docs:\`, etc.) |
 
 ## Risk Areas
 
-### Critical
-- payment
-- auth
-- security
+Keywords that trigger extra caution:
 
-### High
-- user
-- data
-
-### Medium
-- form
-- validation
+- **Critical:** payment, auth, security, encryption
+- **High:** user, data, database
+- **Medium:** form, validation, api
 
 ---
 
-*Customize this file for your project needs.*
+*Edit this file to match your project. See \`.uatu/guides/WORKFLOW.md\` for full conventions.*
 EOF
     echo -e "  ${GREEN}project.md created${NC}"
 else
@@ -509,46 +423,23 @@ fi
 # Project-specific agents should be created in .claude/agents/{project-name}/ as needed
 echo -e "${BLUE}Project agents directory created (empty - for project-specific agents only)${NC}"
 
-# Install agents to user's ~/.claude/agents (with confirmation)
+# Install agents to user's ~/.claude/agents (only if empty)
 USER_AGENTS_DIR="$HOME/.claude/agents"
-echo -e "${BLUE}Installing user-level agents to ~/.claude/agents...${NC}"
 if [[ -d "$TEMPLATES_DIR/.claude/agents" ]]; then
     mkdir -p "$USER_AGENTS_DIR"
+    USER_AGENT_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 
-    # Count existing user agents
-    USER_AGENT_COUNT_BEFORE=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-
-    if [[ "$USER_AGENT_COUNT_BEFORE" -gt 0 ]]; then
-        echo -e "  ${YELLOW}Found $USER_AGENT_COUNT_BEFORE existing user agents${NC}"
-        read -p "  Replace with Uatu agent collection? (y/N) " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # Backup existing agents
-            BACKUP_DIR="$HOME/.claude-agents-backup-$(date +%Y%m%d-%H%M%S)"
-            cp -r "$USER_AGENTS_DIR" "$BACKUP_DIR"
-            echo -e "  ${GREEN}Backed up existing agents to $BACKUP_DIR${NC}"
-
-            # Clear and copy new agents
-            rm -rf "$USER_AGENTS_DIR"/*
-
-            # Copy all agents recursively (flattening structure for Claude Code compatibility)
-            # This handles nested subdirectories like templates/base-template-generator.md
-            find "$TEMPLATES_DIR/.claude/agents" -type f -name "*.md" \
-                ! -name "README.md" ! -name "MIGRATION_SUMMARY.md" \
-                -exec cp {} "$USER_AGENTS_DIR/" \; 2>/dev/null || true
-
-            USER_AGENT_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-            echo -e "  ${GREEN}$USER_AGENT_COUNT agents installed to ~/.claude/agents${NC}"
-        else
-            echo -e "  ${YELLOW}Skipped user agent installation${NC}"
-        fi
-    else
-        # No existing agents, install directly (flattening structure)
+    if [[ "$USER_AGENT_COUNT" -eq 0 ]]; then
+        echo -e "${BLUE}Installing agents to ~/.claude/agents...${NC}"
         find "$TEMPLATES_DIR/.claude/agents" -type f -name "*.md" \
             ! -name "README.md" ! -name "MIGRATION_SUMMARY.md" \
             -exec cp {} "$USER_AGENTS_DIR/" \; 2>/dev/null || true
-        USER_AGENT_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-        echo -e "  ${GREEN}$USER_AGENT_COUNT agents installed to ~/.claude/agents${NC}"
+        NEW_COUNT=$(find "$USER_AGENTS_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+        echo -e "  ${GREEN}$NEW_COUNT agents installed${NC}"
+    else
+        echo -e "${BLUE}User agents...${NC}"
+        echo -e "  ${YELLOW}$USER_AGENT_COUNT agents already exist (skipped)${NC}"
+        echo -e "  ${CYAN}To reinstall: rm -rf ~/.claude/agents && uatu-install${NC}"
     fi
 fi
 

@@ -6,9 +6,19 @@ AI orchestration framework.
 
 ## Before Any Task
 
-1. **Read `.uatu/config/project.md`** — Project context and conventions
-2. **Run Sequential Thinking MCP** — Analyze task before acting
-3. **Select package** — See Package Selection below
+1. **Read project config** — `.uatu/config/project.md`
+2. **Run Sequential Thinking** — Analyze task before acting
+3. **Select package** — Based on task characteristics
+
+---
+
+## Config Files
+
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| `.uatu/config/project.md` | Project settings, conventions | Every session |
+| `.uatu/config/architecture.md` | Tech stack (auto-generated) | When exploring codebase |
+| `.uatu/config/constitution.md` | AI behavior principles | When unsure about approach |
 
 ---
 
@@ -17,9 +27,9 @@ AI orchestration framework.
 | Rule | Action |
 |------|--------|
 | **Sequential Thinking** | Run for EVERY task. No skipping. |
-| **Package Selection** | Choose based on task needs, not assumptions |
+| **Package Selection** | Choose based on task needs |
 | **Artifacts in `.uatu/`** | All deliverables go in `.uatu/delivery/` |
-| **Use Speckit** | Run `/speckit.*` commands, never create specs manually |
+| **Use Speckit** | Run `/speckit.*` commands for specs |
 
 ---
 
@@ -36,31 +46,55 @@ AI orchestration framework.
 
 ---
 
-## Guides — Read When Needed
+## Guides
 
-| Trigger | Read This Guide |
-|---------|-----------------|
-| Every complex task | `SEQUENTIAL-THINKING.md` |
-| Unsure which tool/package | `TOOL-SELECTION.md` |
-| Using SQUAD/BRAIN/HIVE | `CLAUDE-FLOW-SELECTION.md` |
-| Using WATCHER package | `WATCHER.md` |
-| Spawning agents | `AGENTS-GUIDE.md` |
-| Jira tasks, naming, specs | `WORKFLOW.md` |
-
-All guides in `.uatu/guides/`
+| Trigger | Read This |
+|---------|-----------|
+| Every complex task | `.uatu/guides/SEQUENTIAL-THINKING.md` |
+| Unsure which tool/package | `.uatu/guides/TOOL-SELECTION.md` |
+| Using SQUAD/BRAIN/HIVE | `.uatu/guides/CLAUDE-FLOW-SELECTION.md` |
+| Using WATCHER package | `.uatu/guides/WATCHER.md` |
+| Spawning agents | `.uatu/guides/AGENTS-GUIDE.md` |
+| Jira tasks, naming, specs | `.uatu/guides/WORKFLOW.md` |
+| Customizing hooks | `.uatu/guides/HOOKS.md` |
 
 ---
 
-## Speckit Commands — Use For Specifications
+## Speckit Commands
 
 | When | Command |
 |------|---------|
 | New feature request | `/speckit.specify` |
 | Spec is unclear | `/speckit.clarify` |
-| Ready to plan implementation | `/speckit.plan` |
+| Ready to plan | `/speckit.plan` |
 | Need task breakdown | `/speckit.tasks` |
 | Ready to implement | `/speckit.implement` |
 | Check consistency | `/speckit.analyze` |
+
+---
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| `.uatu/tools/architecture-scanner.sh` | Generate tech stack overview |
+| `.uatu/tools/worktree-helper.sh` | Git worktree management |
+| `.uatu/tools/time-tracking/worklog.py` | Track work sessions |
+
+---
+
+## Hooks
+
+Hooks run automatically at key events. Configured in `.claude/settings.json`:
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `load-project-context.sh` | SessionStart | Load project config |
+| `enforce-sequential-thinking.sh` | UserPromptSubmit | Remind to use ST |
+| `format-code.sh` | PostToolUse | Auto-format code |
+| `update-jira.sh` | Stop | Update Jira status |
+
+See `.uatu/guides/HOOKS.md` for customization.
 
 ---
 
@@ -69,23 +103,15 @@ All guides in `.uatu/guides/`
 ```
 .uatu/
 ├── config/
-│   ├── project.md         # READ THIS — Project settings
+│   ├── project.md         # Project settings
 │   ├── architecture.md    # Tech overview (auto-generated)
-│   └── constitution.md    # AI behavior principles
-├── guides/                 # Read when needed (see table above)
+│   └── constitution.md    # AI principles
+├── guides/                 # Framework documentation
+├── hooks/                  # Automation scripts
 ├── tools/                  # Utilities
 └── delivery/
-    └── sprints/           # All specs, tasks, plans go here
+    └── sprints/           # Feature specs and tasks
 ```
-
----
-
-## Tools
-
-| When | Tool |
-|------|------|
-| Need project tech overview | `.uatu/tools/architecture-scanner.sh` |
-| Check work time | `.uatu/tools/time-tracking/worklog.py` |
 
 ---
 
@@ -93,7 +119,7 @@ All guides in `.uatu/guides/`
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | Every task (required) |
+| `sequential-thinking` | Every task |
 | `claude-flow` | SQUAD, HIVE, WATCHER |
 | `ruv-swarm` | BRAIN, WATCHER |
 
