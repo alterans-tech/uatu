@@ -190,10 +190,10 @@ detect_infrastructure() {
 
     [[ -f "$dir/Dockerfile" ]] && infra+=("Docker")
     [[ -f "$dir/docker-compose.yml" ]] || [[ -f "$dir/docker-compose.yaml" ]] && infra+=("Docker Compose")
-    [[ -f "$dir/.github/workflows" ]] && infra+=("GitHub Actions")
+    [[ -d "$dir/.github/workflows" ]] && infra+=("GitHub Actions")
     [[ -f "$dir/.gitlab-ci.yml" ]] && infra+=("GitLab CI")
     [[ -d "$dir/kubernetes" ]] || [[ -d "$dir/k8s" ]] && infra+=("Kubernetes")
-    [[ -f "$dir/terraform" ]] && infra+=("Terraform")
+    [[ -d "$dir/terraform" ]] && infra+=("Terraform")
     [[ -f "$dir/serverless.yml" ]] && infra+=("Serverless Framework")
 
     if [[ ${#infra[@]} -eq 0 ]]; then
