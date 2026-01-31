@@ -3,8 +3,8 @@
 .env.local
 .env.*.local
 
-# Local MCP config
-.mcp.json
+# Local MCP config overrides (if any)
+# .mcp.json is in repo, uses env vars
 
 # IDE
 .idea/

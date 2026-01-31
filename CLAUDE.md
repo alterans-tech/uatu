@@ -168,12 +168,26 @@ touch templates/.uatu/tools/new-tool/new-tool.sh
 
 ## Current Stats
 
-- **109 agents** across 15 categories
+- **60 agents** across 9 categories
 - **10+ skills** (speckit commands + commit + review-pr)
 - **8 guides** (workflow, thinking, tools, packages)
 - **4 active hooks** + 6 examples
 - **3 tools** (architecture-scanner, worktree-helper, time-tracking)
 - **6 packages** (SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER)
+
+## Agent Categories
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| core | 11 | coder, tester, reviewer, planner, researcher |
+| data | 6 | database-admin, ml-engineer, llm-architect |
+| firebase | 12 | auth, firestore, functions, hosting, crashlytics |
+| github | 5 | pr-manager, issue-tracker, release-manager |
+| infrastructure | 6 | cloud-architect, kubernetes, terraform |
+| languages | 7 | typescript, python, golang, rust, java |
+| quality | 5 | debugger, security-auditor, performance-engineer |
+| sparc | 4 | specification, architecture, pseudocode, refinement |
+| specialized | 4 | api-documenter, prompt-engineer, refactoring |
 
 ---
 

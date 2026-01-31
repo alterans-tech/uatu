@@ -8,7 +8,7 @@ Uatu transforms Claude Code into a structured development environment with:
 
 - **Task Analysis** - Sequential Thinking MCP for structured reasoning before action
 - **Execution Packages** - SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER for different task complexities
-- **109 Specialized Agents** - From code review to Firebase, security to performance
+- **60 Specialized Agents** - Covering development, quality, infrastructure, and platform-specific needs
 - **Speckit Workflows** - Specification-driven development with `/speckit.*` commands
 - **Hooks System** - Automated actions on session events
 - **Jira/GitHub Integration** - Project management automation
@@ -45,7 +45,7 @@ your-project/
 │   └── tools/                          # Utilities
 └── .claude/
     ├── skills/                         # Speckit slash commands
-    └── agents/                         # 109 specialized agents
+    └── agents/                         # 60 specialized agents
 ```
 
 ## Packages
@@ -77,19 +77,103 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | `/commit` | Smart commit with context |
 | `/review-pr` | Comprehensive PR review |
 
-## Agents
+## Agents (60)
 
-109 specialized agents organized by domain:
+### Core (11)
+| Agent | Purpose |
+|-------|---------|
+| `coder` | General code implementation |
+| `tester` | Testing and test writing |
+| `reviewer` | Code review |
+| `planner` | Task planning and breakdown |
+| `researcher` | Investigation and research |
+| `architect-review` | Architecture review |
+| `backend-architect` | Backend/API design |
+| `frontend-developer` | Frontend/React development |
+| `fullstack-developer` | End-to-end features |
+| `microservices-architect` | Distributed systems |
+| `ui-ux-designer` | Design and UX |
 
-| Category | Examples |
-|----------|----------|
-| **Core** | frontend-developer, backend-architect, fullstack-developer |
-| **Languages** | typescript-pro, python-pro, rust-pro, golang-pro, java-pro |
-| **Infrastructure** | cloud-architect, kubernetes-architect, terraform-specialist |
-| **Quality** | security-auditor, debugger, performance-engineer, test-automator |
-| **Firebase** | auth, firestore, functions, hosting, crashlytics (12 specialists) |
-| **GitHub** | pr-manager, release-swarm, code-review-swarm, workflow-automation |
-| **SPARC** | specification, architecture, pseudocode, refinement |
+### Data & AI (6)
+| Agent | Purpose |
+|-------|---------|
+| `database-admin` | Database administration |
+| `database-optimizer` | Query optimization |
+| `sql-pro` | SQL expertise |
+| `data-engineer` | Data pipelines |
+| `ml-engineer` | Machine learning |
+| `llm-architect` | LLM/AI systems |
+
+### Firebase (12)
+| Agent | Purpose |
+|-------|---------|
+| `firebase-auth-specialist` | Authentication |
+| `firebase-firestore-specialist` | NoSQL database |
+| `firebase-functions-specialist` | Cloud Functions |
+| `firebase-hosting-specialist` | Hosting/deployment |
+| `firebase-storage-specialist` | File storage |
+| `firebase-analytics-specialist` | Analytics |
+| `firebase-crashlytics-specialist` | Crash reporting |
+| `firebase-messaging-specialist` | Push notifications |
+| `firebase-performance-specialist` | Performance monitoring |
+| `firebase-remote-config-specialist` | Feature flags |
+| `firebase-appcheck-specialist` | App attestation |
+| `firebase-testlab-specialist` | Device testing |
+
+### GitHub (5)
+| Agent | Purpose |
+|-------|---------|
+| `pr-manager` | Pull request management |
+| `issue-tracker` | Issue tracking |
+| `release-manager` | Release automation |
+| `repo-architect` | Repository structure |
+| `workflow-automation` | GitHub Actions |
+
+### Infrastructure (6)
+| Agent | Purpose |
+|-------|---------|
+| `cloud-architect` | Cloud architecture |
+| `kubernetes-architect` | K8s orchestration |
+| `terraform-specialist` | Infrastructure as Code |
+| `deployment-engineer` | CI/CD |
+| `monitoring-specialist` | Observability |
+| `sre-engineer` | Site reliability |
+
+### Languages (7)
+| Agent | Purpose |
+|-------|---------|
+| `typescript-pro` | TypeScript |
+| `javascript-pro` | JavaScript |
+| `python-pro` | Python |
+| `golang-pro` | Go |
+| `rust-pro` | Rust |
+| `java-pro` | Java |
+| `flutter-pro` | Flutter/Dart |
+
+### Quality (5)
+| Agent | Purpose |
+|-------|---------|
+| `debugger` | Debugging |
+| `security-auditor` | Security review |
+| `performance-engineer` | Performance optimization |
+| `test-automator` | Test automation |
+| `chaos-engineer` | Resilience testing |
+
+### SPARC Methodology (4)
+| Agent | Purpose |
+|-------|---------|
+| `specification` | Requirements analysis |
+| `architecture` | System design |
+| `pseudocode` | Algorithm design |
+| `refinement` | Iterative improvement |
+
+### Specialized (4)
+| Agent | Purpose |
+|-------|---------|
+| `api-documenter` | API documentation |
+| `docs-architect` | Documentation design |
+| `prompt-engineer` | LLM prompts |
+| `refactoring-specialist` | Code refactoring |
 
 ## Hooks
 
@@ -143,7 +227,7 @@ python .uatu/tools/time-tracking/worklog.py --project $(pwd) --tz -3
 
 ## Post-Install Checklist
 
-1. Edit `.env` with your tokens (Jira, GitHub)
+1. Copy `.env.example` to `.env` and fill in your tokens
 2. Edit `.uatu/config/project.md` with project settings
 3. Review `.uatu/config/architecture.md` (auto-generated)
 4. Run `direnv allow`
