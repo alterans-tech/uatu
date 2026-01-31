@@ -150,42 +150,29 @@ else
     UPDATED_FILES+=(".uatu/FRAMEWORK.md")
 fi
 
-# Add Uatu reference to project's CLAUDE.md (append only, never overwrite)
-UATU_REFERENCE='
----
+# Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
+UATU_HEADER='> **CRITICAL: This project uses the Uatu AI orchestration framework.**
+> **You MUST read `.uatu/FRAMEWORK.md` before starting ANY task.**
+> **Every task requires Sequential Thinking. No exceptions. No shortcuts.**
 
-## Uatu Framework
-
-This project uses [Uatu - The Watcher](https://github.com/alterans-tech/uatu) for AI orchestration.
-
-**Read before working:** `.uatu/FRAMEWORK.md`
-
-Quick reference:
-- Sequential Thinking for task analysis
-- Packages: SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER
-- Skills: `/speckit.*`, `/commit`, `/review-pr`
-- Config: `.uatu/config/project.md`
 '
 
 if [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
     # Check if reference already exists
     if ! grep -q ".uatu/FRAMEWORK.md" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
-        echo -e "${BLUE}Adding Uatu reference to existing CLAUDE.md...${NC}"
-        echo "$UATU_REFERENCE" >> "$TARGET_DIR/CLAUDE.md"
-        echo -e "  ${GREEN}Uatu reference appended to CLAUDE.md${NC}"
+        echo -e "${BLUE}Adding Uatu header to existing CLAUDE.md...${NC}"
+        # Prepend the header to the existing file
+        ORIGINAL_CONTENT=$(cat "$TARGET_DIR/CLAUDE.md")
+        printf '%s%s' "$UATU_HEADER" "$ORIGINAL_CONTENT" > "$TARGET_DIR/CLAUDE.md"
+        echo -e "  ${GREEN}Uatu header prepended to CLAUDE.md${NC}"
     else
         echo -e "  ${YELLOW}CLAUDE.md already has Uatu reference (preserved)${NC}"
     fi
 else
-    # No CLAUDE.md exists, create minimal one with reference
-    echo -e "${BLUE}Creating minimal CLAUDE.md with Uatu reference...${NC}"
-    cat > "$TARGET_DIR/CLAUDE.md" << EOF
-# $PROJECT_NAME
-
-Project-specific instructions go here.
-$UATU_REFERENCE
-EOF
-    echo -e "  ${GREEN}CLAUDE.md created with Uatu reference${NC}"
+    # No CLAUDE.md exists, create minimal one with header
+    echo -e "${BLUE}Creating CLAUDE.md with Uatu header...${NC}"
+    printf '%s# %s\n\nProject-specific instructions go here.\n' "$UATU_HEADER" "$PROJECT_NAME" > "$TARGET_DIR/CLAUDE.md"
+    echo -e "  ${GREEN}CLAUDE.md created with Uatu header${NC}"
     NEW_FILES+=("CLAUDE.md")
 fi
 
