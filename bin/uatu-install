@@ -327,7 +327,7 @@ if [[ "$UPGRADE_MODE" == false ]]; then
 else
     UPDATED_FILES+=(".mcp.json")
 fi
-cat > "$TARGET_DIR/.mcp.json" << EOF
+cat > "$TARGET_DIR/.mcp.json" << 'EOF'
 {
   "mcpServers": {
     "filesystem": {
@@ -335,7 +335,7 @@ cat > "$TARGET_DIR/.mcp.json" << EOF
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "$TARGET_DIR"
+        "${WORKSPACE_PATH}"
       ]
     },
     "github": {
@@ -345,32 +345,60 @@ cat > "$TARGET_DIR/.mcp.json" << EOF
         "@modelcontextprotocol/server-github"
       ],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GH_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GH_TOKEN}"
       }
     },
     "atlassian": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.atlassian.com/v1/sse"]
+      "command": "uvx",
+      "args": ["mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "${JIRA_URL}",
+        "JIRA_USERNAME": "${JIRA_USERNAME}",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+      }
     }
   }
 }
 EOF
 echo -e "  ${GREEN}.mcp.json created${NC}"
 
-# Copy speckit commands (always update - these are framework commands)
-echo -e "${BLUE}Installing speckit commands...${NC}"
-if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
-    cp "$TEMPLATES_DIR/.claude/commands/"*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
-    SPECKIT_COUNT=$(ls -1 "$TARGET_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+# Copy speckit skills (always update - these are framework skills)
+echo -e "${BLUE}Installing speckit skills...${NC}"
+if [[ -d "$TEMPLATES_DIR/.claude/skills" ]]; then
+    # Create skills directory
+    mkdir -p "$TARGET_DIR/.claude/skills"
+
+    # Copy each skill directory (skill = directory with SKILL.md inside)
+    for skill_dir in "$TEMPLATES_DIR/.claude/skills/"*/; do
+        if [[ -d "$skill_dir" ]]; then
+            skill_name=$(basename "$skill_dir")
+            cp -r "$skill_dir" "$TARGET_DIR/.claude/skills/"
+        fi
+    done
+
+    # Also copy README if exists
+    if [[ -f "$TEMPLATES_DIR/.claude/skills/README.md" ]]; then
+        cp "$TEMPLATES_DIR/.claude/skills/README.md" "$TARGET_DIR/.claude/skills/"
+    fi
+
+    SKILL_COUNT=$(find "$TARGET_DIR/.claude/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
     if [[ "$UPGRADE_MODE" == false ]]; then
-        echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands installed${NC}"
-        NEW_FILES+=(".claude/commands/ ($SPECKIT_COUNT files)")
+        echo -e "  ${GREEN}$SKILL_COUNT skills installed${NC}"
+        NEW_FILES+=(".claude/skills/ ($SKILL_COUNT skills)")
     else
-        echo -e "  ${GREEN}$SPECKIT_COUNT speckit commands updated${NC}"
-        UPDATED_FILES+=(".claude/commands/ ($SPECKIT_COUNT files)")
+        echo -e "  ${GREEN}$SKILL_COUNT skills updated${NC}"
+        UPDATED_FILES+=(".claude/skills/ ($SKILL_COUNT skills)")
     fi
 else
-    echo -e "  ${YELLOW}No speckit commands found in templates${NC}"
+    echo -e "  ${YELLOW}No skills found in templates${NC}"
+fi
+
+# Copy speckit command files (legacy/reference)
+if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
+    mkdir -p "$TARGET_DIR/.claude/commands"
+    cp "$TEMPLATES_DIR/.claude/commands/"*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || true
+    COMMAND_COUNT=$(ls -1 "$TARGET_DIR/.claude/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}$COMMAND_COUNT command files installed${NC}"
 fi
 
 # Create .claude/settings.json with sample hooks configuration
@@ -484,28 +512,62 @@ else
     UPDATED_FILES+=(".uatu/config/architecture.md")
 fi
 
-# Copy env.example if .env doesn't exist (always preserve existing .env)
+# Handle .env file - create or merge missing variables
+echo -e "${BLUE}Configuring .env...${NC}"
+
+# Required variables for Uatu MCPs
+REQUIRED_ENV_VARS=(
+    "WORKSPACE_PATH=$TARGET_DIR"
+    "GH_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    "JIRA_URL=https://your-domain.atlassian.net"
+    "JIRA_USERNAME=your-email@example.com"
+    "JIRA_API_TOKEN=your-jira-api-token"
+)
+
 if [[ ! -f "$TARGET_DIR/.env" ]]; then
-    echo -e "${BLUE}Creating .env template...${NC}"
+    # Create new .env from template
     NEW_FILES+=(".env")
-    cat > "$TARGET_DIR/.env" << 'ENVFILE'
+    cat > "$TARGET_DIR/.env" << ENVFILE
 # Uatu - The Watcher | Environment Variables
 # Fill in your values below
+
+# Workspace path (root folder for filesystem MCP)
+WORKSPACE_PATH=$TARGET_DIR
 
 # GitHub Token (required for GitHub MCP)
 # Create at: https://github.com/settings/tokens
 # Required scopes: repo, workflow, read:org
 GH_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Optional: Database connection for dbhub MCP
+# Jira/Atlassian (required for Atlassian MCP)
+# Create API token at: https://id.atlassian.com/manage-profile/security/api-tokens
+JIRA_URL=https://your-domain.atlassian.net
+JIRA_USERNAME=your-email@example.com
+JIRA_API_TOKEN=your-jira-api-token
+
+# Optional: Database connection
 # DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ENVFILE
     echo -e "  ${GREEN}.env template created${NC}"
 else
-    if [[ "$UPGRADE_MODE" == true ]]; then
-        echo -e "${BLUE}.env found...${NC}"
+    # .env exists - check for missing required variables and add them
+    ADDED_VARS=0
+    for var_line in "${REQUIRED_ENV_VARS[@]}"; do
+        var_name="${var_line%%=*}"
+        if ! grep -q "^${var_name}=" "$TARGET_DIR/.env" 2>/dev/null; then
+            # Add missing variable with comment
+            echo "" >> "$TARGET_DIR/.env"
+            echo "# Added by Uatu installer" >> "$TARGET_DIR/.env"
+            echo "$var_line" >> "$TARGET_DIR/.env"
+            ((ADDED_VARS++))
+        fi
+    done
+
+    if [[ $ADDED_VARS -gt 0 ]]; then
+        echo -e "  ${GREEN}Added $ADDED_VARS missing variables to .env${NC}"
+    else
+        echo -e "  ${YELLOW}.env already has all required variables${NC}"
     fi
-    echo -e "  ${YELLOW}.env already exists (preserved)${NC}"
 fi
 
 # Create .envrc for direnv (always update - this is a simple template)
