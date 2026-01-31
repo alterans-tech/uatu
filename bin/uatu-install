@@ -151,7 +151,7 @@ else
 fi
 
 # Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
-UATU_HEADER='> **Read `.uatu/UATU.md` before any task. Sequential Thinking required.**
+UATU_HEADER='> **MUST READ: `.uatu/UATU.md`** — Required framework rules for all tasks.
 
 '
 
