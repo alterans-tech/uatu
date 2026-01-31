@@ -113,10 +113,10 @@ if [[ -f "$TARGET_DIR/.uatu/.version" ]]; then
         PRESERVED_FILES+=(".env")
     fi
 
-    # Backup FRAMEWORK.md if it exists
-    if [[ -f "$TARGET_DIR/.uatu/FRAMEWORK.md" ]]; then
-        cp "$TARGET_DIR/.uatu/FRAMEWORK.md" "$BACKUP_DIR/"
-        UPDATED_FILES+=(".uatu/FRAMEWORK.md")
+    # Backup UATU.md if it exists
+    if [[ -f "$TARGET_DIR/.uatu/UATU.md" ]]; then
+        cp "$TARGET_DIR/.uatu/UATU.md" "$BACKUP_DIR/"
+        UPDATED_FILES+=(".uatu/UATU.md")
     fi
     # Note: CLAUDE.md is never overwritten, only appended to
 
@@ -139,27 +139,25 @@ mkdir -p "$TARGET_DIR/.specify/scripts/bash"
 mkdir -p "$TARGET_DIR/.specify/templates"
 echo -e "  ${GREEN}Directories created${NC}"
 
-# Copy FRAMEWORK.md to .uatu/ (always update to latest)
-echo -e "${BLUE}Installing framework instructions...${NC}"
-cp "$TEMPLATES_DIR/.uatu/FRAMEWORK.md" "$TARGET_DIR/.uatu/FRAMEWORK.md"
+# Copy UATU.md to .uatu/ (always update to latest)
+echo -e "${BLUE}Installing Uatu framework...${NC}"
+cp "$TEMPLATES_DIR/.uatu/UATU.md" "$TARGET_DIR/.uatu/UATU.md"
 if [[ "$UPGRADE_MODE" == false ]]; then
-    echo -e "  ${GREEN}.uatu/FRAMEWORK.md installed${NC}"
-    NEW_FILES+=(".uatu/FRAMEWORK.md")
+    echo -e "  ${GREEN}.uatu/UATU.md installed${NC}"
+    NEW_FILES+=(".uatu/UATU.md")
 else
-    echo -e "  ${GREEN}.uatu/FRAMEWORK.md updated${NC}"
-    UPDATED_FILES+=(".uatu/FRAMEWORK.md")
+    echo -e "  ${GREEN}.uatu/UATU.md updated${NC}"
+    UPDATED_FILES+=(".uatu/UATU.md")
 fi
 
 # Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
-UATU_HEADER='> **CRITICAL: This project uses the Uatu AI orchestration framework.**
-> **You MUST read `.uatu/FRAMEWORK.md` before starting ANY task.**
-> **Every task requires Sequential Thinking. No exceptions. No shortcuts.**
+UATU_HEADER='> **Read `.uatu/UATU.md` before any task. Sequential Thinking required.**
 
 '
 
 if [[ -f "$TARGET_DIR/CLAUDE.md" ]]; then
     # Check if reference already exists
-    if ! grep -q ".uatu/FRAMEWORK.md" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
+    if ! grep -q ".uatu/UATU.md" "$TARGET_DIR/CLAUDE.md" 2>/dev/null; then
         echo -e "${BLUE}Adding Uatu header to existing CLAUDE.md...${NC}"
         # Prepend the header to the existing file
         ORIGINAL_CONTENT=$(cat "$TARGET_DIR/CLAUDE.md")
@@ -687,7 +685,7 @@ if [[ "$UPGRADE_MODE" == true ]]; then
 else
     # Show new installation summary
     echo "Installed:"
-    echo "  .uatu/FRAMEWORK.md           - Uatu framework instructions"
+    echo "  .uatu/UATU.md                - Uatu framework instructions"
     echo "  CLAUDE.md                    - Reference added (or created)"
     echo "  .mcp.json                    - Project-level MCP servers"
     echo "  .env                         - Environment variables template"
