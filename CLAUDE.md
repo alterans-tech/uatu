@@ -168,7 +168,7 @@ touch templates/.uatu/tools/new-tool/new-tool.sh
 
 ## Current Stats
 
-- **60 agents** across 9 categories
+- **80 agents** across 13 categories
 - **10+ skills** (speckit commands + commit + review-pr)
 - **8 guides** (workflow, thinking, tools, packages)
 - **4 active hooks** + 6 examples
@@ -187,7 +187,11 @@ touch templates/.uatu/tools/new-tool/new-tool.sh
 | languages | 7 | typescript, python, golang, rust, java |
 | quality | 5 | debugger, security-auditor, performance-engineer |
 | sparc | 4 | specification, architecture, pseudocode, refinement |
-| specialized | 4 | api-documenter, prompt-engineer, refactoring |
+| specialized | 6 | agile-coach, jira-specialist, api-documenter |
+| consensus | 7 | byzantine-coordinator, raft-manager, gossip |
+| swarm | 3 | hierarchical, mesh, adaptive coordinators |
+| orchestration | 3 | multi-agent-coordinator, swarm-coordinator |
+| optimization | 5 | load-balancer, performance-monitor, topology |
 
 ---
 

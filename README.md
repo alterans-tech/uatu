@@ -8,7 +8,7 @@ Uatu transforms Claude Code into a structured development environment with:
 
 - **Task Analysis** - Sequential Thinking MCP for structured reasoning before action
 - **Execution Packages** - SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER for different task complexities
-- **60 Specialized Agents** - Covering development, quality, infrastructure, and platform-specific needs
+- **80 Specialized Agents** - Covering development, quality, infrastructure, and platform-specific needs
 - **Speckit Workflows** - Specification-driven development with `/speckit.*` commands
 - **Hooks System** - Automated actions on session events
 - **Jira/GitHub Integration** - Project management automation
@@ -45,7 +45,7 @@ your-project/
 │   └── tools/                          # Utilities
 └── .claude/
     ├── skills/                         # Speckit slash commands
-    └── agents/                         # 60 specialized agents
+    └── agents/                         # 80 specialized agents
 ```
 
 ## Packages
@@ -77,7 +77,7 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | `/commit` | Smart commit with context |
 | `/review-pr` | Comprehensive PR review |
 
-## Agents (60)
+## Agents (80)
 
 ### Core (11)
 | Agent | Purpose |
@@ -167,13 +167,49 @@ Packages are execution modes selected by Sequential Thinking based on task chara
 | `pseudocode` | Algorithm design |
 | `refinement` | Iterative improvement |
 
-### Specialized (4)
+### Specialized (6)
 | Agent | Purpose |
 |-------|---------|
+| `agile-coach` | Scrum/Kanban, sprint planning, story writing |
+| `jira-specialist` | Jira workflows, JQL, issue management |
 | `api-documenter` | API documentation |
 | `docs-architect` | Documentation design |
 | `prompt-engineer` | LLM prompts |
 | `refactoring-specialist` | Code refactoring |
+
+### Consensus & Distributed (7)
+| Agent | Purpose |
+|-------|---------|
+| `byzantine-coordinator` | Byzantine fault-tolerant consensus |
+| `raft-manager` | Raft consensus, leader election |
+| `gossip-coordinator` | Gossip protocol coordination |
+| `quorum-manager` | Quorum-based decisions |
+| `crdt-synchronizer` | CRDT state synchronization |
+| `performance-benchmarker` | Consensus benchmarking |
+| `security-manager` | Distributed security |
+
+### Swarm Coordination (3)
+| Agent | Purpose |
+|-------|---------|
+| `hierarchical-coordinator` | Queen-led hierarchical swarms |
+| `mesh-coordinator` | Peer-to-peer mesh networks |
+| `adaptive-coordinator` | Dynamic topology switching |
+
+### Orchestration (3)
+| Agent | Purpose |
+|-------|---------|
+| `multi-agent-coordinator` | Complex workflow coordination |
+| `swarm-coordinator` | Swarm management |
+| `planner` | Strategic planning |
+
+### Optimization (5)
+| Agent | Purpose |
+|-------|---------|
+| `load-balancer` | Task load balancing |
+| `performance-monitor` | Real-time monitoring |
+| `topology-optimizer` | Swarm topology optimization |
+| `resource-allocator` | Resource management |
+| `benchmark-suite` | Performance benchmarking |
 
 ## Hooks
 
