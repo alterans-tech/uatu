@@ -34,7 +34,7 @@ Use these first. They're fast, reliable, and don't require MCP servers.
 | `Grep` | Search file contents | Find all usages |
 | `Bash` | Run commands | `npm test` |
 
-### Task Agents
+### Task Agents (Native Layer 0 — no MCP needed)
 
 | Subagent | When to Use |
 |----------|-------------|
@@ -42,6 +42,27 @@ Use these first. They're fast, reliable, and don't require MCP servers.
 | `general-purpose` | Multi-step research |
 | `architect-review` | Architecture decisions |
 | `debugger` | Error investigation |
+| `researcher` | Deep investigation before implementation |
+| `orchestrator-task` | Swarm-scale multi-agent coordination |
+
+**Agent spawning parameters:**
+
+| Parameter | Purpose |
+|-----------|---------|
+| `isolation: "worktree"` | Give agent its own git worktree — for parallel write agents |
+| `run_in_background: true` | Non-blocking execution — agent runs while you continue |
+| `maxTurns` | Limit agentic turns — prevents runaway agents and controls cost |
+| `model` | Override agent's default model — use haiku for cheap read-only, opus for critical |
+| `name` | Unique name — required for duplicate agents (coder-1, coder-2, ...) |
+
+**Agent Teams** (Layer 0C, `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` required):
+- `TeamCreate` / `SendMessage` — agents communicate with each other mid-task
+- Agents share a TaskList (via `TodoWrite`/`TodoRead`) for coordination
+- Use for SQUAD/HIVE where agents must coordinate, not just run in parallel
+
+**Headless Claude (`claude -p`):**
+- Native execution primitive for non-interactive agent tasks
+- Available without MCP; useful in scripts and batch workflows
 
 ---
 
@@ -96,30 +117,35 @@ mcp__sequential-thinking__sequentialthinking({
 
 ---
 
-## Swarm Tools (For Multi-Agent Work)
+## Coordination Tools (For Multi-Agent Work)
+
+### The Fundamental Law
+> **MCP tools ONLY COORDINATE strategy. Claude Code's Task tool EXECUTES with real agents.**
+> Claude Flow tells agents what to do. Task tool agents actually do it.
 
 ### Claude Flow (`mcp__claude-flow__`)
 
-**Use when:** Need coordinated multi-agent work (SQUAD/HIVE)
+**Use when:** Need shared memory/state coordination (SQUAD/HIVE)
 
 | Tool | Purpose |
 |------|---------|
-| `swarm_init` | Create swarm |
-| `agent_spawn` | Add agent |
-| `task_orchestrate` | Distribute work |
-| `memory_usage` | Shared state |
+| `swarm_init` | Initialize coordination topology |
+| `agent_spawn` | Register agent in swarm (Task tool still executes it) |
+| `task_orchestrate` | Distribute and track work |
+| `memory_usage` | Shared state across agents |
+| `memory_persist` | Cross-session persistence (HIVE) |
 | `swarm_destroy` | Clean up |
 
 ### Ruv Swarm (`mcp__ruv-swarm__`)
 
-**Use when:** Long-running tasks, learning (BRAIN)
+**Advanced option for SQUAD/HIVE when:** Long-running (no timeout), neural pattern training
 
 | Tool | Purpose |
 |------|---------|
 | `swarm_init` | Create swarm (no timeout!) |
-| `daa_agent_create` | Learning agent |
-| `neural_train` | Train patterns |
-| `daa_knowledge_share` | Share learnings |
+| `daa_agent_create` | Learning agent with cognitive pattern |
+| `neural_train` | Train patterns (up to 100 iterations) |
+| `daa_knowledge_share` | Share learnings between agents |
 
 ---
 
@@ -138,7 +164,8 @@ Native tool → MCP tool → Swarm → Ask user
 | Few files | Native (Glob/Grep) + Read |
 | Many files | MCP filesystem |
 | External service | MCP (GitHub/Atlassian) |
-| Coordinated work | Swarm (SQUAD/BRAIN/HIVE) |
+| Coordinated work | SQUAD (Agent Teams + Claude Flow MCP) |
+| Multi-session persistence | HIVE (SQUAD + memory_persist) |
 
 ### Rule 3: Consider Context Window
 
@@ -182,21 +209,26 @@ Native tool → MCP tool → Swarm → Ask user
 | Find all usages of X | Grep |
 | Create new component | Write |
 | Run tests | Bash |
-| Refactor across files | SQUAD |
-| Deep investigation | BRAIN |
-| Long-running analysis | BRAIN |
-| Multi-day project | HIVE |
+| Explore codebase | SOLO + Explore/researcher agents |
+| Refactor across files | SOLO + orchestrator (parallel coders in worktrees) |
+| Agents must coordinate mid-task | SQUAD (Agent Teams + Claude Flow) |
+| Multi-day project | HIVE (SQUAD + memory_persist) |
+| Neural/long-running | WATCHER (Ruflo CLI) |
 
-### By Complexity
+### By Complexity (Scaling Tiers)
 
-| Complexity | Package | Tools |
-|------------|---------|-------|
-| Trivial | SOLO | Native |
-| Simple | SOLO | Native + MCP |
-| Medium | SCOUT | Task agents |
-| Complex | SQUAD | Claude Flow |
-| Very Complex | BRAIN | Ruv Swarm |
-| Multi-phase | HIVE | Claude Flow + persist |
+| Complexity | Tier | Package | Tools |
+|------------|------|---------|-------|
+| Trivial | Micro (1-2) | SOLO | Native tools |
+| Simple feature | Small (3-5) | SOLO + orchestrator | Agent tool, parallel + worktree |
+| Cross-cutting | Medium (6-12) | SOLO/SQUAD | Batch-spawned agents, worktree isolation |
+| Major feature | Large (13-25) | SOLO/SQUAD | Mass parallel agents, all writers in worktrees |
+| Mass refactoring | Swarm (25+) | SOLO + orchestrator | Maximum parallelism, mandatory worktrees |
+| Agents need to talk | Any tier | SQUAD | Agent Teams + Claude Flow MCP |
+| Multi-session | Any tier | HIVE | SQUAD + memory_persist |
+| Self-learning | Any tier | WATCHER | Ruflo CLI + HIVE |
+
+Package choice is about **coordination model** (do agents need to talk?), not agent count. All packages support dynamic scaling.
 
 ---
 

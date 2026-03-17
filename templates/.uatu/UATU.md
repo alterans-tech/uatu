@@ -35,14 +35,21 @@ AI orchestration framework.
 
 ## Package Selection
 
-| Package | Use When |
-|---------|----------|
-| **SOLO** | Single file, clear task, low risk |
-| **SCOUT** | Need to explore/investigate first |
-| **SQUAD** | Multiple coordinated subtasks |
-| **BRAIN** | Learning patterns (single session) |
-| **HIVE** | Multi-session, need to persist context |
-| **WATCHER** | Learning + persistence combined |
+All packages support dynamic scaling (1 to 25+ agents). Choose by **coordination model**, not agent count:
+
+| Package | Coordination | Use When |
+|---------|-------------|----------|
+| **SOLO** | Hub-and-spoke (no inter-agent talk) | Independent parallel work at any scale |
+| **SQUAD** | Peer messaging + shared memory | Agents need to coordinate mid-task |
+| **HIVE** | SQUAD + session persistence | Work spans multiple sessions |
+| **WATCHER** | HIVE + neural learning | Repeated tasks benefit from accumulated learning |
+
+```
+Can you give each agent everything it needs before it starts?
+  YES → SOLO (+ orchestrator-task for multi-agent, any scale)
+  NO  → Agents discover things mid-work that other agents need
+        → SQUAD → need persistence across sessions? → HIVE → need learning? → WATCHER
+```
 
 ---
 
@@ -52,7 +59,7 @@ AI orchestration framework.
 |---------|-----------|
 | Every complex task | `.uatu/guides/SEQUENTIAL-THINKING.md` |
 | Unsure which tool/package | `.uatu/guides/TOOL-SELECTION.md` |
-| Using SQUAD/BRAIN/HIVE | `.uatu/guides/CLAUDE-FLOW-SELECTION.md` |
+| Using SQUAD/HIVE | `.uatu/guides/SQUAD-GUIDE.md` |
 | Using WATCHER package | `.uatu/guides/WATCHER.md` |
 | Spawning agents | `.uatu/guides/AGENTS-GUIDE.md` |
 | Jira tasks, naming, specs | `.uatu/guides/WORKFLOW.md` |
@@ -70,6 +77,7 @@ AI orchestration framework.
 | Need task breakdown | `/speckit.tasks` |
 | Ready to implement | `/speckit.implement` |
 | Check consistency | `/speckit.analyze` |
+| Convert tasks to GitHub Issues | `/speckit.taskstoissues` |
 
 ---
 
@@ -90,9 +98,13 @@ Hooks run automatically at key events. Configured in `.claude/settings.json`:
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `load-project-context.sh` | SessionStart | Load project config |
+| `session-restore.sh` | SessionStart | Restore last session checkpoint |
 | `enforce-sequential-thinking.sh` | UserPromptSubmit | Remind to use ST |
 | `format-code.sh` | PostToolUse | Auto-format code |
+| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to sensitive files |
 | `update-jira.sh` | Stop | Update Jira status |
+| `session-checkpoint.sh` | Stop | Save session summary |
+| `cost-tracking.sh` | Stop | Log session end for cost review |
 
 See `.uatu/guides/HOOKS.md` for customization.
 
@@ -119,8 +131,8 @@ See `.uatu/guides/HOOKS.md` for customization.
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | Every task |
-| `claude-flow` | SQUAD, HIVE, WATCHER |
-| `ruv-swarm` | BRAIN, WATCHER |
+| `sequential-thinking` | Every task (pre-package) |
+| `claude-flow` | SQUAD, HIVE, WATCHER (shared memory, strategy coordination) |
+| `ruv-swarm` | Advanced SQUAD/HIVE (no-timeout, neural patterns) |
 
 Run `uatu-setup` to install.

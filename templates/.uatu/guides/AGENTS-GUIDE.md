@@ -20,13 +20,14 @@ Agents are specialized sub-systems within Uatu that provide focused expertise fo
 ### Agent Location
 
 All agents are located in `~/.claude/agents/` organized by category:
-- `core/` - General development agents
+- `core/` - General development and orchestration agents
 - `sparc/` - SPARC methodology agents
 - `github/` - GitHub integration agents
 - `firebase/` - Firebase-specific agents
 - `languages/` - Language specialists
 - `infrastructure/` - Cloud and DevOps agents
 - `quality/` - Testing and review agents
+- `testing/` - TDD and production validation specialists
 - `data/` - Database and data engineering agents
 - `specialized/` - Domain-specific agents
 - `orchestration/` - Coordination agents
@@ -90,6 +91,8 @@ All agents are located in `~/.claude/agents/` organized by category:
 |-------|----------|-------|
 | `code-reviewer` | Code review, best practices | sonnet |
 | `tester` | Unit/integration/E2E testing | sonnet |
+| `tdd-london-swarm` | London School TDD: mock-driven test-first development | sonnet |
+| `production-validator` | Pre-deployment production readiness checklist | sonnet |
 | `test-automator` | Test automation frameworks | sonnet |
 | `debugger` | Bug investigation, root cause | sonnet |
 | `security-auditor` | Security audit, compliance | opus |
@@ -102,6 +105,7 @@ All agents are located in `~/.claude/agents/` organized by category:
 |-------|----------|-------|
 | `planner` | Task decomposition, planning | opus |
 | `researcher` | Investigation, codebase exploration | sonnet |
+| `orchestrator-task` | Native task decomposition + multi-agent coordination (no MCP) | sonnet |
 | `multi-agent-coordinator` | Coordinating multiple agents | opus |
 | `swarm-coordinator` | SQUAD/HIVE swarm orchestration | opus |
 
@@ -116,76 +120,116 @@ All agents are located in `~/.claude/agents/` organized by category:
 
 ---
 
+## Dynamic Scaling
+
+All packages (SOLO, SQUAD, HIVE, WATCHER) support the same scaling tiers. The orchestrator decomposes the task and selects a tier based on work unit count:
+
+| Tier | Agents | When | Worktree |
+|------|--------|------|----------|
+| **Micro** | 1-2 | Single file, single concern | No |
+| **Small** | 3-5 | Feature touching 2-5 files | Write agents only |
+| **Medium** | 6-12 | Cross-cutting feature, multi-module | Write agents only |
+| **Large** | 13-25 | Major feature, system migration | All write agents |
+| **Swarm** | 25+ | Org-wide refactoring, mass changes | Mandatory for all |
+
+Package choice is about **coordination model**, not agent count. See SQUAD-GUIDE.md for details.
+
+---
+
+## Spawning Multiple Agents of the Same Type
+
+You CAN and SHOULD spawn duplicate agents when the task has multiple independent work units of the same kind.
+
+### Naming Convention
+
+```
+{agent-type}-{index}
+Examples: coder-1, coder-2, coder-3, tester-1, tester-2
+```
+
+### When to Duplicate
+
+| Scenario | Pattern |
+|----------|---------|
+| 8 files need refactoring | 8 `coder-N` agents, one per file |
+| 5 modules need tests | 5 `tester-N` agents, one per module |
+| 3 areas to investigate | 3 `researcher-N` agents, each with a focus |
+| Large codebase audit | 4 `security-auditor-N` agents, each scanning a directory |
+
+### Batch Spawning Rule
+
+Spawn ALL parallel agents in a SINGLE message (multiple `Agent` tool calls in one response). This enables true parallelism:
+
+```
+# All three start simultaneously
+Agent(subagent_type="coder", name="coder-1", prompt="Refactor src/auth.ts...", isolation="worktree", run_in_background=true)
+Agent(subagent_type="coder", name="coder-2", prompt="Refactor src/users.ts...", isolation="worktree", run_in_background=true)
+Agent(subagent_type="coder", name="coder-3", prompt="Refactor src/payments.ts...", isolation="worktree", run_in_background=true)
+```
+
+---
+
+## Agent Isolation Requirements
+
+| Agent Category | Needs `isolation: "worktree"`? | Reason |
+|----------------|-------------------------------|--------|
+| coder, fullstack-developer, refactoring-specialist | **YES** | Writes/modifies files |
+| tester (creating test files) | **YES** | Creates new test files |
+| researcher, Explore, architect-review | No | Read-only |
+| code-reviewer, security-auditor | No | Read-only analysis |
+| debugger (investigating) | No | Read-only |
+| debugger (applying fix) | **YES** | Writes fix to files |
+
+---
+
 ## Swarm Usage Patterns
 
-### SQUAD Mode (Quick Coordination)
+### SOLO + Orchestrator (Independent Parallel Work)
 
-For tasks requiring 5-8 agents working in parallel on related subtasks.
+For tasks where agents work independently — no inter-agent communication needed. Use `orchestrator-task` agent or `/orchestrate swarm`.
 
 ```
-Sequential Thinking → Identify need for coordination → SQUAD
+Sequential Thinking → Independent parallel work → SOLO + orchestrator
 
-Typical SQUAD compositions:
-- Feature development: coder, tester, code-reviewer
-- Full-stack: frontend-developer, backend-architect, database-optimizer
-- Security audit: security-auditor, code-reviewer, tester
+Example compositions:
+- Refactor 10 files: 10 coder-N agents, each in worktree
+- Write tests for 5 modules: 5 tester-N agents
+- Research 3 topics: 3 researcher-N agents
 ```
 
-**Example: New Feature Implementation**
+### SQUAD (Coordinated Parallel Work)
 
-```json
-{
-  "swarm": "SQUAD",
-  "agents": [
-    {"type": "planner", "task": "decompose feature into tasks"},
-    {"type": "frontend-developer", "task": "implement UI components"},
-    {"type": "backend-architect", "task": "design and implement API"},
-    {"type": "tester", "task": "write tests for new feature"},
-    {"type": "code-reviewer", "task": "review all changes"}
-  ],
-  "topology": "star",
-  "coordinator": "planner"
-}
+For tasks where agents need to communicate mid-work via SendMessage and shared memory.
+
+```
+Sequential Thinking → Agents need to talk → SQUAD
+
+Example compositions:
+- Full-stack feature: frontend-dev + backend-architect coordinate API contract
+- Design convergence: multiple architects discuss and agree on approach
+- Bug investigation: debugger shares findings, coder adapts implementation
 ```
 
-### HIVE Mode (Persistent Sessions)
+### HIVE (Multi-Session Persistence)
 
 For multi-phase projects requiring context persistence across sessions.
 
 ```
 Sequential Thinking → Multi-day work → HIVE
 
-Typical HIVE compositions:
+Example compositions:
 - Major refactoring: architect-review, refactoring-specialist, coder, tester
 - System migration: planner, microservices-architect, data-engineer, sre-engineer
 ```
 
-**Example: System Migration**
+### ruv-swarm (Advanced option for SQUAD/HIVE)
 
-```json
-{
-  "swarm": "HIVE",
-  "queen": "planner",
-  "workers": [
-    {"type": "researcher", "task": "analyze current system"},
-    {"type": "microservices-architect", "task": "design target architecture"},
-    {"type": "data-engineer", "task": "plan data migration"},
-    {"type": "coder", "task": "implement migration scripts"},
-    {"type": "tester", "task": "validate migration"}
-  ],
-  "topology": "hierarchical",
-  "persistence": true
-}
-```
-
-### BRAIN Mode (Learning Agents)
-
-For complex analysis requiring cognitive patterns and learning.
+For complex analysis requiring cognitive patterns, learning, and no-timeout execution.
 
 ```
-Sequential Thinking → Deep analysis needed → BRAIN
+Sequential Thinking → Deep/long-running analysis → SQUAD or HIVE with ruv-swarm
 
-Typical BRAIN uses:
+Typical ruv-swarm uses:
 - Architecture analysis: divergent + systems cognitive patterns
 - Security audit: critical + convergent patterns
 - Performance optimization: convergent + adaptive patterns
@@ -209,15 +253,17 @@ Typical BRAIN uses:
 | Data work | `data-engineer` | `database-optimizer` |
 | Infrastructure | `cloud-architect` | `terraform-specialist` |
 
-### By Complexity
+### By Complexity (Scaling Tiers)
 
-| Complexity | Approach | Agents |
-|------------|----------|--------|
-| Simple | SOLO | Single best-fit agent |
-| Medium | SCOUT | 2-3 agents in sequence |
-| Complex | SQUAD | 5-8 coordinated agents |
-| Long-running | HIVE | Hierarchical with persistence |
-| Deep analysis | BRAIN | Learning agents with patterns |
+| Complexity | Tier | Package | Agents |
+|------------|------|---------|--------|
+| Trivial | Micro (1-2) | SOLO | Single best-fit agent |
+| Simple feature | Small (3-5) | SOLO + orchestrator | 2-5 agents in parallel |
+| Cross-cutting | Medium (6-12) | SOLO + orchestrator or SQUAD | 6-12 agents, write agents in worktrees |
+| Major feature | Large (13-25) | SOLO + orchestrator or SQUAD | 13-25 agents, all writers in worktrees |
+| Mass refactoring | Swarm (25+) | SOLO + orchestrator | 25+ agents, mandatory worktrees |
+| Multi-session | Any tier | HIVE | Any scale + cross-session persistence |
+| Deep analysis | Any tier | SQUAD/HIVE + ruv-swarm | Cognitive patterns + no timeout |
 
 ### By Risk Level
 
@@ -266,7 +312,7 @@ Typical BRAIN uses:
 Always use Sequential Thinking before selecting agents. It will recommend:
 - Whether agents are needed
 - Which agents to use
-- What package (SOLO, SCOUT, SQUAD, BRAIN, HIVE)
+- What package (SOLO, SQUAD, HIVE, WATCHER)
 
 ### 2. Match Agent to Task
 
@@ -369,14 +415,37 @@ hooks:
 |-------|----------|-------------|--------|
 | `name` | Yes | Unique agent identifier | kebab-case string |
 | `description` | Yes | Agent purpose and capabilities | Text description |
-| `model` | Yes | Recommended Claude model | opus, sonnet, haiku |
+| `model` | No | Recommended Claude model | opus, sonnet, haiku, inherit (default) |
 | `type` | No | Agent category | analyst, architect, coder, validator, coordinator |
 | `color` | No | UI/visualization color | Hex code or color name |
 | `capabilities` | No | List of specific skills | Array of strings |
 | `priority` | No | Selection priority | low, medium, high, critical |
-| `tools` | No | Allowed tools | Array of tool names |
+| `tools` | No | Allowed tools (inherits all if omitted) | Array of tool names |
+| `disallowedTools` | No | Denylist of tools | Array of tool names |
+| `maxTurns` | No | Max agentic turns before agent stops | Number (default: unlimited) |
+| `permissionMode` | No | Permission control | default, acceptEdits, dontAsk, bypassPermissions, plan |
+| `background` | No | Always run as background task | true/false |
+| `isolation` | No | Run in isolated git worktree | `worktree` |
+| `memory` | No | Persistent memory scope | user, project, local |
+| `skills` | No | Skills injected at startup | Array of skill names |
+| `mcpServers` | No | MCP servers scoped to this agent | Array of server names |
 | `sparc_phase` | No | SPARC methodology phase | specification, pseudocode, architecture, refinement, completion |
 | `hooks` | No | Execution scripts | `pre` and `post` shell scripts |
+
+### Spawn-Time Overrides
+
+Many frontmatter fields can be overridden when spawning an agent. The orchestrator typically provides these at spawn time rather than hardcoding them in the agent definition:
+
+```
+Agent(
+  subagent_type="coder",
+  name="coder-1",              # unique name for this instance
+  isolation="worktree",         # worktree isolation for parallel writes
+  run_in_background=true,       # non-blocking execution
+  model="sonnet",               # model override
+  mode="acceptEdits"            # permission mode override
+)
+```
 
 ---
 
@@ -386,6 +455,7 @@ hooks:
 
 Determine which directory your agent belongs to:
 - General development → `core/`
+- TDD, production validation → `testing/`
 - Language-specific → `languages/`
 - GitHub operations → `github/`
 - Testing/QA → `quality/`
@@ -510,19 +580,19 @@ Hierarchy:
 Persistence: cross-session memory
 ```
 
-### 4. Learning Agent System (BRAIN/WATCHER)
+### 4. Learning Agent System (WATCHER)
 ```
-Task: Codebase pattern learning
+Task: Codebase pattern learning across sessions
 
-BRAIN: Single-session learning
+SQUAD with ruv-swarm: Single-session deep learning (no timeout)
   - daa_agent with cognitivePattern: "divergent"
   - neural_train for pattern recognition
-  - Extract learnings at end
+  - Extract learnings at session end
 
-WATCHER: Multi-session learning + persistence
-  - BRAIN for learning
-  - HIVE for persistence
-  - Patterns saved across sessions
+WATCHER: Multi-session learning + persistence (Ruflo CLI)
+  - ruv-swarm for learning (neural, DAA)
+  - HIVE for cross-session persistence
+  - Patterns saved and restored across sessions
 ```
 
 ---
