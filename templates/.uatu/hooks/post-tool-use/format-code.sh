@@ -7,9 +7,12 @@ set -euo pipefail
 # Read hook input
 INPUT=$(cat)
 
-# Extract tool name and result
-TOOL_NAME=$(echo "$INPUT" | jq -r '.toolResult.toolName // ""')
-TOOL_INPUT=$(echo "$INPUT" | jq -r '.toolResult.input // "{}"')
+# Extract tool name and input (PostToolUse: top-level snake_case fields)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"')
+
+source "$(dirname "$0")/../hook-profile.sh"
+check_profile "standard" || { echo '{"additionalContext": "", "error": null}'; exit 0; }
 
 # Only run for Write and Edit tools
 if [[ "$TOOL_NAME" != "Write" ]] && [[ "$TOOL_NAME" != "Edit" ]]; then

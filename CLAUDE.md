@@ -6,6 +6,12 @@ This is the **source repository** for the Uatu AI orchestration framework. This 
 
 ---
 
+## Project Rules
+
+@.claude/rules/framework-development.md
+
+---
+
 ## Tech Stack
 
 - **Shell**: Bash scripts (bin/uatu-install, bin/uatu-setup, tools)
@@ -30,7 +36,7 @@ find templates/.claude/agents -name "*.md" -not -name "README.md" | wc -l
 ls -d templates/.claude/skills/*/ | wc -l
 
 # Validate guides exist
-for g in WORKFLOW SEQUENTIAL-THINKING TOOL-SELECTION CLAUDE-FLOW-SELECTION WATCHER AGENTS-GUIDE HOOKS; do
+for g in WORKFLOW SEQUENTIAL-THINKING TOOL-SELECTION SQUAD-GUIDE WATCHER AGENTS-GUIDE HOOKS; do
   [ -f "templates/.uatu/guides/${g}.md" ] && echo "✓ $g" || echo "✗ $g MISSING"
 done
 
@@ -59,11 +65,12 @@ uatu/
 │   ├── .uatu/
 │   │   ├── config/               # Created at install
 │   │   ├── guides/               # 7 guides
-│   │   ├── hooks/                # 4 active + 6 examples
+│   │   ├── hooks/                # 8 active + 6 examples
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── skills/               # 9 skills
-│       └── agents/               # 62 agents
+│       ├── commands/             # 20 slash commands (/speckit.*, /tdd, /code-review, etc.)
+│       ├── skills/               # 18 skills (react-component, test-file + 16 ECC skills)
+│       └── agents/               # 65 agents
 └── README.md                     # User documentation
 ```
 
@@ -79,41 +86,52 @@ uatu/
 | worktree-helper | `.uatu/tools/worktree-helper.sh` | Git worktree management |
 | time-tracking | `.uatu/tools/time-tracking/worklog.py` | Work session tracking |
 
-### Skills (9)
-| Skill | Purpose |
-|-------|---------|
+### Commands (9 slash commands)
+| Command | Purpose |
+|---------|---------|
 | `/speckit.specify` | Create feature specification |
 | `/speckit.clarify` | Reduce spec ambiguity |
 | `/speckit.plan` | Generate implementation plan |
 | `/speckit.tasks` | Create task breakdown |
 | `/speckit.implement` | Execute implementation |
 | `/speckit.analyze` | Cross-artifact consistency |
+| `/speckit.taskstoissues` | Convert tasks to GitHub Issues |
 | `/commit` | Smart git commit |
 | `/review-pr` | PR review |
+
+### Skills (2 — in `.claude/skills/`)
+| Skill | Purpose |
+|-------|---------|
+| `react-component` | Generate TypeScript React component with tests |
+| `test-file` | Generate test file for any source file (language-agnostic) |
 
 ### Guides (7)
 | Guide | Purpose |
 |-------|---------|
 | WORKFLOW.md | Naming, folders, Jira, Speckit |
-| SEQUENTIAL-THINKING.md | Task analysis patterns |
+| SEQUENTIAL-THINKING.md | Task analysis patterns (PRE-PACKAGE) |
 | TOOL-SELECTION.md | Tool/package selection |
-| CLAUDE-FLOW-SELECTION.md | SQUAD/BRAIN/HIVE details |
+| SQUAD-GUIDE.md | SQUAD/HIVE/WATCHER: Agent Teams + Claude Flow MCP |
 | WATCHER.md | Learning + persistence |
 | AGENTS-GUIDE.md | Agent selection |
 | HOOKS.md | Hook system |
 
-### Hooks (4 active)
+### Hooks (8 active)
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | load-project-context.sh | SessionStart | Load project config |
+| session-restore.sh | SessionStart | Restore last session checkpoint |
 | enforce-sequential-thinking.sh | UserPromptSubmit | Enforce thinking |
+| prevent-sensitive-writes.sh | PreToolUse | Block sensitive file writes |
 | format-code.sh | PostToolUse | Format code |
 | update-jira.sh | Stop | Update Jira status |
+| session-checkpoint.sh | Stop | Save session summary |
+| cost-tracking.sh | Stop | Log session for cost review |
 
-### Agents (62 across 9 categories)
+### Agents (65 across 10 categories)
 | Category | Count | Key Agents |
 |----------|-------|------------|
-| core | 11 | coder, tester, reviewer, planner, researcher |
+| core | 12 | coder, tester, reviewer, planner, researcher, orchestrator-task |
 | firebase | 12 | auth, firestore, functions, hosting, crashlytics |
 | languages | 7 | typescript, python, golang, rust, java, flutter |
 | data | 6 | database-admin, ml-engineer, llm-architect |
@@ -122,16 +140,15 @@ uatu/
 | github | 5 | pr-manager, issue-tracker, release-manager |
 | quality | 5 | debugger, security-auditor, performance-engineer |
 | sparc | 4 | specification, architecture, pseudocode, refinement |
+| testing | 2 | tdd-london-swarm, production-validator |
 
-### Packages (6)
-| Package | Use Case |
-|---------|----------|
-| SOLO | Single file, clear task |
-| SCOUT | Investigation, exploration |
-| SQUAD | Multi-file coordinated work |
-| BRAIN | Pattern learning (no timeout) |
-| HIVE | Multi-session persistence |
-| WATCHER | Learning + persistence combined |
+### Packages (4)
+| Package | Layer | Use Case |
+|---------|-------|----------|
+| SOLO | 0A: Single agent | Single file, clear task, low risk |
+| SQUAD | 0B+1: Agent Teams + Claude Flow MCP | Multi-file coordinated work |
+| HIVE | 0B+1 + persistence | Multi-session, context must persist |
+| WATCHER | 0B+1+2: + Ruflo CLI | Self-learning, background workers |
 
 ---
 
@@ -213,7 +230,7 @@ chmod +x templates/.uatu/tools/new-tool/new-tool.sh
 |--------|--------|---------|
 | Sequential Thinking | `mcp__sequential-thinking__` | Task analysis |
 | Claude Flow | `mcp__claude-flow__` | SQUAD/HIVE swarms |
-| Ruv Swarm | `mcp__ruv-swarm__` | BRAIN (no timeout) |
+| Ruv Swarm | `mcp__ruv-swarm__` | Advanced SQUAD/HIVE (no-timeout, neural) |
 
 ### Project-Level (uatu-install)
 | Server | Prefix | Purpose |
@@ -262,12 +279,13 @@ chore: maintenance
 
 ## Current Stats
 
-- **62 agents** across 9 categories
-- **9 skills** (speckit commands + commit + review-pr)
+- **65 agents** across 10 categories
+- **20 commands** (9 speckit.* + 11 workflow commands: tdd, code-review, verify, e2e, checkpoint, refactor-clean, test-coverage, update-docs, build-fix, skill-create, orchestrate)
+- **18 skills** (react-component, test-file + 16 from ECC: tdd-workflow, security-review, backend-patterns, frontend-patterns, python-*, golang-*, api-design, etc.)
 - **7 guides**
-- **4 active hooks** + 6 examples
-- **3 tools**
-- **6 packages**
+- **8 active hooks** + 6 examples
+- **4 tools**
+- **4 packages** (SOLO, SQUAD, HIVE, WATCHER)
 
 ---
 

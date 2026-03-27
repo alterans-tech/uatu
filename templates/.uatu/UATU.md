@@ -37,12 +37,12 @@ AI orchestration framework.
 
 All packages support dynamic scaling (1 to 25+ agents). Choose by **coordination model**, not agent count:
 
-| Package | Coordination | Use When |
-|---------|-------------|----------|
-| **SOLO** | Hub-and-spoke (no inter-agent talk) | Independent parallel work at any scale |
-| **SQUAD** | Peer messaging + shared memory | Agents need to coordinate mid-task |
-| **HIVE** | SQUAD + session persistence | Work spans multiple sessions |
-| **WATCHER** | HIVE + neural learning | Repeated tasks benefit from accumulated learning |
+| Package | Coordination | Use When | Command |
+|---------|-------------|----------|---------|
+| **SOLO** | Hub-and-spoke (no inter-agent talk) | Independent parallel work at any scale | `/orchestrate` |
+| **SQUAD** | Peer messaging + shared memory | Agents need to coordinate mid-task | `/squad` |
+| **HIVE** | SQUAD + session persistence (experimental) | Work spans multiple sessions | Manual setup |
+| **WATCHER** | HIVE + neural learning (experimental) | Repeated tasks benefit from accumulated learning | Manual setup |
 
 ```
 Can you give each agent everything it needs before it starts?
@@ -64,6 +64,20 @@ Can you give each agent everything it needs before it starts?
 | Spawning agents | `.uatu/guides/AGENTS-GUIDE.md` |
 | Jira tasks, naming, specs | `.uatu/guides/WORKFLOW.md` |
 | Customizing hooks | `.uatu/guides/HOOKS.md` |
+
+---
+
+## Agent Commands
+
+| When | Command | What It Does |
+|------|---------|-------------|
+| Multi-agent orchestration | `/orchestrate swarm <desc>` | Spawns orchestrator-task agent for decomposition + parallel execution |
+| Feature workflow | `/orchestrate feature <desc>` | Chain: planner → [coder + tester] → reviewer |
+| Bug fix | `/orchestrate bugfix <desc>` | Chain: debugger → coder → tester → reviewer |
+| Agent team (peer coordination) | `/squad <desc>` | Creates Agent Team with TeamCreate + SendMessage |
+| Test-driven development | `/tdd <desc>` | Spawns tester agent with TDD workflow |
+| End-to-end tests | `/e2e <desc>` | Spawns tester agent with Playwright workflow |
+| Code review | `/code-review` | Spawns reviewer agent on uncommitted changes |
 
 ---
 

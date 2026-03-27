@@ -2,6 +2,8 @@
 
 **Purpose:** Understand tasks before acting. Choose the right package.
 
+> **Load when:** Every complex task — this is mandatory. Already enforced via UserPromptSubmit hook.
+
 ---
 
 ## The Tool
@@ -50,9 +52,11 @@ Every task should start with this thought sequence:
 Thought 1: What is being asked? (Parse the request)
 Thought 2: What context do I need? (Files, history, constraints)
 Thought 3: What could go wrong? (Risk assessment)
-Thought 4: Which package fits? (SOLO/SCOUT/SQUAD/BRAIN/HIVE)
+Thought 4: Which package fits? (SOLO/SQUAD/HIVE/WATCHER)
 Thought 5: What's my execution plan? (Concrete steps)
 ```
+
+**Sequential Thinking is PRE-PACKAGE** — it runs via the `enforce-sequential-thinking` hook before any package is selected. It helps you choose the right package, not the other way around.
 
 Then set `nextThoughtNeeded: false` and execute.
 
@@ -65,10 +69,10 @@ Use Sequential Thinking to decide:
 | If you determine... | Select |
 |---------------------|--------|
 | Simple, 1-3 steps, low risk | **SOLO** |
-| Need to find/investigate first | **SCOUT** |
+| Need to investigate/explore | **SOLO** (with Explore/researcher agents) |
 | Multi-file, needs coordination | **SQUAD** |
-| Pattern learning, long-running | **BRAIN** |
-| Multi-phase, risky, needs isolation | **HIVE** |
+| Multi-phase, needs cross-session persistence | **HIVE** |
+| Self-learning, background, neural | **WATCHER** |
 
 ---
 
@@ -81,7 +85,7 @@ Use Sequential Thinking to decide:
 3. Where does the error originate?
 4. What's the minimal reproduction?
 5. What's the fix and what could it break?
-→ Package: Usually SOLO or SCOUT
+→ Package: SOLO (spawn debugger agent if complex)
 ```
 
 ### Feature Implementation
@@ -91,7 +95,7 @@ Use Sequential Thinking to decide:
 3. What are the edge cases?
 4. How will this be tested?
 5. What's the implementation order?
-→ Package: Usually SCOUT then SQUAD
+→ Package: SOLO for small, SQUAD for multi-file
 ```
 
 ### Refactoring
@@ -101,7 +105,7 @@ Use Sequential Thinking to decide:
 3. What's the safe transformation path?
 4. How do I verify nothing broke?
 5. What's the rollback plan?
-→ Package: SCOUT to understand, SQUAD to execute
+→ Package: SOLO to understand (Explore agent), SQUAD to execute
 ```
 
 ### Architecture Decision
@@ -111,7 +115,7 @@ Use Sequential Thinking to decide:
 3. What options exist?
 4. What are the trade-offs of each?
 5. What's the recommendation and why?
-→ Package: BRAIN if learning needed, SCOUT otherwise
+→ Package: SOLO (researcher/architect-review agents)
 ```
 
 ---
@@ -143,32 +147,26 @@ Actually, after reading the file, the assumption in thought 2 was wrong...
 
 ### SOLO
 ```
-Sequential Thinking → Direct execution
-(Thinking decides you can do it directly)
-```
-
-### SCOUT
-```
-Sequential Thinking → Task subagent → More thinking if needed
-(Thinking identifies what to investigate)
+Sequential Thinking → Direct execution (or spawn specialized agents)
+(Thinking decides scope and whether agents are needed)
 ```
 
 ### SQUAD
 ```
-Sequential Thinking → swarm_init → agent_spawn → task_orchestrate
-(Thinking determines topology and agent roles)
-```
-
-### BRAIN
-```
-Sequential Thinking → daa_agent_create → neural_train → knowledge_share
-(Thinking defines learning objectives)
+Sequential Thinking → Agent Teams (TeamCreate) + swarm_init → task_orchestrate
+(Thinking determines team composition and MCP coordination strategy)
 ```
 
 ### HIVE
 ```
-Sequential Thinking → swarm_init(hierarchical) → memory_persist → workflow
-(Thinking scopes the multi-phase plan with persistence)
+Sequential Thinking → Agent Teams + swarm_init(hierarchical) + memory_persist
+(Thinking scopes the multi-phase plan and what must persist across sessions)
+```
+
+### WATCHER
+```
+Sequential Thinking → Ruflo CLI → HIVE + neural_train + background workers
+(Thinking defines learning objectives and persistence strategy)
 ```
 
 ---

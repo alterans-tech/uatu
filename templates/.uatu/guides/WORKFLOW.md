@@ -2,6 +2,8 @@
 
 **Purpose:** Naming conventions, folder structure, Jira tools, confirmation points.
 
+> **Load when:** Starting a new feature, creating worktrees, using Jira, or running speckit commands.
+
 ---
 
 ## 1. Naming Conventions
@@ -74,7 +76,7 @@ rainbow-015-fix-RED-2700-cross-project
 ├── guides/                 # These reference docs
 │   ├── WORKFLOW.md
 │   ├── SEQUENTIAL-THINKING.md
-│   └── CLAUDE-FLOW-SELECTION.md
+│   └── SQUAD-GUIDE.md
 └── delivery/
     ├── research/           # General research (not task-specific)
     └── sprints/
@@ -415,6 +417,45 @@ git worktree list
 | Branch | `{JIRA-KEY}/{description}` |
 | Feature folder | `{NNN}-{JIRA-KEY}-{short-name}` |
 | Index scope | Global (not per-sprint) |
+
+---
+
+## 9. Revert-and-Refine Pattern
+
+When an implementation attempt fails, do NOT iterate on broken output. Instead: **revert, refine the plan, and retry from clean state**.
+
+### The Anti-Pattern (slow, compounds errors)
+
+```
+Attempt 1: Implement feature → fails
+Attempt 2: Patch the broken code → partially works
+Attempt 3: Patch the patches → fragile, buggy
+Attempt 4: More patches → unmaintainable mess
+```
+
+### The Correct Pattern (fast, clean)
+
+```
+Attempt 1: Implement feature → fails
+Analysis:  Why did it fail? What was the wrong assumption?
+Revert:    git checkout -- . (or discard agent's worktree)
+Refine:    Update the plan with new understanding
+Attempt 2: Implement from clean state with refined plan → works
+```
+
+### When to Revert
+
+| Situation | Action |
+|-----------|--------|
+| Agent's approach was fundamentally wrong | Revert all changes, redesign approach |
+| Build fails with >3 errors | Revert, fix root cause in plan |
+| Tests fail in unexpected ways | Revert implementation, keep tests |
+| Code works but architecture is wrong | Revert, consult architect-review agent |
+| Merge conflicts with main branch | Revert, rebase, re-implement |
+
+### Rule
+
+**Two failed patches = mandatory revert.** If you've patched a failing implementation twice and it's still not working, discard and start fresh. The cost of a clean retry is always lower than the cost of debugging layered patches.
 
 ---
 

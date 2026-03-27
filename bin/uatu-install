@@ -142,6 +142,7 @@ mkdir -p "$TARGET_DIR/.uatu/delivery/sprints"
 mkdir -p "$TARGET_DIR/.uatu/delivery/research"
 mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/agents"
+mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.specify/memory"
 mkdir -p "$TARGET_DIR/.specify/scripts/bash"
 mkdir -p "$TARGET_DIR/.specify/templates"
@@ -159,7 +160,8 @@ else
 fi
 
 # Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
-UATU_HEADER='> **MUST READ: `.uatu/UATU.md`** — Required framework rules for all tasks.
+UATU_HEADER='> **Uatu Framework Active** — Rules auto-loaded via hooks. Full docs: `.uatu/UATU.md`
+> For complex/multi-file tasks, use `/orchestrate`. For task plans, use `/speckit.implement`.
 
 '
 
@@ -320,6 +322,17 @@ else
     fi
 fi
 
+# Copy bootstrap.md (always update - framework activation rules)
+echo -e "${BLUE}Installing bootstrap rules...${NC}"
+cp "$TEMPLATES_DIR/.uatu/config/bootstrap.md" "$TARGET_DIR/.uatu/config/bootstrap.md"
+if [[ "$UPGRADE_MODE" == false ]]; then
+    echo -e "  ${GREEN}bootstrap.md installed${NC}"
+    NEW_FILES+=(".uatu/config/bootstrap.md")
+else
+    echo -e "  ${GREEN}bootstrap.md updated${NC}"
+    UPDATED_FILES+=(".uatu/config/bootstrap.md")
+fi
+
 # Create PROJECT-LEVEL .mcp.json (only project-specific servers)
 echo -e "${BLUE}Creating .mcp.json (project-level servers)...${NC}"
 if [[ "$UPGRADE_MODE" == false ]]; then
@@ -395,50 +408,91 @@ else
     echo -e "  ${YELLOW}No commands found in templates${NC}"
 fi
 
+# Copy skills (fresh install: copy all; upgrade: add new, preserve existing)
+echo -e "${BLUE}Installing skills...${NC}"
+if [[ -d "$TEMPLATES_DIR/.claude/skills" ]]; then
+    mkdir -p "$TARGET_DIR/.claude/skills"
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        cp -r "$TEMPLATES_DIR/.claude/skills/." "$TARGET_DIR/.claude/skills/"
+        SKILL_COUNT=$(ls -d "$TARGET_DIR/.claude/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+        echo -e "  ${GREEN}$SKILL_COUNT skills installed${NC}"
+        NEW_FILES+=(".claude/skills/ ($SKILL_COUNT skills)")
+    else
+        # Upgrade: add new skills only, preserve existing (user may have customized)
+        ADDED_SKILLS=0
+        PRESERVED_SKILLS=0
+        for skill_name in $(ls "$TEMPLATES_DIR/.claude/skills/"); do
+            skill_dir="$TEMPLATES_DIR/.claude/skills/$skill_name"
+            if [[ ! -d "$TARGET_DIR/.claude/skills/$skill_name" ]]; then
+                cp -r "$skill_dir" "$TARGET_DIR/.claude/skills/"
+                NEW_FILES+=(".claude/skills/$skill_name/")
+                ((ADDED_SKILLS++))
+            else
+                PRESERVED_FILES+=(".claude/skills/$skill_name/ (preserved)")
+                ((PRESERVED_SKILLS++))
+            fi
+        done
+        if [[ $ADDED_SKILLS -gt 0 ]]; then
+            echo -e "  ${GREEN}$ADDED_SKILLS new skills installed, $PRESERVED_SKILLS preserved${NC}"
+        else
+            echo -e "  ${YELLOW}All skills already present ($PRESERVED_SKILLS preserved)${NC}"
+        fi
+    fi
+else
+    echo -e "  ${YELLOW}No skills found in templates${NC}"
+fi
+
 # Create .claude/settings.json with sample hooks configuration
 if [[ ! -f "$TARGET_DIR/.claude/settings.json" ]]; then
     echo -e "${BLUE}Creating .claude/settings.json with sample hooks configuration...${NC}"
     NEW_FILES+=(".claude/settings.json")
     cat > "$TARGET_DIR/.claude/settings.json" << 'SETTINGS'
 {
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/session-start/load-project-context.sh",
-          "enabled": true
-        }
-      ]
-    },
-    {
-      "event": "UserPromptSubmit",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh",
-          "enabled": true
-        }
-      ]
-    },
-    {
-      "event": "PostToolUse",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/post-tool-use/format-code.sh",
-          "enabled": false
-        }
-      ]
-    },
-    {
-      "event": "Stop",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/stop/update-jira.sh",
-          "enabled": false
-        }
-      ]
-    }
-  ]
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "test -f .uatu/hooks/session-start/load-project-context.sh && .uatu/hooks/session-start/load-project-context.sh || printf '{\"additionalContext\":\"\",\"error\":null}'" },
+          { "type": "command", "command": "test -f .uatu/hooks/session-start/session-restore.sh && .uatu/hooks/session-start/session-restore.sh || printf '{\"additionalContext\":\"\",\"error\":null}'" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "test -f .uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh && .uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh || printf '{\"additionalContext\":\"\",\"error\":null}'" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "test -f .uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh && .uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh || printf '{\"additionalContext\":\"\",\"error\":null}'" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "test -f .uatu/hooks/post-tool-use/format-code.sh && .uatu/hooks/post-tool-use/format-code.sh || exit 0" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "test -f .uatu/hooks/stop/session-checkpoint.sh && .uatu/hooks/stop/session-checkpoint.sh || exit 0" },
+          { "type": "command", "command": "test -f .uatu/hooks/stop/update-jira.sh && .uatu/hooks/stop/update-jira.sh || exit 0" },
+          { "type": "command", "command": "test -f .uatu/hooks/stop/cost-tracking.sh && .uatu/hooks/stop/cost-tracking.sh || exit 0" }
+        ]
+      }
+    ]
+  }
 }
 SETTINGS
     echo -e "  ${GREEN}.claude/settings.json created${NC}"
@@ -446,6 +500,11 @@ else
     if [[ "$UPGRADE_MODE" == true ]]; then
         echo -e "${BLUE}.claude/settings.json found...${NC}"
         echo -e "  ${YELLOW}Preserved existing (not overwritten)${NC}"
+        echo -e "  ${CYAN}Manual steps to enable new features:${NC}"
+        echo -e "  ${CYAN}  1. Add Agent Teams: \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\" to env section${NC}"
+        echo -e "  ${CYAN}  2. Replace \"hooks\": [...] with object format (see .uatu/guides/HOOKS.md)${NC}"
+        echo -e "  ${CYAN}  3. Add hooks: prevent-sensitive-writes, session-checkpoint, session-restore${NC}"
+        echo -e "  ${CYAN}  See .uatu/guides/HOOKS.md for the exact JSON configuration${NC}"
     fi
 fi
 
@@ -653,8 +712,9 @@ else
     echo "  .uatu/hooks/                 - Git hooks and automation"
     echo "  .uatu/delivery/sprints/      - Sprint delivery folders"
     echo "  .claude/commands/            - Speckit commands (/speckit.*)"
-    echo "  .claude/settings.json        - Hooks configuration (sample)"
+    echo "  .claude/settings.json        - Hooks + Agent Teams configuration"
     echo "  .claude/agents/              - Empty (for project-specific agents)"
+    echo "  .claude/skills/              - react-component, test-file skills"
     echo "  ~/.claude/agents/            - Generic agents (user-level)"
     echo ""
 fi
@@ -678,9 +738,8 @@ echo "5. Start Claude Code:"
 echo -e "   ${BLUE}claude${NC}"
 echo ""
 echo "Available Packages:"
-echo "  SOLO  - Native tools + Sequential Thinking"
-echo "  SCOUT - Task subagents for investigation"
-echo "  SQUAD - Claude Flow swarms (quick tasks)"
-echo "  BRAIN - Ruv Swarm (DAA, neural, no timeout)"
-echo "  HIVE  - Claude Flow hive-mind (persistent sessions)"
+echo "  SOLO    - Single agent, native tools + Sequential Thinking"
+echo "  SQUAD   - Agent Teams + Claude Flow MCP (multi-file coordinated work)"
+echo "  HIVE    - SQUAD + persistence (multi-session projects)"
+echo "  WATCHER - HIVE + Ruflo CLI (self-learning, background workers)"
 echo ""

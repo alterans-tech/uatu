@@ -132,12 +132,10 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 
 | Package | Approach |
 |---------|----------|
-| SOLO | Spawn one agent directly |
-| SCOUT | Spawn 2-3 agents sequentially |
-| SQUAD | Spawn 5-8 agents coordinated via claude-flow |
-| BRAIN | Spawn learning agents via ruv-swarm |
-| HIVE | Hierarchical swarm with persistence |
-| WATCHER | Combined BRAIN + HIVE |
+| SOLO | Spawn one agent (or 2-3 in sequence for exploration) |
+| SQUAD | Spawn agents coordinated via Agent Teams + Claude Flow MCP |
+| HIVE | SQUAD with hierarchical topology + memory_persist |
+| WATCHER | HIVE + ruv-swarm DAA learning agents (Ruflo CLI) |
 
 ---
 
@@ -149,7 +147,7 @@ Task tool with subagent_type: "coder"
 prompt: "Implement user authentication"
 ```
 
-### Sequential Agents (SCOUT)
+### Sequential Agents (SOLO — exploration mode)
 ```
 1. Task with subagent_type: "researcher"
 2. Task with subagent_type: "coder"

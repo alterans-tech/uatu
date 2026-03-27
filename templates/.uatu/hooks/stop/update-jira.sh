@@ -8,11 +8,14 @@ set -euo pipefail
 INPUT=$(cat)
 
 # Extract working directory
-WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory // ""')
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
 if [ -z "$WORKING_DIR" ]; then
     WORKING_DIR="$PWD"
 fi
+
+source "$(dirname "$0")/../hook-profile.sh"
+check_profile "standard" || { echo '{"additionalContext": "", "error": null}'; exit 0; }
 
 # TODO: Detect Jira key from conversation context
 # This would require parsing conversation history, which isn't available in hook input yet

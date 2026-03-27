@@ -2,6 +2,8 @@
 
 > Comprehensive guide for selecting and using specialized agents, especially in swarm scenarios.
 
+> **Load when:** Selecting which agent to spawn, designing multi-agent compositions, or creating custom agents.
+
 ---
 
 ## Overview
@@ -234,6 +236,50 @@ Typical ruv-swarm uses:
 - Security audit: critical + convergent patterns
 - Performance optimization: convergent + adaptive patterns
 ```
+
+---
+
+## Routing Table
+
+Deterministic agent selection based on file patterns and task keywords. Use this table when you need a quick match instead of reasoning through the full selection matrix.
+
+### By File Pattern
+
+| File Pattern | Primary Agent | Supporting |
+|-------------|---------------|------------|
+| `*.test.ts`, `*.spec.ts`, `*.test.js` | `tester` | `tdd-london-swarm` |
+| `*.tsx`, `*.jsx`, `*.css`, `*.scss` | `frontend-developer` | `ui-ux-designer` |
+| `*.tf`, `*.tfvars`, `terraform/` | `terraform-specialist` | `cloud-architect` |
+| `Dockerfile`, `docker-compose.*`, `*.yaml` (k8s) | `deployment-engineer` | `kubernetes-architect` |
+| `*.py` (FastAPI/Django/Flask) | `python-pro` | `backend-architect` |
+| `*.go` | `golang-pro` | `backend-architect` |
+| `*.rs` | `rust-pro` | `performance-engineer` |
+| `*.ts` (API routes, services) | `typescript-pro` | `backend-architect` |
+| `*.sql`, `migrations/`, `prisma/`, `drizzle/` | `database-optimizer` | `sql-pro` |
+| `.github/workflows/`, `ci/` | `deployment-engineer` | `sre-engineer` |
+| `openapi.*`, `swagger.*` | `api-documenter` | `backend-architect` |
+| `firebase.*`, `firestore.rules` | Use matching `firebase-*` specialist | — |
+
+### By Task Keyword
+
+| Keywords in Request | Primary Agent | Package |
+|--------------------|---------------|---------|
+| "fix", "bug", "broken", "error", "crash" | `debugger` | SOLO |
+| "refactor", "clean up", "restructure" | `refactoring-specialist` | SOLO |
+| "security", "vulnerability", "audit", "OWASP" | `security-auditor` | SOLO |
+| "performance", "slow", "optimize", "latency" | `performance-engineer` | SOLO |
+| "test", "coverage", "TDD" | `tester` | SOLO |
+| "deploy", "CI/CD", "pipeline", "release" | `deployment-engineer` | SOLO |
+| "design", "architecture", "system design" | `architect-review` | SOLO |
+| "API", "endpoint", "REST", "GraphQL" | `backend-architect` | SOLO |
+| "UI", "component", "layout", "responsive" | `frontend-developer` | SOLO |
+| "database", "query", "migration", "schema" | `database-optimizer` | SOLO |
+| "multi-file", "refactor all", "migrate" | `orchestrator-task` | SOLO (swarm) |
+| "coordinate", "negotiate", "co-design" | `/squad` command | SQUAD |
+
+### Routing Priority
+
+When multiple patterns match: **task keyword > file pattern > default**. The task keyword captures intent; the file pattern captures scope.
 
 ---
 

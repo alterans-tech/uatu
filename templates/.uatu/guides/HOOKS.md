@@ -2,6 +2,8 @@
 
 Comprehensive guide to Claude Code hooks and Uatu's hook system.
 
+> **Load when:** Customizing automation hooks, debugging hook failures, or adding new project-specific hooks.
+
 ---
 
 ## Table of Contents
@@ -71,12 +73,12 @@ Claude Code provides 6 hook events:
 
 **Trigger:** New Claude session begins
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "SessionStart",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z"
+  "session_id": "abc123",
+  "hook_event_name": "SessionStart",
+  "working_directory": "/path/to/project"
 }
 ```
 
@@ -95,12 +97,12 @@ Claude Code provides 6 hook events:
 
 **Trigger:** User sends a message to Claude
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "UserPromptSubmit",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z",
+  "session_id": "abc123",
+  "hook_event_name": "UserPromptSubmit",
+  "working_directory": "/path/to/project",
   "prompt": "User's message text"
 }
 ```
@@ -120,14 +122,14 @@ Claude Code provides 6 hook events:
 
 **Trigger:** Before Claude executes a tool
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "PreToolUse",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z",
-  "toolName": "Write",
-  "toolInput": {
+  "session_id": "abc123",
+  "hook_event_name": "PreToolUse",
+  "working_directory": "/path/to/project",
+  "tool_name": "Write",
+  "tool_input": {
     "file_path": "/path/to/file.ts",
     "content": "..."
   }
@@ -156,18 +158,15 @@ fi
 
 **Trigger:** After Claude executes a tool
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "PostToolUse",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z",
-  "toolResult": {
-    "toolName": "Write",
-    "input": {"file_path": "...", ...},
-    "output": "...",
-    "success": true
-  }
+  "session_id": "abc123",
+  "hook_event_name": "PostToolUse",
+  "working_directory": "/path/to/project",
+  "tool_name": "Write",
+  "tool_input": { "file_path": "...", "content": "..." },
+  "tool_response": "..."
 }
 ```
 
@@ -186,12 +185,12 @@ fi
 
 **Trigger:** Session ends normally (user exits, task completes)
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "Stop",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z"
+  "session_id": "abc123",
+  "hook_event_name": "Stop",
+  "working_directory": "/path/to/project"
 }
 ```
 
@@ -210,17 +209,12 @@ fi
 
 **Trigger:** Subagent completes work (Task tool finishes)
 
-**Input:**
+**Input (stdin, snake_case):**
 ```json
 {
-  "event": "SubagentStop",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z",
-  "subagentResult": {
-    "type": "coder",
-    "output": "...",
-    "success": true
-  }
+  "session_id": "abc123",
+  "hook_event_name": "SubagentStop",
+  "working_directory": "/path/to/project"
 }
 ```
 
@@ -236,93 +230,90 @@ fi
 
 ### Location
 
-Hooks are configured in `.claude/hooks.json` or `mcp.json`:
-
-**Option 1: Separate file (recommended)**
-```json
-// .claude/hooks.json
-{
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/session-start/load-project-context.sh",
-          "enabled": true
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Option 2: In mcp.json**
-```json
-// mcp.json
-{
-  "mcpServers": { ... },
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/session-start/load-project-context.sh",
-          "enabled": true
-        }
-      ]
-    }
-  ]
-}
-```
+Hooks are configured in `.claude/settings.json` (or `settings.local.json` for personal overrides):
 
 ### Configuration Format
 
+The `"hooks"` field is an **object** where keys are event names. Each event contains an array of matcher groups, each with a `"hooks"` array of commands.
+
 ```json
 {
-  "hooks": [
-    {
-      "event": "SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|Stop|SubagentStop",
-      "scripts": [
-        {
-          "path": "relative/path/to/script.sh",
-          "enabled": true,
-          "timeout": 5000,
-          "description": "Optional description"
-        }
-      ]
-    }
-  ]
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/session-start/load-project-context.sh" },
+          { "type": "command", "command": ".uatu/hooks/session-start/session-restore.sh" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/post-tool-use/format-code.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/stop/session-checkpoint.sh" },
+          { "type": "command", "command": ".uatu/hooks/stop/update-jira.sh" },
+          { "type": "command", "command": ".uatu/hooks/stop/cost-tracking.sh" }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-**Fields:**
-- `event` - Hook event name (required)
-- `scripts` - Array of scripts to run (required)
-  - `path` - Relative path from project root (required)
-  - `enabled` - Whether to run this hook (default: true)
-  - `timeout` - Max execution time in ms (default: 5000)
-  - `description` - Human-readable description (optional)
+**Key fields:**
+- `"hooks"` (top-level) — object with event names as keys
+- `"matcher"` — optional regex to filter by tool name (PreToolUse/PostToolUse only)
+- `"type": "command"` — always `"command"` for shell scripts
+- `"command"` — path to script (relative from project root)
 
-### Multiple Scripts per Event
+### Multiple Hooks per Event
 
-Scripts run in order, `additionalContext` is concatenated:
+Commands in a `"hooks"` array run in order. To run different hooks based on tool, use multiple matcher groups:
 
 ```json
-{
-  "event": "SessionStart",
-  "scripts": [
-    {"path": ".uatu/hooks/session-start/load-project-context.sh"},
-    {"path": ".uatu/hooks/session-start/check-dependencies.sh"},
-    {"path": ".uatu/hooks/session-start/verify-env.sh"}
-  ]
-}
+"PreToolUse": [
+  {
+    "matcher": "Write|Edit",
+    "hooks": [{ "type": "command", "command": ".uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh" }]
+  },
+  {
+    "matcher": "Bash",
+    "hooks": [{ "type": "command", "command": ".uatu/hooks/pre-tool-use/validate-commands.sh" }]
+  }
+]
 ```
 
 ---
 
 ## Uatu-Provided Hooks
 
-Uatu includes 4 pre-built hooks:
+Uatu includes 8 pre-built hooks:
 
 ### 1. load-project-context.sh
 
@@ -337,15 +328,7 @@ Uatu includes 4 pre-built hooks:
 
 **Required:** Yes (core Uatu functionality)
 
-**Configuration:**
-```json
-{
-  "event": "SessionStart",
-  "scripts": [
-    {"path": ".uatu/hooks/session-start/load-project-context.sh"}
-  ]
-}
-```
+**Configuration:** Part of the `SessionStart` hooks array in `.claude/settings.json`.
 
 ---
 
@@ -362,15 +345,7 @@ Uatu includes 4 pre-built hooks:
 
 **Required:** Strongly recommended
 
-**Configuration:**
-```json
-{
-  "event": "UserPromptSubmit",
-  "scripts": [
-    {"path": ".uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh"}
-  ]
-}
-```
+**Configuration:** Part of the `UserPromptSubmit` hooks array in `.claude/settings.json`.
 
 **Disable if:** You want to manage Sequential Thinking manually
 
@@ -393,15 +368,7 @@ Uatu includes 4 pre-built hooks:
 
 **Required:** No (convenience feature)
 
-**Configuration:**
-```json
-{
-  "event": "PostToolUse",
-  "scripts": [
-    {"path": ".uatu/hooks/post-tool-use/format-code.sh"}
-  ]
-}
-```
+**Configuration:** Part of the `PostToolUse` hooks array in `.claude/settings.json` (matcher: `Write|Edit`).
 
 **Dependencies:**
 ```bash
@@ -430,17 +397,75 @@ pip install black
 
 **Required:** No (future feature)
 
-**Configuration:**
-```json
-{
-  "event": "Stop",
-  "scripts": [
-    {"path": ".uatu/hooks/stop/update-jira.sh"}
-  ]
-}
-```
+**Configuration:** Part of the `Stop` hooks array in `.claude/settings.json`. Remove from config if not using Jira.
 
 **Disable if:** Not using Jira integration
+
+---
+
+### Session Management Hooks
+
+#### 5. session-checkpoint.sh
+
+**Event:** Stop
+
+**Purpose:** Saves a timestamped session summary to `.uatu/delivery/checkpoints/`
+
+**Behavior:**
+- Creates `.uatu/delivery/checkpoints/session-TIMESTAMP.md`
+- Captures current session context for resume
+
+**Configuration:** Part of the `Stop` hooks array in `.claude/settings.json`.
+
+---
+
+#### 6. session-restore.sh
+
+**Event:** SessionStart
+
+**Purpose:** Injects the last session checkpoint into Claude's context on startup
+
+**Behavior:**
+- Finds latest checkpoint in `.uatu/delivery/checkpoints/`
+- Displays it to Claude for session continuity
+
+**Configuration:** Part of the `SessionStart` hooks array in `.claude/settings.json`.
+
+---
+
+#### 7. cost-tracking.sh
+
+**Event:** Stop
+
+**Purpose:** Logs session end timestamps to `.uatu/delivery/cost-log.md` for cost review
+
+**Behavior:**
+- Appends date/time entry to cost log
+- Note: Token counts not exposed by Claude Code hooks; serves as session boundary marker
+
+**Configuration:** Part of the `Stop` hooks array in `.claude/settings.json`.
+
+---
+
+#### 8. prevent-sensitive-writes.sh
+
+**Event:** PreToolUse
+
+**Purpose:** Blocks Write/Edit tool calls targeting sensitive files
+
+**Behavior:**
+- Checks file path against sensitive patterns (`.env`, `credentials.json`, `.pem`, `.key`, etc.)
+- Returns exit code 2 to block the write if matched
+
+**Configuration:** Part of the `PreToolUse` hooks array in `.claude/settings.json` (matcher: `Write|Edit`).
+
+---
+
+### Agent Teams Hooks (Ruflo CLI only)
+
+`TeammateIdle` and `TaskCompleted` are Agent Teams lifecycle events emitted by the **Ruflo CLI**, not native Claude Code hooks. They are not available in standard Claude Code installations.
+
+If using Ruflo CLI with WATCHER package, refer to Ruflo documentation for these hook events.
 
 ---
 
@@ -454,12 +479,11 @@ pip install black
 
 set -euo pipefail
 
-# Read hook input (JSON on stdin)
+# Read hook input (JSON on stdin — all fields are snake_case)
 INPUT=$(cat)
 
 # Parse input
-EVENT=$(echo "$INPUT" | jq -r '.event')
-WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory // ""')
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
 # Do your work here
 # ...
@@ -480,7 +504,7 @@ jq -n --arg context "Your context message" '{
 set -euo pipefail
 
 INPUT=$(cat)
-WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory')
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
 cd "$WORKING_DIR"
 
@@ -544,8 +568,8 @@ set -euo pipefail
 
 INPUT=$(cat)
 
-TOOL_NAME=$(echo "$INPUT" | jq -r '.toolName // ""')
-TOOL_INPUT=$(echo "$INPUT" | jq -r '.toolInput // "{}"')
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
+TOOL_INPUT=$(echo "$INPUT" | jq -r '.tool_input // "{}"')
 
 if [[ "$TOOL_NAME" == "Bash" ]]; then
     COMMAND=$(echo "$TOOL_INPUT" | jq -r '.command // ""')
@@ -625,27 +649,31 @@ import ("encoding/json"; "fmt"; "os")
 
 **Manual test:**
 ```bash
-# Create test input
+# SessionStart hook
 echo '{
-  "event": "SessionStart",
-  "workingDirectory": "'$(pwd)'"
-}' | .uatu/hooks/session-start/my-hook.sh
+  "hook_event_name": "SessionStart",
+  "working_directory": "'$(pwd)'"
+}' | .uatu/hooks/session-start/load-project-context.sh
+
+# PreToolUse hook
+echo '{
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Write",
+  "tool_input": {"file_path": "/path/.env", "content": "TEST=1"}
+}' | .uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh
 ```
 
 **Validate JSON output:**
 ```bash
-echo '{...}' | .uatu/hooks/session-start/my-hook.sh | jq .
+echo '{"hook_event_name":"SessionStart","working_directory":"'$(pwd)'"}' \
+  | .uatu/hooks/session-start/load-project-context.sh | jq .
 ```
 
 **Check exit code:**
 ```bash
-echo '{...}' | .uatu/hooks/session-start/my-hook.sh
+echo '{"hook_event_name":"Stop","working_directory":"'$(pwd)'"}' \
+  | .uatu/hooks/stop/session-checkpoint.sh
 echo "Exit code: $?"
-```
-
-**Profile performance:**
-```bash
-time echo '{...}' | .uatu/hooks/session-start/my-hook.sh
 ```
 
 ---
@@ -730,7 +758,7 @@ CONTEXT="This project is a TypeScript project which means you should use TypeScr
 
 ```bash
 # Good: Validate input
-FILE_PATH=$(echo "$INPUT" | jq -r '.toolInput.file_path // ""')
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 if [[ ! "$FILE_PATH" =~ ^[a-zA-Z0-9/_.-]+$ ]]; then
     echo '{"error": "Invalid file path"}'
     exit 1
@@ -1120,9 +1148,13 @@ See `.uatu/hooks/` for working examples:
 | Hook | Event | Purpose |
 |------|-------|---------|
 | `session-start/load-project-context.sh` | SessionStart | Load project config |
+| `session-start/session-restore.sh` | SessionStart | Restore last session checkpoint |
 | `user-prompt-submit/enforce-sequential-thinking.sh` | UserPromptSubmit | Policy enforcement |
+| `pre-tool-use/prevent-sensitive-writes.sh` | PreToolUse | Block sensitive file writes |
 | `post-tool-use/format-code.sh` | PostToolUse | Code formatting |
 | `stop/update-jira.sh` | Stop | Tracking integration |
+| `stop/session-checkpoint.sh` | Stop | Save session summary |
+| `stop/cost-tracking.sh` | Stop | Log session for cost review |
 
 ---
 

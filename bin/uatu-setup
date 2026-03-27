@@ -105,9 +105,9 @@ install_mcp "claude-flow" \
     "SQUAD swarms + HIVE hive-mind sessions" \
     npx claude-flow@alpha mcp start
 
-# Install Ruv Swarm - BRAIN (DAA, neural, no timeout)
+# Install Ruv Swarm - Advanced SQUAD/HIVE (DAA, neural, no timeout)
 install_mcp "ruv-swarm" \
-    "BRAIN package - DAA agents, neural networks, no timeout" \
+    "Advanced SQUAD/HIVE - DAA agents, neural networks, no timeout" \
     npx ruv-swarm mcp start
 
 # Install Browser MCP - Web automation
@@ -127,7 +127,7 @@ echo ""
 echo "Installed User-Level MCPs:"
 echo "  sequential-thinking  - Task analysis (SOLO/all packages)"
 echo "  claude-flow          - SQUAD swarms + HIVE hive-mind"
-echo "  ruv-swarm            - BRAIN (DAA, neural, no timeout)"
+echo "  ruv-swarm            - Advanced SQUAD/HIVE (DAA, neural, no timeout)"
 echo "  browsermcp           - Web automation"
 echo "  context7             - Documentation lookup"
 echo ""

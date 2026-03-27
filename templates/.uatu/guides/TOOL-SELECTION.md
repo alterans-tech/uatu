@@ -2,6 +2,8 @@
 
 **Purpose:** Choose the right tool for the task. Native tools vs MCP tools vs agents.
 
+> **Load when:** Unsure whether to use a native tool, MCP tool, or spawn an agent.
+
 ---
 
 ## Decision Tree

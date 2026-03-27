@@ -2,6 +2,24 @@
 
 **Purpose:** Understand and use the SQUAD, HIVE, and WATCHER packages for multi-agent coordinated work.
 
+> **Load when:** Running multi-agent workflows, using Agent Teams, or working with Claude Flow MCP tools.
+
+---
+
+## Quick Start
+
+**90% of tasks are SOLO.** Use `/orchestrate` for independent parallel work (hub-and-spoke).
+
+For the 10% where agents need to discover and share information mid-task, use `/squad`:
+
+```
+/orchestrate swarm "Refactor all services to use new error pattern"   → SOLO (independent work)
+/orchestrate feature "Add user authentication with JWT"               → SOLO (sequential chain)
+/squad "Frontend + backend co-design the new API contract"            → SQUAD (agents negotiate mid-task)
+```
+
+**HIVE** (cross-session persistence) and **WATCHER** (neural learning) are experimental and require additional infrastructure setup. See sections below.
+
 ---
 
 ## Package Selection: Coordination Model, Not Agent Count
@@ -220,6 +238,38 @@ Agent(name="coder-3", ..., run_in_background=true)
 
 ---
 
+## Discovery Relay
+
+When running multi-batch workflows, compress each batch's output before passing to the next batch. This prevents context explosion across agent waves.
+
+### Rule
+
+Each agent's output MUST be distilled into a **~500-token brief** before being passed as context to the next batch. Never forward raw agent output.
+
+### Brief Format
+
+```
+BRIEF: [agent-name] (Batch N)
+- Findings: [key discoveries, 2-3 bullet points]
+- Files: [files created/modified]
+- Decisions: [architectural or design choices made]
+- Open: [unresolved questions for next batch]
+```
+
+### Example
+
+```
+BRIEF: researcher-1 (Batch 1)
+- Findings: Existing auth uses session cookies, JWT library already in package.json, User model has no password field
+- Files: none (read-only)
+- Decisions: Recommend JWT over sessions for API statelessness
+- Open: Should refresh tokens be stored in DB or Redis?
+```
+
+This brief replaces the full research output (which could be 5,000+ tokens) when passed to Batch 2 coders.
+
+---
+
 ## SQUAD — Peer-to-Peer Coordination
 
 **Use when:** agents need to communicate with each other mid-task, not just report to the orchestrator.
@@ -276,7 +326,9 @@ Agent(name="coder-3", ..., run_in_background=true)
 
 ---
 
-## HIVE — Persistent Multi-Session Work
+## HIVE — Persistent Multi-Session Work (Experimental)
+
+**Status:** Experimental — requires Claude Flow MCP `memory_persist` to be fully functional.
 
 **Use when:** Project spans multiple sessions; agents must resume where they left off.
 
@@ -326,7 +378,9 @@ Agent(name="coder-3", ..., run_in_background=true)
 
 ---
 
-## WATCHER — Self-Learning + Background Workers
+## WATCHER — Self-Learning + Background Workers (Experimental)
+
+**Status:** Experimental — requires Ruflo CLI installation and ruv-swarm MCP server.
 
 **Use when:** Need neural pattern training, background workers, or full Ruflo CLI capabilities.
 
@@ -337,6 +391,73 @@ WATCHER = HIVE + Ruflo CLI features:
 - Background worker processes (Ruflo CLI manages these)
 
 For WATCHER setup, refer to Ruflo CLI documentation.
+
+---
+
+## Named Team Presets
+
+Pre-built agent compositions for common SQUAD use cases. Use these with `/squad` or assemble manually.
+
+### Security Team
+```
+Agents: security-auditor, code-reviewer, architect-review
+Use: Comprehensive security audit with architectural validation
+Pattern: security-auditor scans → sends findings to code-reviewer → architect-review validates fixes don't break design
+```
+
+### Feature Team
+```
+Agents: planner, coder, tester, reviewer
+Use: Full feature implementation with continuous feedback
+Pattern: planner designs → coder + tester coordinate on API contracts → reviewer validates
+```
+
+### Infrastructure Team
+```
+Agents: cloud-architect, terraform-specialist, sre-engineer
+Use: Infrastructure changes with reliability validation
+Pattern: cloud-architect designs → terraform-specialist implements → sre-engineer validates SLOs
+```
+
+### Debug Team
+```
+Agents: debugger, coder, tester
+Use: Complex bug investigation requiring coordinated analysis
+Pattern: debugger investigates → sends findings to coder mid-task → tester validates fix
+```
+
+### Design Team
+```
+Agents: architect-review, backend-architect, frontend-developer
+Use: System design where frontend/backend negotiate contracts
+Pattern: architect sets constraints → backend + frontend negotiate API shape via SendMessage
+```
+
+---
+
+## Task Wave Metadata Convention
+
+When using tasks (TodoWrite/TaskCreate) in multi-batch workflows, embed wave and phase metadata in task descriptions for orchestration tracking:
+
+### Format
+```
+[Wave:N] [Phase:name] [Depends:wave-or-task-id] Task description
+```
+
+### Example
+```
+[Wave:1] [Phase:research] Research existing auth patterns
+[Wave:1] [Phase:research] Audit current user model schema
+[Wave:2] [Phase:implementation] [Depends:Wave:1] Implement JWT middleware
+[Wave:2] [Phase:implementation] [Depends:Wave:1] Implement user routes
+[Wave:3] [Phase:validation] [Depends:Wave:2] Review all changes
+[Wave:3] [Phase:validation] [Depends:Wave:2] Run full test suite
+```
+
+This metadata enables:
+- Dependency tracking across parallel execution waves
+- Phase-aware progress reporting
+- Automated wave sequencing by the orchestrator
 
 ---
 

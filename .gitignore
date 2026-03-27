@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# Claude Code local preferences
+CLAUDE.local.md
+
 # Local MCP config overrides (if any)
 # .mcp.json is in repo, uses env vars
 

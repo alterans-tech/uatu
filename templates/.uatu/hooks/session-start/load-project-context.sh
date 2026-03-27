@@ -7,8 +7,10 @@ set -euo pipefail
 # Read hook input (JSON on stdin)
 INPUT=$(cat)
 
+source "$(dirname "$0")/../hook-profile.sh"
+
 # Extract working directory from input
-WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory // ""')
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
 if [ -z "$WORKING_DIR" ]; then
     WORKING_DIR="$PWD"
@@ -23,6 +25,17 @@ if [ -f "$PROJECT_CONFIG" ]; then
     CONTEXT="PROJECT CONFIG (.uatu/config/project.md):
 
 $PROJECT_CONTENT
+
+"
+fi
+
+# Load framework bootstrap rules (auto-activates Uatu)
+BOOTSTRAP="$WORKING_DIR/.uatu/config/bootstrap.md"
+if [ -f "$BOOTSTRAP" ]; then
+    BOOTSTRAP_CONTENT=$(cat "$BOOTSTRAP")
+    CONTEXT="${CONTEXT}UATU FRAMEWORK (active rules — auto-injected):
+
+$BOOTSTRAP_CONTENT
 
 "
 fi

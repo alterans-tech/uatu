@@ -1,6 +1,6 @@
 # Uatu - The Watcher
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/alterans/uatu)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/alterans/uatu)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 AI orchestration framework for software development. Combines Sequential Thinking, multi-agent swarms, specification-driven workflows, and project management integration.
@@ -10,10 +10,10 @@ AI orchestration framework for software development. Combines Sequential Thinkin
 Uatu transforms Claude Code into a structured development environment with:
 
 - **Task Analysis** - Sequential Thinking MCP for structured reasoning before action
-- **Execution Packages** - SOLO, SCOUT, SQUAD, BRAIN, HIVE, WATCHER for different task complexities
-- **62 Specialized Agents** - Covering development, quality, infrastructure, and platform-specific needs
+- **Execution Packages** - SOLO, SQUAD, HIVE, WATCHER for different task complexities
+- **65 Specialized Agents** - Covering development, testing, quality, infrastructure, and platform-specific needs
 - **Speckit Workflows** - Specification-driven development with `/speckit.*` commands
-- **Hooks System** - Automated actions on session events
+- **Hooks System** - Automated actions on session events (8 built-in hooks)
 - **Jira/GitHub Integration** - Project management automation
 
 ## Quick Start
@@ -48,21 +48,22 @@ your-project/
 │   └── tools/                          # Utilities
 └── .claude/
     ├── commands/                       # Speckit slash commands
-    └── agents/                         # 62 specialized agents
+    ├── skills/                         # react-component, test-file
+    └── agents/                         # 65 specialized agents
 ```
 
 ## Packages
 
 Packages are execution modes selected by Sequential Thinking based on task characteristics:
 
-| Package | Agents | Use For |
-|---------|--------|---------|
-| **SOLO** | 0 | Quick fixes, single files |
-| **SCOUT** | 1-3 | Investigation, codebase exploration |
-| **SQUAD** | 5-8 | Multi-file coordinated features |
-| **BRAIN** | 5-8+ | Long-running tasks, pattern learning (no timeout) |
-| **HIVE** | Distributed | Multi-phase projects, persistent memory |
-| **WATCHER** | Combined | BRAIN + HIVE: learning with cross-session persistence |
+| Package | Layer | Use For |
+|---------|-------|---------|
+| **SOLO** | Single agent | Quick fixes, single files, exploration |
+| **SQUAD** | Agent Teams + Claude Flow MCP | Multi-file coordinated features |
+| **HIVE** | SQUAD + persistence | Multi-session projects, cross-session memory |
+| **WATCHER** | HIVE + Ruflo CLI | Self-learning, background workers, neural training |
+
+> **The Fundamental Law:** MCP tools coordinate strategy. The Task tool executes with real agents. These work together, not as alternatives.
 
 ## Commands (Slash Commands)
 
@@ -78,6 +79,7 @@ Speckit commands for specification-driven development:
 | `/speckit.analyze` | Cross-artifact consistency check |
 | `/speckit.checklist` | Requirements validation |
 | `/speckit.constitution` | Define project principles |
+| `/speckit.taskstoissues` | Convert tasks.md to GitHub Issues |
 
 Utility commands:
 
@@ -86,9 +88,18 @@ Utility commands:
 | `/commit` | Smart commit with context |
 | `/review-pr` | Comprehensive PR review |
 
-## Agents (62)
+## Skills
 
-### Core (11)
+Component generation skills available in `.claude/skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| `react-component` | Generate TypeScript React component with tests |
+| `test-file` | Generate test file for any source file (language-agnostic) |
+
+## Agents (65)
+
+### Core (12)
 | Agent | Purpose |
 |-------|---------|
 | `coder` | General code implementation |
@@ -96,12 +107,19 @@ Utility commands:
 | `reviewer` | Code review |
 | `planner` | Task planning and breakdown |
 | `researcher` | Investigation and research |
+| `orchestrator-task` | Task decomposition and multi-agent coordination |
 | `architect-review` | Architecture review |
 | `backend-architect` | Backend/API design |
 | `frontend-developer` | Frontend/React development |
 | `fullstack-developer` | End-to-end features |
 | `microservices-architect` | Distributed systems |
 | `ui-ux-designer` | Design and UX |
+
+### Testing (2)
+| Agent | Purpose |
+|-------|---------|
+| `tdd-london-swarm` | London School TDD with mock-driven development |
+| `production-validator` | Pre-deployment production readiness validation |
 
 ### Data & AI (6)
 | Agent | Purpose |
@@ -188,14 +206,18 @@ Utility commands:
 
 ## Hooks
 
-Automated actions triggered by Claude Code events:
+8 automated hooks triggered by Claude Code events:
 
-| Hook Type | Runs When | Example Use |
-|-----------|-----------|-------------|
-| `SessionStart` | Session begins | Load project context |
-| `UserPromptSubmit` | User sends message | Enforce Sequential Thinking |
-| `PostToolUse` | After tool execution | Format code |
-| `Stop` | Session ends | Update Jira status |
+| Hook | Trigger | Purpose |
+|------|---------|---------|
+| `load-project-context.sh` | SessionStart | Load project config |
+| `session-restore.sh` | SessionStart | Restore last session checkpoint |
+| `enforce-sequential-thinking.sh` | UserPromptSubmit | Enforce thinking |
+| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to .env, credentials, keys |
+| `format-code.sh` | PostToolUse | Auto-format code |
+| `update-jira.sh` | Stop | Update Jira status |
+| `session-checkpoint.sh` | Stop | Save session summary |
+| `cost-tracking.sh` | Stop | Log session for cost review |
 
 ## Tools
 
@@ -240,8 +262,8 @@ python .uatu/tools/time-tracking/worklog.py --project $(pwd) --tz -3
 | Server | Purpose | Installed By |
 |--------|---------|--------------|
 | Sequential Thinking | Task analysis | `uatu-setup` |
-| Claude Flow | SQUAD/HIVE swarms | `uatu-setup` |
-| Ruv Swarm | BRAIN (no timeout) | `uatu-setup` |
+| Claude Flow | SQUAD/HIVE coordination + shared memory | `uatu-setup` |
+| Ruv Swarm | Advanced SQUAD/HIVE (no-timeout, neural) | `uatu-setup` |
 | Atlassian | Jira integration | `uatu-install` |
 | GitHub | PR/issue management | `uatu-install` |
 | Filesystem | File operations | `uatu-install` |

@@ -106,7 +106,18 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Task details**: ID, description, file paths, parallel markers [P]
    - **Execution flow**: Order and dependency requirements
 
-6. Execute implementation following the task plan:
+6. **Execution mode decision** based on task count from step 5:
+
+   - **1-2 tasks**: Execute directly using steps 7-9 below
+   - **3+ tasks**: Spawn the orchestrator-task agent NOW and let it handle parallel execution:
+
+     ```
+     Agent(subagent_type="orchestrator-task", prompt="Execute these implementation tasks from <path to tasks.md>. Plan: <path to plan.md>. Respect task dependencies and parallel markers [P]. Read .uatu/config/project.md for conventions. Mark each task as [X] in tasks.md when complete.")
+     ```
+
+     After the orchestrator completes, skip to step 9 (completion validation).
+
+7. Execute implementation following the task plan (direct mode, 1-2 tasks only):
    - **Phase-by-phase execution**: Complete each phase before moving to the next
    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks

@@ -8,11 +8,14 @@ set -euo pipefail
 INPUT=$(cat)
 
 # Extract working directory
-WORKING_DIR=$(echo "$INPUT" | jq -r '.workingDirectory // ""')
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
 if [ -z "$WORKING_DIR" ]; then
     WORKING_DIR="$PWD"
 fi
+
+source "$(dirname "$0")/../hook-profile.sh"
+check_profile "standard" || { echo '{"additionalContext": "", "error": null}'; exit 0; }
 
 # Check if Sequential Thinking guide exists
 SEQ_GUIDE="$WORKING_DIR/.uatu/guides/SEQUENTIAL-THINKING.md"

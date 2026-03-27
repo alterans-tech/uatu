@@ -155,6 +155,8 @@ Each agent gets a SPECIFIC, SCOPED prompt — never "implement the feature", alw
 
 Group work into dependency batches. Execute each batch fully before starting the next.
 
+**Discovery Relay:** Between batches, compress each agent's output into a ~500-token brief before passing as context to the next batch. Never forward raw agent output — distill to key findings, files changed, decisions made, and open questions.
+
 ```
 BATCH 1: Investigation (read-only, no worktree needed)
   Agent(subagent_type="researcher", name="researcher-1", prompt="...", run_in_background=true)
@@ -178,9 +180,10 @@ BATCH 3: Validation (read-only)
 
 Each spawned agent prompt MUST include:
 1. **Specific scope** — exactly which files to work on
-2. **Context** — relevant findings from previous batches
+2. **Context** — relevant findings from previous batches (max 500 tokens per batch brief)
 3. **Output format** — what to return (code, analysis, test results)
 4. **Boundary** — "Do NOT modify files outside your scope"
+5. **Summary constraint** — "Return a distilled summary of your work (1,000-2,000 tokens max), not raw output"
 
 ```
 Example prompt for coder-2:
@@ -233,6 +236,14 @@ If agent fails:
   5. Continue all non-dependent tasks in parallel
   6. Report failures in synthesis phase
 ```
+
+### Circuit Breaker
+
+If ANY tool (Bash, MCP, etc.) fails 3 consecutive times on the same operation:
+1. **Stop retrying** — do not attempt the same call again
+2. **Document the failure** — log what failed, error messages, and what was attempted
+3. **Try an alternative approach** — different tool, different path, simpler implementation
+4. If no alternative exists, mark the task as blocked and continue with non-dependent work.
 
 ---
 

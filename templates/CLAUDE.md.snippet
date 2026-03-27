@@ -9,12 +9,10 @@
 1. **Read guides first** - Before any work, read `.uatu/guides/SEQUENTIAL-THINKING.md` and `.uatu/guides/TOOL-SELECTION.md`
 2. **Sequential Thinking** - ALWAYS use Sequential Thinking MCP for every task, even "simple" ones
 3. **Package Selection** - Select appropriate package based on task characteristics:
-   - SOLO → Single file, clear task
-   - SCOUT → Need to investigate/explore first
-   - SQUAD → Multiple coordinated subtasks
-   - BRAIN → Pattern learning (single session)
-   - HIVE → Multi-session, persist context
-   - WATCHER → Learning + persistence combined
+   - SOLO → Single file, clear task, low risk
+   - SQUAD → Multi-file coordinated work; agents communicate mid-task
+   - HIVE → Multi-session project; context must survive across sessions
+   - WATCHER → Self-learning, background workers, neural pattern training
 4. **All artifacts in `.uatu/`** - NEVER create files in random places. All deliverables, specs, configs go in `.uatu/` folder
 5. **Use Speckit commands** - For specifications, use `/speckit.*` commands, never create spec files manually
 
@@ -34,11 +32,10 @@
 | Task Type | Package | First Action |
 |-----------|---------|--------------|
 | Fix bug | SOLO | Sequential Thinking → identify scope |
-| Explore codebase | SCOUT | Sequential Thinking → spawn Explore agents |
-| Multi-file refactor | SQUAD | Sequential Thinking → swarm_init |
-| Learn patterns | BRAIN | Sequential Thinking → daa_agent_create |
-| Multi-day work | HIVE | Sequential Thinking → memory_namespace |
-| Learn + remember | WATCHER | Sequential Thinking → both systems |
+| Explore codebase | SOLO | Sequential Thinking → spawn Explore/researcher agents |
+| Multi-file refactor | SQUAD | Sequential Thinking → Agent Teams + swarm_init |
+| Multi-day work | HIVE | Sequential Thinking → Agent Teams + memory_persist |
+| Long-running / self-learning | WATCHER | Sequential Thinking → Ruflo CLI |
 
 ### Time Tracking
 

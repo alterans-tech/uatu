@@ -2,13 +2,15 @@
 
 > Pattern learning with persistent memory across sessions
 
+> **Load when:** Setting up cross-session learning, using ruv-swarm neural patterns, or configuring background workers.
+
 ---
 
 ## Overview
 
 WATCHER is the most powerful package in Uatu, combining:
-- **BRAIN** (ruv-swarm): Neural patterns, DAA learning, cognitive diversity
-- **HIVE** (claude-flow): Persistent memory, hierarchical coordination
+- **ruv-swarm**: Neural patterns, DAA learning, cognitive diversity (no timeout)
+- **HIVE** (claude-flow + Agent Teams): Persistent memory, hierarchical coordination
 
 Use WATCHER when you need patterns learned in one session to be remembered and applied in future sessions.
 
@@ -27,9 +29,9 @@ Use WATCHER when your task requires BOTH:
 | Learning patterns for future sessions | Yes |
 | Onboarding to a codebase long-term | Yes |
 | Building institutional knowledge | Yes |
-| Single-session deep analysis | No → Use BRAIN |
+| Single-session deep analysis | No → Use SQUAD with ruv-swarm |
 | Multi-session but no learning | No → Use HIVE |
-| Quick investigation | No → Use SCOUT |
+| Quick investigation | No → Use SOLO (Explore/researcher agents) |
 
 ### Combining with Thinking Keywords
 
@@ -108,7 +110,7 @@ prior_patterns = mcp__claude-flow__memory_usage(
     key="learned_patterns"
 )
 
-# 4. Initialize learning layer (BRAIN component) - NO TIMEOUT
+# 4. Initialize learning layer (ruv-swarm) - NO TIMEOUT
 mcp__ruv-swarm__swarm_init(topology="mesh", strategy="adaptive")
 
 # 5. Create DAA agents with restored cognitive patterns
@@ -174,7 +176,7 @@ mcp__claude-flow__memory_persist(sessionId="watcher-{project}")
 
 ## Cognitive Patterns
 
-WATCHER inherits all cognitive patterns from BRAIN:
+WATCHER uses ruv-swarm DAA cognitive patterns:
 
 | Pattern | Thinking Style | Best For | When to Switch |
 |---------|---------------|----------|----------------|
@@ -281,18 +283,19 @@ mcp__claude-flow__memory_persist()
 
 ---
 
-## Comparison: BRAIN vs HIVE vs WATCHER
+## Comparison: SQUAD / HIVE / WATCHER
 
-| Capability | BRAIN | HIVE | WATCHER |
+| Capability | SQUAD | HIVE | WATCHER |
 |------------|-------|------|---------|
-| Pattern Learning | Yes | No | Yes |
-| Neural Networks | Yes | No | Yes |
-| Cognitive Patterns | Yes | No | Yes |
+| Agent Teams communication | Yes | Yes | Yes |
+| Claude Flow MCP (shared memory) | Yes | Yes | Yes |
 | Session Persistence | No | Yes | Yes |
 | Memory Namespaces | No | Yes | Yes |
 | Cross-Session Recall | No | Yes | Yes |
-| No Timeout | Yes | No | Yes |
-| Best For | Single deep session | Multi-session memory | Deep learning + memory |
+| ruv-swarm (neural, no timeout) | Optional | Optional | Yes |
+| Pattern Learning (DAA agents) | Optional | Optional | Yes |
+| Ruflo CLI background workers | No | No | Yes |
+| Best For | Coordinated multi-file work | Multi-session projects | Long-term learning + persistence |
 
 ---
 
