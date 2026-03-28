@@ -1,5 +1,5 @@
 ---
-description: Spawn agents for complex tasks — swarm orchestration, feature chains, bugfixes, refactoring, or security audits.
+description: Spawn agents for complex tasks — wave-based swarm execution, feature chains, bugfixes, refactoring, or security audits. Prevents context rot with fresh agent context per wave.
 ---
 
 # Orchestrate
@@ -14,70 +14,115 @@ Parse the workflow type from the first word of $ARGUMENTS. If no type specified,
 
 ### swarm `<description>`
 
-You MUST spawn the orchestrator-task agent NOW:
+Execute using WAVE-BASED EXECUTION to prevent context rot:
 
-```
-Agent(subagent_type="orchestrator-task", prompt="<full task description>. Read .uatu/config/project.md for project conventions.")
-```
+**Step 1 — Decompose:**
+Break the task into discrete work units. For each unit identify:
+- Description (what to do)
+- Files involved
+- Dependencies (which other units must complete first)
+- Agent type (coder, tester, researcher, etc.)
+- READ or WRITE classification
 
-The orchestrator handles all decomposition, tier selection, batch-spawning, and synthesis. Do NOT decompose the task yourself.
+**Step 2 — Group into waves:**
+- Wave 1: all units with NO dependencies
+- Wave 2: units whose dependencies are ALL in Wave 1
+- Wave N: units whose dependencies are ALL in prior waves
+
+**Step 3 — Execute wave by wave:**
+
+For each wave:
+1. Spawn ALL agents in the wave in a SINGLE message:
+   ```
+   Agent(subagent_type="<type>", name="<task-name>", prompt="<task + context from prior waves>", isolation="worktree", run_in_background=true)
+   ```
+2. Wait for all agents in the wave to complete
+3. Compress each agent's output into a ~500-token discovery relay brief:
+   ```
+   BRIEF: <agent-name> (Wave N)
+   - Findings: <key outcomes>
+   - Files modified: <list>
+   - Decisions: <choices made>
+   - Open: <unresolved questions>
+   ```
+4. After each successfully completed task, create an atomic git commit:
+   ```
+   feat(scope): task description
+   ```
+5. Report progress: "Wave N/M complete. Tasks: X/Y done."
+6. Feed briefs as context to next wave's agents
+
+**Step 4 — Synthesize:**
+After all waves complete, produce a unified summary of all changes, decisions, and any open questions.
 
 ### feature `<description>`
 
-Execute this agent chain. Spawn each step, collect output, pass as context to the next:
+Execute this chain with wave execution for parallel steps:
 
 1. **planner** — analyze requirements, create implementation plan
-2. **[parallel]** coder (implements) + tester (writes tests) — spawn BOTH in ONE message:
+2. **Plan validation** — review the plan for completeness:
+   - All tasks have verify criteria
+   - Dependencies are mapped
+   - Referenced files exist
+   - If validation fails, regenerate (max 3 iterations)
+3. **[parallel wave]** coder (implements) + tester (writes tests):
    ```
-   Agent(subagent_type="coder", prompt="Implement: <description>. Plan: <planner output>", isolation="worktree", run_in_background=true)
-   Agent(subagent_type="tester", prompt="Write tests for: <description>. Plan: <planner output>", isolation="worktree", run_in_background=true)
+   Agent(subagent_type="coder", prompt="Implement: <desc>. Plan: <plan>", isolation="worktree", run_in_background=true)
+   Agent(subagent_type="tester", prompt="Write tests for: <desc>. Plan: <plan>", isolation="worktree", run_in_background=true)
    ```
-3. **reviewer** — review all changes from step 2
+4. **reviewer** — two-stage review (spec alignment + quality)
+5. Atomic commit per completed task
 
 ### bugfix `<description>`
 
-Execute this agent chain sequentially:
+Execute sequentially with the /debug 4-phase process:
 
-1. **debugger** — investigate root cause
-2. **coder** — implement fix (pass debugger findings as context), use `isolation="worktree"`
+1. **debugger** — Phase 1 (capture) + Phase 2 (isolate root cause)
+2. **coder** — Phase 3 (apply fix), use `isolation="worktree"`, pass debugger findings
 3. **tester** — write regression test, use `isolation="worktree"`
 4. **reviewer** — review fix and test
+5. Atomic commit: `fix(scope): description`
 
 ### refactor `<description>`
 
 1. **architect-review** — analyze current code, design target architecture
-2. **[parallel]** refactoring-specialist + tester — spawn BOTH in ONE message with `isolation="worktree"`, `run_in_background=true`
+2. **[parallel wave]** refactoring-specialist + tester — spawn BOTH with `isolation="worktree"`, `run_in_background=true`
 3. **reviewer** — review all changes
+4. Atomic commit per refactored module
 
 ### security `<description>`
 
-Execute sequentially:
-
-1. **security-auditor** — full security audit
+1. **security-auditor** — full security audit (same as /security-scan)
 2. **reviewer** — review findings and proposed fixes
 3. **architect-review** — verify fixes don't introduce architectural issues
 
 ### custom `<agent-list> <description>`
 
-Parse comma-separated agent list. Execute sequentially, passing handoff context between each:
-
+Parse comma-separated agent list. Execute sequentially with handoff context:
 ```
 /orchestrate custom "architect-review,coder,tester,reviewer" "Redesign caching layer"
 ```
 
-## Handoff Between Sequential Agents
+## Discovery Relay Brief Format
 
-Between agents, pass this context to the next agent's prompt:
+Between waves, compress each agent's output:
 
 ```
-Previous agent (<name>) output:
-<summary of findings, files modified, decisions made, open questions>
+BRIEF: <agent-name> (Wave N)
+- Findings: <key outcomes, max 3 bullets>
+- Files: <modified files>
+- Decisions: <choices made with rationale>
+- Open: <unresolved questions for next wave>
 ```
+
+This prevents context rot by keeping inter-wave context under 500 tokens per agent.
 
 ## Rules
 
 - Spawn ALL parallel agents in a SINGLE message (true parallelism)
-- Write agents (coder, tester, refactoring-specialist) MUST use `isolation="worktree"`
-- Read-only agents (researcher, reviewer, security-auditor) do NOT need worktree
+- Write agents MUST use `isolation="worktree"`
+- Read-only agents do NOT need worktree
 - Use `run_in_background=true` for parallel agents
+- Create atomic git commit after each completed task
 - Always include project context: "Read .uatu/config/project.md for conventions"
+- Show progress after each wave: "Wave N/M complete. Tasks: X/Y done."
