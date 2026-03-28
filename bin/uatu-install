@@ -143,25 +143,34 @@ mkdir -p "$TARGET_DIR/.uatu/delivery/research"
 mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/agents"
 mkdir -p "$TARGET_DIR/.claude/skills"
+mkdir -p "$TARGET_DIR/.claude/rules"
 mkdir -p "$TARGET_DIR/.specify/memory"
 mkdir -p "$TARGET_DIR/.specify/scripts/bash"
 mkdir -p "$TARGET_DIR/.specify/templates"
 echo -e "  ${GREEN}Directories created${NC}"
 
-# Copy UATU.md to .uatu/ (always update to latest)
+# Copy UATU.md and QUICKSTART.md to .uatu/ (always update to latest)
 echo -e "${BLUE}Installing Uatu framework...${NC}"
 cp "$TEMPLATES_DIR/.uatu/UATU.md" "$TARGET_DIR/.uatu/UATU.md"
+cp "$TEMPLATES_DIR/.uatu/QUICKSTART.md" "$TARGET_DIR/.uatu/QUICKSTART.md"
 if [[ "$UPGRADE_MODE" == false ]]; then
     echo -e "  ${GREEN}.uatu/UATU.md installed${NC}"
+    echo -e "  ${GREEN}.uatu/QUICKSTART.md installed${NC}"
     NEW_FILES+=(".uatu/UATU.md")
+    NEW_FILES+=(".uatu/QUICKSTART.md")
 else
     echo -e "  ${GREEN}.uatu/UATU.md updated${NC}"
+    echo -e "  ${GREEN}.uatu/QUICKSTART.md updated${NC}"
     UPDATED_FILES+=(".uatu/UATU.md")
+    UPDATED_FILES+=(".uatu/QUICKSTART.md")
 fi
 
 # Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
-UATU_HEADER='> **Uatu Framework Active** — Rules auto-loaded via hooks. Full docs: `.uatu/UATU.md`
-> For complex/multi-file tasks, use `/orchestrate`. For task plans, use `/speckit.implement`.
+UATU_HEADER='> **Uatu Framework Active** — Full docs: `.uatu/UATU.md` | Quick ref: `.uatu/QUICKSTART.md`
+>
+> Commands: `/orchestrate` (multi-agent), `/debug` (systematic debugging), `/speckit.specify` (define features), `/code-review` (two-stage review)
+>
+> Rules auto-loaded from `.claude/rules/uatu-core.md`
 
 '
 
@@ -440,6 +449,23 @@ if [[ -d "$TEMPLATES_DIR/.claude/skills" ]]; then
     fi
 else
     echo -e "  ${YELLOW}No skills found in templates${NC}"
+fi
+
+# Copy rules (always update - these are framework activation rules)
+echo -e "${BLUE}Installing rules...${NC}"
+if [[ -d "$TEMPLATES_DIR/.claude/rules" ]]; then
+    mkdir -p "$TARGET_DIR/.claude/rules"
+    cp "$TEMPLATES_DIR/.claude/rules/"*.md "$TARGET_DIR/.claude/rules/" 2>/dev/null || true
+    RULE_COUNT=$(ls -1 "$TARGET_DIR/.claude/rules/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$UPGRADE_MODE" == false ]]; then
+        echo -e "  ${GREEN}$RULE_COUNT rules installed${NC}"
+        NEW_FILES+=(".claude/rules/ ($RULE_COUNT rules)")
+    else
+        echo -e "  ${GREEN}$RULE_COUNT rules updated${NC}"
+        UPDATED_FILES+=(".claude/rules/ ($RULE_COUNT rules)")
+    fi
+else
+    echo -e "  ${YELLOW}No rules found in templates${NC}"
 fi
 
 # Create .claude/settings.json with sample hooks configuration
