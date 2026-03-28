@@ -7,8 +7,8 @@ AI orchestration framework.
 ## Before Any Task
 
 1. **Read project config** — `.uatu/config/project.md`
-2. **Run Sequential Thinking** — Analyze task before acting
-3. **Select package** — Based on task characteristics
+2. **Select package** — Based on task characteristics
+3. **Consider Sequential Thinking** — For complex or ambiguous tasks
 
 ---
 
@@ -26,7 +26,7 @@ AI orchestration framework.
 
 | Rule | Action |
 |------|--------|
-| **Sequential Thinking** | Run for EVERY task. No skipping. |
+| **Sequential Thinking** | Optional — use for complex or ambiguous tasks |
 | **Package Selection** | Choose based on task needs |
 | **Artifacts in `.uatu/`** | All deliverables go in `.uatu/delivery/` |
 | **Use Speckit** | Run `/speckit.*` commands for specs |
@@ -42,13 +42,12 @@ All packages support dynamic scaling (1 to 25+ agents). Choose by **coordination
 | **SOLO** | Hub-and-spoke (no inter-agent talk) | Independent parallel work at any scale | `/orchestrate` |
 | **SQUAD** | Peer messaging + shared memory | Agents need to coordinate mid-task | `/squad` |
 | **HIVE** | SQUAD + session persistence (experimental) | Work spans multiple sessions | Manual setup |
-| **WATCHER** | HIVE + neural learning (experimental) | Repeated tasks benefit from accumulated learning | Manual setup |
 
 ```
 Can you give each agent everything it needs before it starts?
   YES → SOLO (+ orchestrator-task for multi-agent, any scale)
   NO  → Agents discover things mid-work that other agents need
-        → SQUAD → need persistence across sessions? → HIVE → need learning? → WATCHER
+        → SQUAD → need persistence across sessions? → HIVE
 ```
 
 ---
@@ -57,10 +56,9 @@ Can you give each agent everything it needs before it starts?
 
 | Trigger | Read This |
 |---------|-----------|
-| Every complex task | `.uatu/guides/SEQUENTIAL-THINKING.md` |
+| Complex or ambiguous task | `.uatu/guides/SEQUENTIAL-THINKING.md` |
 | Unsure which tool/package | `.uatu/guides/TOOL-SELECTION.md` |
 | Using SQUAD/HIVE | `.uatu/guides/SQUAD-GUIDE.md` |
-| Using WATCHER package | `.uatu/guides/WATCHER.md` |
 | Spawning agents | `.uatu/guides/AGENTS-GUIDE.md` |
 | Jira tasks, naming, specs | `.uatu/guides/WORKFLOW.md` |
 | Customizing hooks | `.uatu/guides/HOOKS.md` |
@@ -145,8 +143,7 @@ See `.uatu/guides/HOOKS.md` for customization.
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | Every task (pre-package) |
-| `claude-flow` | SQUAD, HIVE, WATCHER (shared memory, strategy coordination) |
-| `ruv-swarm` | Advanced SQUAD/HIVE (no-timeout, neural patterns) |
+| `sequential-thinking` | Complex/ambiguous tasks (optional) |
+| `claude-flow` | SQUAD, HIVE (shared memory, strategy coordination) |
 
 Run `uatu-setup` to install.

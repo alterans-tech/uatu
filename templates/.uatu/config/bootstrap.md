@@ -6,9 +6,9 @@ These rules are auto-injected every session. Full docs: `.uatu/UATU.md`
 
 ## Before Any Task
 
-1. Run **Sequential Thinking** (`mcp__sequential-thinking__sequentialthinking`) to analyze the task
-2. Select **package** based on coordination needs (see below)
-3. For complex/multi-file tasks, use `/orchestrate` to spawn agents
+1. Select **package** based on coordination needs (see below)
+2. For complex/multi-file tasks, use `/orchestrate` to spawn agents
+3. For complex or ambiguous tasks, consider **Sequential Thinking** (`mcp__sequential-thinking__sequentialthinking`)
 
 ---
 
@@ -19,12 +19,11 @@ These rules are auto-injected every session. Full docs: `.uatu/UATU.md`
 | **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate swarm` or `/orchestrate feature` |
 | **SQUAD** | Agents must coordinate mid-task | `/squad` |
 | HIVE | SQUAD + cross-session persistence (experimental) | Manual setup |
-| WATCHER | HIVE + neural learning (experimental) | Manual setup |
 
 ```
 Can you give each agent everything it needs before it starts?
   YES → SOLO (use /orchestrate)
-  NO  → SQUAD (use /squad — agents discover things mid-work that others need)
+  NO  → SQUAD → need persistence across sessions? → HIVE
 ```
 
 ---
