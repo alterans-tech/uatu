@@ -70,11 +70,11 @@ Uatu operates on three layers:
 
 2. **Hooks** — Fire on Claude Code lifecycle events. Score your prompts, suggest agents based on file patterns, warn about missing tests, guard branches, auto-format code, save checkpoints.
 
-3. **Commands** — 8 slash commands you type when you need explicit control. Everything else is automatic.
+3. **Commands** — 7 slash commands you type when you need explicit control. Everything else is automatic.
 
 ---
 
-## Commands (8 + Speckit)
+## Commands (7 + Speckit)
 
 ### `/status`
 
@@ -136,6 +136,11 @@ Smart multi-agent execution. Analyzes your description and picks the right workf
 | `--tdd` | Every agent writes failing tests first, then implements |
 | `--e2e` | Playwright E2E tests generated after all waves complete |
 | `--review` | Two-stage review (spec alignment + quality) after each wave |
+| `--dry-run` | Show plan without executing, wait for approval |
+| `--verify` | Run test suite between each wave, stop on failure |
+| `--scope <paths>` | Constrain agents to specified files/directories only |
+| `--no-commit` | Execute but don't commit — you review and commit manually |
+| `--jira <KEY>` | Link to Jira: read AC, create branch, update status on completion |
 
 **What you see during execution:**
 ```
@@ -183,53 +188,34 @@ Use `--fix` to auto-fix medium/low issues before reporting.
 
 ---
 
-### `/review-pr`
+### `/pr`
 
-Review someone else's PR. Reads the diff, runs two-stage review, posts inline comments directly on GitHub.
-
-```
-/review-pr 234
-/review-pr https://github.com/org/repo/pull/234
-```
-
-**What happens:**
-1. Fetches PR diff and description from GitHub
-2. Stage 1 — checks if code matches PR description (scope drift, missing requirements)
-3. Stage 2 — checks code quality (security, error handling, naming, tests)
-4. Posts inline comments on specific lines (not a wall of text)
-5. Submits review: APPROVE or REQUEST CHANGES with summary
-
----
-
-### `/self-review`
-
-Handle review comments on YOUR PR. Reads all feedback, shows each thread, fixes issues after your approval, replies, and resolves.
+Full PR lifecycle — open, review, or respond to feedback. One command, three modes.
 
 ```
-/self-review 234
+/pr                              # open PR from current branch
+/pr --draft                      # open as draft
+/pr --jira ORI-234               # open with Jira link
+/pr --review 342                 # review someone else's PR
+/pr --respond 338                # handle review comments on your PR
 ```
 
-**What happens:**
-```
-Thread 1/5 — @reviewer-name
-File: src/auth/handler.ts:42
-Comment: "Missing rate limiting on this endpoint"
+**Open mode (default):**
+- Builds title following conventions: `feat(scope): capability [JIRA-KEY]`
+- Generates structured body: Summary, Changes, Test Plan, Notes, Jira link
+- Auto-detects Jira key from branch name
+- Pushes branch and creates PR
 
-Options:
-  1. Fix it
-  2. Reply (explain why)
-  3. Skip
-> 1
+**Review mode (`--review`):**
+- Fetches diff, runs two-stage review (spec alignment + quality)
+- Posts inline comments on specific lines
+- Submits APPROVE or REQUEST_CHANGES
 
-Applying fix... Done. Reply posted. Thread resolved.
-
-Thread 2/5 — @reviewer-name
-File: src/auth/handler.ts:89
-Comment: "Consider using a constant for the timeout value"
-...
-```
-
-**Rules:** Never auto-resolves. Always waits for your decision on each thread.
+**Respond mode (`--respond`):**
+- Shows each unresolved thread with the comment and code
+- You choose: fix / reply / skip for each
+- Fixes are committed, replies posted, threads resolved after your approval
+- Never auto-resolves — always waits for your decision
 
 ---
 
@@ -497,7 +483,7 @@ your-project/
 
 | Component | Count |
 |-----------|-------|
-| Commands | 8 + 10 speckit |
+| Commands | 7 + 10 speckit |
 | Agents | 53 across 8 categories |
 | Skills | 19 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |

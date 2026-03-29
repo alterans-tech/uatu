@@ -2,15 +2,14 @@
 
 ---
 
-## Commands (8)
+## Commands (7)
 
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/status` | Start of session — see what's going on | `/status` |
-| `/orchestrate` | Multi-file work, features, bugs, refactors | `/orchestrate "add email notifications"` |
+| `/orchestrate` | Multi-file work, features, bugs, refactors | `/orchestrate "add notifications" --tdd` |
 | `/pre-flight-check` | Before merging — full quality gate | `/pre-flight-check` |
-| `/review-pr` | Review someone else's PR | `/review-pr 234` |
-| `/self-review` | Handle review comments on your PR | `/self-review 234` |
+| `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342` |
 | `/plan-work` | Create Jira cards with proper hierarchy | `/plan-work "password reset feature"` |
 | `/prompt-rewrite` | Improve a draft prompt | `/prompt-rewrite "fix the login thing"` |
 | `/time-report` | Time tracking | `/time-report --all --week` |
@@ -19,9 +18,24 @@
 
 | Flag | Effect | Example |
 |------|--------|---------|
-| `--tdd` | Every agent writes tests first | `/orchestrate "build user dashboard" --tdd` |
+| `--tdd` | Every agent writes tests first | `/orchestrate "build dashboard" --tdd` |
 | `--e2e` | Playwright E2E tests after completion | `/orchestrate "checkout flow" --e2e` |
 | `--review` | Two-stage review after each wave | `/orchestrate "refactor auth" --review` |
+| `--dry-run` | Show plan without executing, wait for approval | `/orchestrate "migrate db" --dry-run` |
+| `--verify` | Run tests between each wave | `/orchestrate "add payments" --verify` |
+| `--scope` | Constrain to specific files/dirs | `/orchestrate "fix auth" --scope src/auth/` |
+| `--no-commit` | Execute but don't commit, you review first | `/orchestrate "migrate" --no-commit` |
+| `--jira` | Link to Jira: read AC, create branch, update | `/orchestrate "dashboard" --jira ORI-240` |
+
+### PR Flags
+
+| Flag | Effect | Example |
+|------|--------|---------|
+| (default) | Open PR from current branch | `/pr` |
+| `--draft` | Create as draft PR | `/pr --draft` |
+| `--review` | Review someone else's PR | `/pr --review 342` |
+| `--respond` | Handle review comments on your PR | `/pr --respond 338` |
+| `--jira` | Override Jira key detection | `/pr --jira ORI-234` |
 
 Orchestrate auto-detects the right workflow from your description:
 - Bug keywords ("fix", "broken", "error") → 4-phase debugging

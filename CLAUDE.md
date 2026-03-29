@@ -68,7 +68,7 @@ uatu/
 │   │   ├── hooks/                # 8 active + 6 examples
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── commands/             # 18 slash commands (8 core + 10 speckit.*)
+│       ├── commands/             # 17 slash commands (7 core + 10 speckit.*)
 │       ├── skills/               # 19 skills (react-component, test-file + language/pattern skills)
 │       └── agents/               # 53 agents across 10 categories
 └── README.md                     # User documentation
@@ -92,10 +92,9 @@ uatu/
 | Command | Purpose |
 |---------|---------|
 | `/status` | Sprint board + branches + worktrees + checkpoint |
-| `/orchestrate` | Smart multi-agent execution (--tdd, --e2e, --review) |
+| `/orchestrate` | Smart multi-agent (--tdd, --e2e, --verify, --dry-run, --jira, --scope, --no-commit, --review) |
 | `/pre-flight-check` | Pre-merge gate: review + verify + security |
-| `/review-pr` | Review someone else's PR, post inline comments |
-| `/self-review` | Handle review comments on your PR |
+| `/pr` | Open, review, or respond to PRs (--review, --respond, --draft, --jira) |
 | `/plan-work` | Create Jira cards (Epic/Story/Subtask) |
 | `/prompt-rewrite` | Rewrite a prompt with proper structure |
 | `/time-report` | Time tracking across projects |
@@ -290,7 +289,7 @@ chore: maintenance
 ## Current Stats
 
 - **53 agents** across 10 categories
-- **18 commands** (8 core + 10 speckit.*)
+- **17 commands** (7 core + 10 speckit.*)
 - **19 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
 - **17 active hooks** + 6 examples

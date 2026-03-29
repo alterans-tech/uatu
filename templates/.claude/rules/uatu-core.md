@@ -9,15 +9,15 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
-| `/orchestrate` | Smart multi-agent execution | `/orchestrate "add email notifications" --tdd` |
+| `/orchestrate` | Smart multi-agent execution | `/orchestrate "add notifications" --tdd --jira ORI-240` |
 | `/pre-flight-check` | Pre-merge gate: review + verify + security | `/pre-flight-check` |
-| `/review-pr` | Review someone else's PR, post inline comments | `/review-pr 234` |
-| `/self-review` | Handle review comments on your PR | `/self-review 234` |
+| `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342`, `/pr --respond 338` |
 | `/plan-work` | Create Jira cards (Epic/Story/Subtask) | `/plan-work "password reset feature"` |
 | `/prompt-rewrite` | Rewrite a prompt with proper structure | `/prompt-rewrite "fix the login thing"` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
-**Orchestrate flags:** `--tdd` (test-first), `--e2e` (Playwright tests), `--review` (two-stage review per wave)
+**Orchestrate flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
+**PR flags:** `--review <N>` (review others), `--respond <N>` (handle feedback), `--draft`, `--jira <KEY>`
 
 ---
 
@@ -36,7 +36,7 @@ Use `mcp__sequential-thinking__sequentialthinking` for structured reasoning.
 **Skip when:**
 - Simple data gathering (`/status`, `/time-report`)
 - Procedural checks (`/pre-flight-check`)
-- Interactive workflows (`/self-review` — read comment, propose fix, wait)
+- Interactive workflows (`/pr --respond` — read comment, propose fix, wait)
 - Clear single-file tasks
 
 ---
@@ -53,8 +53,9 @@ Before starting any task, SUGGEST the appropriate approach:
 | Implement from existing spec | `/speckit.implement` |
 | Create Jira cards for new work | `/plan-work "description"` |
 | Before merge | `/pre-flight-check` |
-| Review a teammate's PR | `/review-pr <number>` |
-| Handle review comments on your PR | `/self-review <number>` |
+| Open a PR | `/pr` or `/pr --draft` |
+| Review a teammate's PR | `/pr --review <number>` |
+| Handle review comments on your PR | `/pr --respond <number>` |
 
 If the user's task clearly matches one of these, suggest it BEFORE starting work.
 
