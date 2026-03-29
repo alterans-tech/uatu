@@ -10,12 +10,12 @@
 
 **90% of tasks are SOLO.** Use `/orchestrate` for independent parallel work (hub-and-spoke).
 
-For the 10% where agents need to discover and share information mid-task, use `/squad`:
+For the 10% where agents need to discover and share information mid-task, `/orchestrate` auto-detects and escalates to SQUAD coordination:
 
 ```
-/orchestrate swarm "Refactor all services to use new error pattern"   → SOLO (independent work)
-/orchestrate feature "Add user authentication with JWT"               → SOLO (sequential chain)
-/squad "Frontend + backend co-design the new API contract"            → SQUAD (agents negotiate mid-task)
+/orchestrate "Refactor all services to use new error pattern"          → SOLO (independent work)
+/orchestrate "Add user authentication with JWT"                        → SOLO (sequential chain)
+/orchestrate "Frontend + backend co-design the new API contract"       → SQUAD (auto-detected: agents negotiate mid-task)
 ```
 
 **HIVE** (cross-session persistence) and **WATCHER** (neural learning) are experimental and require additional infrastructure setup. See sections below.
@@ -396,7 +396,7 @@ For WATCHER setup, refer to Ruflo CLI documentation.
 
 ## Named Team Presets
 
-Pre-built agent compositions for common SQUAD use cases. Use these with `/squad` or assemble manually.
+Pre-built agent compositions for common SQUAD use cases. Use these with `/orchestrate` (auto-detects SQUAD) or assemble manually.
 
 ### Security Team
 ```

@@ -56,7 +56,7 @@ Thought 4: Which package fits? (SOLO/SQUAD/HIVE/WATCHER)
 Thought 5: What's my execution plan? (Concrete steps)
 ```
 
-**Sequential Thinking is PRE-PACKAGE** — it runs via the `enforce-sequential-thinking` hook before any package is selected. It helps you choose the right package, not the other way around.
+**Sequential Thinking is PRE-PACKAGE** — use it before any package is selected. It helps you choose the right approach. Mandatory for `/prompt-rewrite` and `/plan-work`, recommended for complex `/orchestrate` tasks.
 
 Then set `nextThoughtNeeded: false` and execute.
 

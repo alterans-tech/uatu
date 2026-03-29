@@ -80,9 +80,7 @@ All agents are located in `~/.claude/agents/` organized by category:
 
 | Agent | Best For | Model |
 |-------|----------|-------|
-| `database-optimizer` | Query optimization, indexing, caching | opus |
-| `database-admin` | Database operations, replication | sonnet |
-| `sql-pro` | Complex queries, data modeling | sonnet |
+| `database-expert` | Database administration, query optimization, schema design | sonnet |
 | `data-engineer` | ETL pipelines, data warehousing | sonnet |
 | `ml-engineer` | ML systems, model serving | opus |
 | `llm-architect` | LLM applications, RAG, fine-tuning | opus |
@@ -91,7 +89,7 @@ All agents are located in `~/.claude/agents/` organized by category:
 
 | Agent | Best For | Model |
 |-------|----------|-------|
-| `code-reviewer` | Code review, best practices | sonnet |
+| `reviewer` | Code review, best practices | sonnet |
 | `tester` | Unit/integration/E2E testing | sonnet |
 | `tdd-london-swarm` | London School TDD: mock-driven test-first development | sonnet |
 | `production-validator` | Pre-deployment production readiness checklist | sonnet |
@@ -178,7 +176,7 @@ Agent(subagent_type="coder", name="coder-3", prompt="Refactor src/payments.ts...
 | coder, fullstack-developer, refactoring-specialist | **YES** | Writes/modifies files |
 | tester (creating test files) | **YES** | Creates new test files |
 | researcher, Explore, architect-review | No | Read-only |
-| code-reviewer, security-auditor | No | Read-only analysis |
+| reviewer, security-auditor | No | Read-only analysis |
 | debugger (investigating) | No | Read-only |
 | debugger (applying fix) | **YES** | Writes fix to files |
 
@@ -255,7 +253,7 @@ Deterministic agent selection based on file patterns and task keywords. Use this
 | `*.go` | `golang-pro` | `backend-architect` |
 | `*.rs` | `rust-pro` | `performance-engineer` |
 | `*.ts` (API routes, services) | `typescript-pro` | `backend-architect` |
-| `*.sql`, `migrations/`, `prisma/`, `drizzle/` | `database-optimizer` | `sql-pro` |
+| `*.sql`, `migrations/`, `prisma/`, `drizzle/` | `database-expert` | `database-expert` |
 | `.github/workflows/`, `ci/` | `deployment-engineer` | `sre-engineer` |
 | `openapi.*`, `swagger.*` | `api-documenter` | `backend-architect` |
 | `firebase.*`, `firestore.rules` | Use matching `firebase-*` specialist | — |
@@ -273,9 +271,9 @@ Deterministic agent selection based on file patterns and task keywords. Use this
 | "design", "architecture", "system design" | `architect-review` | SOLO |
 | "API", "endpoint", "REST", "GraphQL" | `backend-architect` | SOLO |
 | "UI", "component", "layout", "responsive" | `frontend-developer` | SOLO |
-| "database", "query", "migration", "schema" | `database-optimizer` | SOLO |
+| "database", "query", "migration", "schema" | `database-expert` | SOLO |
 | "multi-file", "refactor all", "migrate" | `orchestrator-task` | SOLO (swarm) |
-| "coordinate", "negotiate", "co-design" | `/squad` command | SQUAD |
+| "coordinate", "negotiate", "co-design" | `/orchestrate` (auto-detects SQUAD) | SQUAD |
 
 ### Routing Priority
 
@@ -290,13 +288,13 @@ When multiple patterns match: **task keyword > file pattern > default**. The tas
 | Task Type | Primary Agent | Supporting Agents |
 |-----------|---------------|-------------------|
 | Bug fix | `debugger` | `coder`, `tester` |
-| New feature | `coder` | `tester`, `code-reviewer` |
+| New feature | `coder` | `tester`, `reviewer` |
 | Refactoring | `refactoring-specialist` | `coder`, `tester` |
-| Performance | `performance-engineer` | `database-optimizer` |
+| Performance | `performance-engineer` | `database-expert` |
 | Security fix | `security-auditor` | `coder`, `tester` |
 | API design | `backend-architect` | `api-documenter` |
 | UI work | `frontend-developer` | `ui-ux-designer` |
-| Data work | `data-engineer` | `database-optimizer` |
+| Data work | `data-engineer` | `database-expert` |
 | Infrastructure | `cloud-architect` | `terraform-specialist` |
 
 ### By Complexity (Scaling Tiers)
@@ -316,7 +314,7 @@ When multiple patterns match: **task keyword > file pattern > default**. The tas
 | Risk | Primary Agent | Required Validation |
 |------|---------------|-------------------|
 | Low | Any appropriate | Self-review |
-| Medium | + `code-reviewer` | Peer review |
+| Medium | + `reviewer` | Peer review |
 | High | + `security-auditor` | Security + code review |
 | Critical | + `architect-review` | Full review chain |
 
@@ -374,7 +372,7 @@ Always use Sequential Thinking before selecting agents. It will recommend:
 
 ### 4. Validate Results
 
-- Use `code-reviewer` after significant code changes
+- Use `reviewer` after significant code changes
 - Use `tester` to verify correctness
 - Use `security-auditor` for security-sensitive code
 
@@ -391,14 +389,14 @@ Always use Sequential Thinking before selecting agents. It will recommend:
 ### Most Common Combinations
 
 ```
-Bug Fix:        debugger → coder → tester → code-reviewer
-New Feature:    planner → coder → tester → code-reviewer
+Bug Fix:        debugger → coder → tester → reviewer
+New Feature:    planner → coder → tester → reviewer
 Refactoring:    refactoring-specialist → coder → tester
 API Work:       backend-architect → coder → api-documenter → tester
 Frontend:       ui-ux-designer → frontend-developer → tester
 Infrastructure: cloud-architect → terraform-specialist → sre-engineer
 Security:       security-auditor → coder → tester
-Performance:    performance-engineer → database-optimizer → tester
+Performance:    performance-engineer → database-expert → tester
 ```
 
 ### Emergency Agents
@@ -407,7 +405,7 @@ Performance:    performance-engineer → database-optimizer → tester
 |-----------|-------|
 | Production bug | `debugger` → `coder` (minimal fix) |
 | Security incident | `security-auditor` (assess) → `coder` (fix) |
-| Performance crisis | `performance-engineer` → `database-optimizer` |
+| Performance crisis | `performance-engineer` → `database-expert` |
 | Test failures | `tester` → `debugger` → `coder` |
 
 ---
@@ -596,7 +594,7 @@ Chain:
   2. refactoring-specialist → plan refactor
   3. coder → implement changes
   4. tester → validate behavior
-  5. code-reviewer → final review
+  5. reviewer → final review
 ```
 
 ### 2. Parallel Agent Swarm (SQUAD)
@@ -606,7 +604,7 @@ Task: Full-stack feature
 Swarm (parallel):
   - frontend-developer → UI components
   - backend-architect → API design
-  - database-optimizer → schema design
+  - database-expert → schema design
   - tester → test strategy
 
 Coordinator: planner

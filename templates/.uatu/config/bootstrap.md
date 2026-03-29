@@ -1,54 +1,56 @@
 # Uatu Framework — Active Rules
 
-These rules are auto-injected every session. Full docs: `.uatu/UATU.md`
+These rules are auto-injected every session. Full docs: `.uatu/UATU.md` | Quick ref: `.uatu/QUICKSTART.md`
 
 ---
 
 ## Before Any Task
 
-1. Select **package** based on coordination needs (see below)
+1. Check `.claude/rules/uatu-core.md` — behavioral rules are auto-loaded
 2. For complex/multi-file tasks, use `/orchestrate` to spawn agents
-3. For complex or ambiguous tasks, consider **Sequential Thinking** (`mcp__sequential-thinking__sequentialthinking`)
+3. For complex or ambiguous tasks, consider **Sequential Thinking**
 
 ---
 
 ## Package Selection
 
-| Package | When | Command |
-|---------|------|---------|
-| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate swarm` or `/orchestrate feature` |
-| **SQUAD** | Agents must coordinate mid-task | `/squad` |
+| Package | When | How |
+|---------|------|-----|
+| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` |
 | HIVE | SQUAD + cross-session persistence (experimental) | Manual setup |
 
 ```
 Can you give each agent everything it needs before it starts?
-  YES → SOLO (use /orchestrate)
-  NO  → SQUAD → need persistence across sessions? → HIVE
+  YES → SOLO (orchestrate handles parallelism)
+  NO  → SQUAD (auto-escalates when agents need mid-task coordination)
+        → Need persistence? → HIVE
 ```
 
 ---
 
-## Key Commands
+## Commands
 
 | Task | Command |
 |------|---------|
-| Multi-agent orchestration | `/orchestrate swarm <description>` |
-| Feature workflow (plan→code→test→review) | `/orchestrate feature <description>` |
-| Bug fix workflow | `/orchestrate bugfix <description>` |
-| Agent team with peer messaging | `/squad <description>` |
-| Spec-driven implementation | `/speckit.implement` (auto-spawns agents for 3+ tasks) |
-| Test-driven development | `/tdd <description>` |
-| End-to-end tests | `/e2e <description>` |
-| Code review | `/code-review` |
+| Session recon | `/status` |
+| Multi-agent execution | `/orchestrate "description"` |
+| Pre-merge gate | `/pre-flight-check` |
+| Open / review / respond to PRs | `/pr`, `/pr --review N`, `/pr --respond N` |
+| Create Jira cards | `/plan-work "description"` |
+| Improve a prompt | `/prompt-rewrite "draft"` |
+| Time tracking | `/time-report --week` |
+| Spec-driven workflow | `/speckit.specify`, `.plan`, `.tasks`, `.implement` |
+
+**Orchestrate flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
 
 ---
 
 ## Agent Usage
 
-You have 65+ specialized agents available. Commands spawn them automatically.
-For manual spawning: `Agent(subagent_type="<type>", prompt="...", isolation="worktree", run_in_background=true)`
+53 specialized agents available. Commands spawn them automatically.
 
-Common agents: `coder`, `tester`, `reviewer`, `planner`, `researcher`, `debugger`, `architect-review`, `security-auditor`
+Key agents: `coder`, `tester`, `reviewer`, `planner`, `researcher`, `debugger`, `architect-review`, `security-auditor`, `database-expert`
 
 Full catalog: `.uatu/guides/AGENTS-GUIDE.md`
 

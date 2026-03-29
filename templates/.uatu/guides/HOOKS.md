@@ -114,7 +114,7 @@ Claude Code provides 6 hook events:
 - Parse user intent
 - Validate user requests
 
-**Example:** `.uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh`
+**Example:** `.uatu/hooks/user-prompt-submit/prompt-quality-advisor.sh`
 
 ---
 
@@ -253,7 +253,7 @@ The `"hooks"` field is an **object** where keys are event names. Each event cont
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": ".uatu/hooks/user-prompt-submit/enforce-sequential-thinking.sh" }
+          { "type": "command", "command": ".uatu/hooks/user-prompt-submit/prompt-quality-advisor.sh" }
         ]
       }
     ],
@@ -332,22 +332,21 @@ Uatu includes 8 pre-built hooks:
 
 ---
 
-### 2. enforce-sequential-thinking.sh
+### 2. prompt-quality-advisor.sh
 
 **Event:** UserPromptSubmit
 
-**Purpose:** Reminds Claude to use Sequential Thinking MCP
+**Purpose:** Scores prompts and injects coaching suggestions
 
 **Behavior:**
-- Adds critical reminder on every user prompt
-- References `.uatu/guides/SEQUENTIAL-THINKING.md` if present
-- Non-intrusive context injection
+- Scores prompts against 4 dimensions (file refs, success criteria, structure, constraints)
+- Skips slash commands and short confirmations (< 5 words)
+- Low-scoring prompts get improvement suggestions
+- References `.uatu/config/prompt-templates.md` for templates
 
-**Required:** Strongly recommended
+**Required:** Recommended (standard profile)
 
 **Configuration:** Part of the `UserPromptSubmit` hooks array in `.claude/settings.json`.
-
-**Disable if:** You want to manage Sequential Thinking manually
 
 ---
 
@@ -1149,7 +1148,7 @@ See `.uatu/hooks/` for working examples:
 |------|-------|---------|
 | `session-start/load-project-context.sh` | SessionStart | Load project config |
 | `session-start/session-restore.sh` | SessionStart | Restore last session checkpoint |
-| `user-prompt-submit/enforce-sequential-thinking.sh` | UserPromptSubmit | Policy enforcement |
+| `user-prompt-submit/prompt-quality-advisor.sh` | UserPromptSubmit | Prompt scoring and coaching |
 | `pre-tool-use/prevent-sensitive-writes.sh` | PreToolUse | Block sensitive file writes |
 | `post-tool-use/format-code.sh` | PostToolUse | Code formatting |
 | `stop/update-jira.sh` | Stop | Tracking integration |
