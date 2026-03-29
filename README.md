@@ -1,182 +1,458 @@
 # Uatu - The Watcher
 
-AI orchestration framework for Claude Code. Installs specialized agents, slash commands, skills, hooks, and workflow conventions into any project.
+AI orchestration framework for Claude Code. Proactive advisor, multi-agent execution, specification-driven development, and prompt quality coaching — installed into any project with one command.
 
 ---
 
-## Quick Start
+## Installation
+
+### New Machine (One-Time Setup)
 
 ```bash
-# 1. Clone and add to PATH (one-time)
-git clone https://github.com/YOUR-USERNAME/uatu.git
+# 1. Clone and add to PATH
+git clone git@github.com:alterans-tech/uatu.git
 cd uatu && ./setup.sh && source ~/.zshrc
 
-# 2. Install user-level MCP servers (one-time per machine)
+# 2. Install user-level MCP servers
 uatu-setup
+```
 
-# 3. Install into a project
+This installs Sequential Thinking, Claude Flow, and Context7 MCP servers globally.
+
+### New Project
+
+```bash
 cd /path/to/your-project
 uatu-install
 ```
 
-After install, copy `.env.example` to `.env`, fill in your tokens, and run `direnv allow`.
+That's it. Uatu creates `.uatu/`, `.claude/rules/`, `.claude/commands/`, hooks, and config files. Claude Code starts using the framework immediately — no manual CLAUDE.md editing needed.
+
+**Installation profiles:**
+```bash
+uatu-install                           # standard (hooks + rules + commands + skills)
+uatu-install --profile minimal         # hooks + rules only (lightest)
+uatu-install --profile full            # everything including agents
+uatu-install --languages typescript,python  # only install rules for these languages
+```
+
+### Existing Project (Already Has CLAUDE.md)
+
+Same command. Uatu prepends a header to your existing CLAUDE.md (never overwrites), creates `.claude/rules/uatu-core.md` (auto-loaded by Claude Code), and installs hooks. Your existing project configuration is preserved.
+
+```bash
+cd /path/to/existing-project
+uatu-install
+```
+
+### Upgrading
+
+```bash
+cd /path/to/project-with-uatu
+uatu-install
+# Detects existing installation, backs up configs, updates framework files
+```
+
+### After Install
+
+```bash
+cp .env.example .env        # fill in your tokens (GH_TOKEN, JIRA_URL, etc.)
+direnv allow                 # auto-load env vars
+```
 
 ---
 
-## What Uatu Does
+## How Uatu Works
 
-**Proactive advisor.** Before every task, Uatu reads the request and suggests the right command — `/debug` for bugs with unknown root cause, `/orchestrate` for multi-file changes, `/speckit.specify` before writing code for a new feature. It also coaches vague prompts before they waste tokens.
+Uatu operates on three layers:
 
-**Specification-driven development.** The `/speckit.*` commands walk from raw idea to deployed code: specify → clarify → plan → tasks → implement. Artifacts live in `.uatu/delivery/` and stay in sync across the chain.
+1. **Rules** (`.claude/rules/uatu-core.md`) — Auto-loaded every session. Tells Claude to suggest commands proactively, coach on prompt quality, and use structured debugging/review automatically.
 
-**Multi-agent orchestration.** Commands spawn agents automatically. The `orchestrate` command executes wave-based swarms — agents run in parallel within a wave, waves are dependency-ordered. The `squad` command uses Agent Teams with peer messaging for tightly coordinated work.
+2. **Hooks** — Fire on Claude Code lifecycle events. Score your prompts, suggest agents based on file patterns, warn about missing tests, guard branches, auto-format code, save checkpoints.
 
----
-
-## Commands Reference
-
-### Workflow Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/orchestrate swarm` | Wave-based parallel swarm. Prevents context rot. | `/orchestrate swarm "migrate auth to JWT"` |
-| `/orchestrate feature` | End-to-end: plan → code → test → review | `/orchestrate feature "add rate limiting"` |
-| `/orchestrate bugfix` | Systematic: debug → fix → test → review | `/orchestrate bugfix "login fails on mobile"` |
-| `/squad` | Agent team with peer messaging | `/squad "refactor payment module"` |
-| `/debug` | 4-phase: capture → isolate → fix → verify | `/debug "memory leak in worker pool"` |
-| `/research` | 4 parallel researchers before planning | `/research "evaluate trpc vs rest for this API"` |
-| `/tdd` | Write failing tests first, then implement | `/tdd "order cancellation service"` |
-| `/e2e` | Generate and run Playwright E2E tests | `/e2e "checkout flow"` |
-| `/code-review` | Two-stage review: spec alignment then quality | `/code-review` |
-| `/security-scan` | Graded scan (A-F): secrets, auth, deps, config | `/security-scan` |
-| `/verify` | Full gate: build + types + lint + tests + security | `/verify` |
-| `/checkpoint` | Save session state to `.uatu/delivery/` | `/checkpoint` |
-| `/build-fix` | Diagnose and fix build errors | `/build-fix` |
-| `/time` | Time tracking across sprints | `/time --week` |
-| `/run-assessment` | Prompt quality assessment with percentile | `/run-assessment` |
-| `/prompt-rewrite` | Restructure a draft prompt with file refs and criteria | `/prompt-rewrite "fix the thing"` |
-| `/refactor-clean` | Refactor for readability without behavior change | `/refactor-clean src/services/auth.ts` |
-| `/test-coverage` | Coverage report with gap analysis | `/test-coverage` |
-| `/update-docs` | Sync documentation to current code | `/update-docs` |
-| `/skill-create` | Generate a SKILL.md from local git patterns | `/skill-create` |
-| `/aside` | Ask a question without affecting session context | `/aside "what does this regex do?"` |
-
-### Speckit Commands
-
-| Command | Description |
-|---------|-------------|
-| `/speckit.specify` | Create feature specification from natural language |
-| `/speckit.clarify` | Ask up to 5 targeted questions to reduce ambiguity |
-| `/speckit.plan` | Generate implementation plan (architecture, design) |
-| `/speckit.tasks` | Create dependency-ordered task breakdown |
-| `/speckit.implement` | Execute tasks — auto-spawns agents for 3+ tasks |
-| `/speckit.analyze` | Cross-artifact consistency check (non-destructive) |
-| `/speckit.checklist` | Generate validation checklist for the feature |
-| `/speckit.constitution` | Define project principles, sync to templates |
-| `/speckit.taskstoissues` | Push tasks to Jira or GitHub Issues |
-| `/speckit.complete` | Mark feature complete, archive artifacts |
+3. **Commands** — 8 slash commands you type when you need explicit control. Everything else is automatic.
 
 ---
 
-## Workflow Conventions
+## Commands (8 + Speckit)
 
-### Branch Naming
+### `/status`
 
-```
-UAT-{N}/{type}/{short-desc}
-
-UAT-42/feat/rate-limiting
-UAT-43/fix/mobile-login-crash
-UAT-44/refactor/payment-module
-```
-
-### Worktree Naming
+Full situational awareness. Run at the start of every session.
 
 ```
-uatu-UAT-{N}-{short-desc}
-
-uatu-UAT-42-rate-limiting
+/status
 ```
 
-### Commit Format
+**What you get:**
+```
+════════════════════════════════════════
+        PROJECT STATUS — Orion
+════════════════════════════════════════
+
+Sprint: ORI Sprint 12 (ends Apr 4)
+  In Progress: ORI-234 Trip PDF renderer
+  To Do: ORI-240 Budget calculator, ORI-241 Flight search
+  Done: 3 issues completed this sprint
+
+Branch: ORI-234/feat/trip-pdf-renderer
+  Uncommitted: 3 files
+  Ahead of main: 7 commits
+
+Worktrees:
+  ../orion-ORI-234-trip-pdf (current)
+  ../orion-ORI-237-hotel-parser (stale — 3 days)
+
+Last Checkpoint: 2026-03-28 14:30
+  Worked on: PDF renderer layout, fixed header alignment
+
+Time This Week: 12h 30m
+```
+
+Use `--all` to see all projects.
+
+---
+
+### `/orchestrate`
+
+Smart multi-agent execution. Analyzes your description and picks the right workflow automatically — you don't choose modes.
 
 ```
-{type}({scope}): {subject}
-
-feat(auth): add JWT refresh token rotation
-fix(worker): resolve memory leak in pool cleanup
-refactor(payment): extract charge logic into service
+/orchestrate "add email notifications for shipped orders"
+/orchestrate "add email notifications" --tdd
+/orchestrate "refactor auth into separate services"
+/orchestrate "fix the login 500 error after deploy"
 ```
 
-No Jira key in commit messages. Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`.
+**Auto-detection:**
+- Bug keywords ("fix", "broken", "error", "500") → 4-phase debugging (capture → isolate → fix → verify)
+- Refactor keywords ("refactor", "restructure", "migrate") → architect review → parallel refactoring → tests → review
+- Security keywords ("audit", "vulnerability") → security audit → review → architecture check
+- Everything else → feature workflow (research → plan → wave execution → review)
 
-### PR Title Format
+**Composable flags:**
+| Flag | Effect |
+|------|--------|
+| `--tdd` | Every agent writes failing tests first, then implements |
+| `--e2e` | Playwright E2E tests generated after all waves complete |
+| `--review` | Two-stage review (spec alignment + quality) after each wave |
+
+**What you see during execution:**
+```
+Phase 1 — Research: 4 parallel researchers spawned...
+Phase 2 — Plan: Implementation plan validated (3/3 checks pass)
+Phase 3 — Wave Execution:
+  Wave 1/3: T1 (email service), T2 (notification template) — spawning...
+  Wave 1/3 complete. Tasks: 2/6 done. Commits: 2.
+  Wave 2/3: T3 (order lifecycle hook), T4 (email trigger) — spawning...
+  Wave 2/3 complete. Tasks: 4/6 done. Commits: 4.
+  Wave 3/3: T5 (integration test), T6 (E2E test) — spawning...
+  Wave 3/3 complete. Tasks: 6/6 done. Commits: 6.
+Phase 4 — Review: Spec alignment PASS. Code quality APPROVE.
+```
+
+---
+
+### `/pre-flight-check`
+
+Your merge gate. Runs everything: two-stage code review + verification (build/types/lint/tests) + security scan on sensitive files. Reports results. Does NOT merge.
 
 ```
-{type}({scope}): {capability delivered} [UAT-{N}]
-
-feat(auth): JWT refresh token rotation with sliding expiry [UAT-42]
-fix(worker): resolve memory leak under sustained load [UAT-43]
+/pre-flight-check
 ```
 
-Scope is the domain or component name — not the project name. Description states the capability delivered, not the work done.
+**What you get:**
+```
+══════════════════════════════════════════════
+         PRE-FLIGHT CHECK — ORI-234
+══════════════════════════════════════════════
+
+ Stage 1 — Spec Alignment:    PASS
+ Stage 2 — Code Quality:      APPROVE
+   0 CRITICAL, 0 HIGH, 2 MEDIUM, 1 LOW
+ Stage 3 — Verification:      PASS
+   Build: PASS | Types: PASS | Lint: PASS | Tests: 47/47 PASS
+ Stage 4 — Security:          SKIPPED (no auth files modified)
+
+══════════════════════════════════════════════
+ Verdict: READY TO MERGE
+══════════════════════════════════════════════
+```
+
+Use `--fix` to auto-fix medium/low issues before reporting.
+
+---
+
+### `/review-pr`
+
+Review someone else's PR. Reads the diff, runs two-stage review, posts inline comments directly on GitHub.
+
+```
+/review-pr 234
+/review-pr https://github.com/org/repo/pull/234
+```
+
+**What happens:**
+1. Fetches PR diff and description from GitHub
+2. Stage 1 — checks if code matches PR description (scope drift, missing requirements)
+3. Stage 2 — checks code quality (security, error handling, naming, tests)
+4. Posts inline comments on specific lines (not a wall of text)
+5. Submits review: APPROVE or REQUEST CHANGES with summary
+
+---
+
+### `/self-review`
+
+Handle review comments on YOUR PR. Reads all feedback, shows each thread, fixes issues after your approval, replies, and resolves.
+
+```
+/self-review 234
+```
+
+**What happens:**
+```
+Thread 1/5 — @reviewer-name
+File: src/auth/handler.ts:42
+Comment: "Missing rate limiting on this endpoint"
+
+Options:
+  1. Fix it
+  2. Reply (explain why)
+  3. Skip
+> 1
+
+Applying fix... Done. Reply posted. Thread resolved.
+
+Thread 2/5 — @reviewer-name
+File: src/auth/handler.ts:89
+Comment: "Consider using a constant for the timeout value"
+...
+```
+
+**Rules:** Never auto-resolves. Always waits for your decision on each thread.
+
+---
+
+### `/plan-work`
+
+Create properly structured Jira cards. Enforces Epic (domain) → Story (user outcome) → Subtask (implementation step) hierarchy with strict writing rules.
+
+```
+/plan-work "users need to reset their password via email"
+```
+
+**What you get:**
+```
+Epic: AUTH — User Authentication and Access (existing UAT-XX)
+
+  Story: Allow users to reset their password
+    As a user, I want to reset my password via email,
+    so that I can regain access when I forget my credentials.
+
+    Acceptance Criteria:
+    - [ ] User can request a reset from the login page
+    - [ ] User receives a reset email within 30 seconds
+    - [ ] Reset link expires after 24 hours
+    - [ ] Invalid links show a clear error message
+
+    Subtasks:
+    1. Create password reset request endpoint
+    2. Add email template for reset instructions
+    3. Write migration for password_reset_tokens table
+    4. Build reset password form component
+    5. Add rate limiting (max 3 requests per hour)
+
+Create in Jira? (y/n)
+```
+
+**Rules enforced:**
+- Epic = product domain, never a phase or technical layer
+- Story title = verb-first, under 60 chars, describes outcome not implementation
+- AC = testable by a non-developer, no implementation details
+- Subtasks = technical, concrete, under 1 day each, ordered by build sequence
+- 3-6 subtasks per story (splits story if more than 8)
+
+Also handles Bugs (symptom as title), Spikes (time-boxed investigation), and Tech Debt.
+
+---
+
+### `/prompt-rewrite`
+
+Rewrite a draft prompt with proper structure. Uses Sequential Thinking to analyze each dimension before rewriting.
+
+```
+/prompt-rewrite "fix the login bug it broke after the last deploy"
+```
+
+**What you get:**
+```
+## Original (Score: 2/10)
+fix the login bug it broke after the last deploy
+
+## Rewritten (Score: 8/10)
+Problem: Login is broken after the last deploy.
+
+Evidence: [what error do you see? paste error message or logs]
+
+Files:
+- src/auth/login.ts
+- src/middleware/session.ts
+
+Action: Diagnose first — do NOT fix yet.
+
+Done when: Root cause identified with evidence pointing to specific file and line.
+
+## What Changed
+- Added: structure (sections), file references, success criteria, constraints
+- Score improvement: 2 → 8 (+6 points)
+```
+
+Not scored by the prompt quality hook — `/prompt-rewrite` and all slash commands are excluded from scoring.
+
+---
+
+### `/time-report`
+
+Time tracking across projects. Sessions auto-logged by hooks.
+
+```
+/time-report                          # current project
+/time-report --all                    # all projects
+/time-report --week                   # this week
+/time-report --project orion          # specific project
+/time-report --all --week             # all projects, this week
+```
+
+---
+
+## Speckit Commands (Specification Workflow)
+
+A deliberate workflow for spec-driven development. Enter it when you want structured planning before building.
+
+| Command | Phase | What It Does |
+|---------|-------|-------------|
+| `/speckit.constitution` | Setup | Define project principles |
+| `/speckit.specify` | Define | Create feature spec from description |
+| `/speckit.clarify` | Refine | Ask targeted questions to reduce ambiguity |
+| `/speckit.plan` | Design | Generate implementation plan with data model and contracts |
+| `/speckit.tasks` | Decompose | Break plan into dependency-ordered tasks |
+| `/speckit.implement` | Build | Execute tasks (auto-spawns agents for 3+ tasks) |
+| `/speckit.analyze` | Validate | Cross-artifact consistency check |
+| `/speckit.checklist` | Verify | Generate validation checklist |
+| `/speckit.taskstoissues` | Track | Push tasks to Jira/GitHub |
+| `/speckit.complete` | Close | Verify completion, archive artifacts |
+
+**Typical flow:**
+```
+/speckit.specify "user can export reports as PDF"
+/speckit.clarify                    # answer questions about format, permissions, etc.
+/speckit.plan                       # generates plan.md, data-model.md, contracts/
+/speckit.tasks                      # generates tasks.md with dependencies
+/speckit.implement                  # executes tasks with agents
+/pre-flight-check                   # before merge
+```
+
+---
+
+## Automatic Behaviors (No Commands Needed)
+
+These happen without you typing anything — driven by hooks and rules in `uatu-core.md`:
+
+| Behavior | When It Activates | What Happens |
+|----------|-------------------|--------------|
+| 4-phase debugging | You describe a bug or error | Capture → isolate → fix → verify (never skips to fix) |
+| Two-stage code review | You ask "review this" | Spec alignment check, then quality check |
+| Security scan suggestion | You modify auth/payment files | Hook suggests running security audit |
+| Build auto-diagnosis | Build command fails | Reads errors, identifies root cause, applies fix |
+| Prompt quality coaching | Every prompt > 5 words | Scores against structure/context/criteria, suggests improvements |
+| Scope detection | Large-scope prompt | Suggests `/orchestrate` for multi-file work |
+| Agent suggestion | Edit auth/db/UI files | Suggests relevant specialized agent |
+| Branch guard | Session starts on main | Warns, suggests creating feature branch |
+| Code auto-formatting | After every Write/Edit | Runs prettier/black/gofmt |
+| Self-review checklist | After code writes | Scans for TODO, placeholders, debug statements |
+| Commit cadence | 3+ tasks without commit | Nudges to commit |
+| Review cadence | 10+ writes without review | Nudges to review |
+| Missing test warning | Session ends | Warns about source files without test changes |
+| Session checkpoint | Session ends | Auto-saves to `.uatu/delivery/checkpoints/` |
+| Time logging | Session start + end | Auto-logged to `~/.uatu/time-tracking/` |
 
 ---
 
 ## Workflow Scenarios
 
-### Bug fix (known location)
+### "Fix this bug"
 
+Just describe it. Uatu auto-uses 4-phase debugging:
 ```
-/debug "NPE in OrderService.cancel when order has no items"
-# → fix + tests
-/verify
-# → commit + PR
-```
-
-### Debugging logs (unknown root cause)
-
-```
-/debug "intermittent 502 on /api/checkout under load"
-# → 4-phase: reproduce → isolate → fix → verify
-/checkpoint   # save mid-session state
-/verify
+You: "The checkout fails with a 500 error when the cart has more than 10 items"
+Claude: [Phase 1 — Capture] Collecting error details...
+Claude: [Phase 2 — Isolate] Root cause: cart.items.length check uses > instead of >=
+Claude: [Phase 3 — Fix] Applied fix + regression test
+Claude: [Phase 4 — Verify] All tests pass. Commit: fix(cart): handle boundary at 10 items
 ```
 
-### New feature (existing system)
+### "Build a new feature" (existing system)
 
 ```
-/speckit.specify "rate limiting per API key"
-/speckit.clarify        # answer questions
-/speckit.plan
-/speckit.tasks
-/speckit.implement      # spawns agents
-/code-review
-/verify
+/orchestrate "add email notifications when orders are shipped" --tdd
 ```
 
-### Define new feature (before sprint)
+Uatu runs: research (4 parallel agents) → plan → validate plan → wave execution (TDD per task) → review
+
+### "Plan work for the sprint"
 
 ```
-/research "evaluate Redis vs in-memory for rate limit counters"
-/speckit.specify "rate limiting"
-/speckit.clarify
-/speckit.plan
-/speckit.taskstoissues  # push to Jira
+/plan-work "users need to be able to upload and share documents with their team"
 ```
 
-### Full new system
+Uatu creates: Epic (if new domain) → Stories (upload, share, permissions) → Subtasks (API endpoint, storage service, UI component, tests) — all in Jira.
+
+### "Review a teammate's PR"
 
 ```
-/speckit.constitution   # define principles
-/research "prior art for this domain"
-/speckit.specify "system overview"
-/speckit.plan
-/speckit.tasks
-/orchestrate feature "build phase 1"
-/e2e "critical user journeys"
-/verify
+/review-pr 342
 ```
+
+Uatu reads diff, checks spec alignment, reviews quality, posts inline comments on GitHub.
+
+### "Handle review feedback on my PR"
+
+```
+/self-review 338
+```
+
+Uatu shows each comment, you decide: fix / reply / skip. Fixes are committed, replies posted, threads resolved.
+
+### "Before I merge"
+
+```
+/pre-flight-check
+```
+
+Two-stage review + build/types/lint/tests + security scan. Shows verdict: READY or NOT READY.
+
+### "Start my day"
+
+```
+/status
+```
+
+Sprint state, branches, worktrees, last checkpoint, time this week.
+
+---
+
+## Workflow Conventions
+
+| Element | Format | Example |
+|---------|--------|---------|
+| Branch | `UAT-{N}/{type}/{desc}` | `UAT-61/feat/wave-execution` |
+| Worktree | `uatu-UAT-{N}-{desc}` | `uatu-UAT-61-wave-execution` |
+| Commit | `{type}({scope}): {subject}` | `feat(orchestrate): add wave execution` |
+| PR title | `{type}({scope}): {desc} [UAT-{N}]` | `feat(orchestrate): wave execution [UAT-61]` |
+
+Commit types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`
+
+Scope = domain or component (not project name). PR includes Jira key, commits do not.
 
 ---
 
@@ -184,48 +460,36 @@ Scope is the domain or component name — not the project name. Description stat
 
 ### Packages
 
-Three execution modes. Sequential Thinking selects the appropriate one based on task complexity.
+| Package | When | How |
+|---------|------|-----|
+| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` when needed |
+| **HIVE** | Work spans multiple sessions (experimental) | Manual setup with memory persistence |
 
-| Package | Layer | Use For |
-|---------|-------|---------|
-| **SOLO** | Single agent | Quick fixes, single files, clear scope |
-| **SQUAD** | Agent Teams + Claude Flow MCP | Multi-file coordinated features |
-| **HIVE** | SQUAD + persistence | Multi-session projects, cross-session memory |
+### Project Structure (After Install)
 
-> **The Fundamental Law:** MCP tools coordinate strategy. The Task tool executes with real agents. They work together — not as alternatives.
-
-### Hook System
-
-8 hooks triggered by Claude Code events:
-
-| Hook | Trigger | Purpose |
-|------|---------|---------|
-| `load-project-context.sh` | SessionStart | Load project config and constitution |
-| `session-restore.sh` | SessionStart | Restore last session checkpoint |
-| `enforce-sequential-thinking.sh` | UserPromptSubmit | Enforce structured reasoning |
-| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to `.env`, credentials, keys |
-| `format-code.sh` | PostToolUse | Auto-format after file edits |
-| `update-jira.sh` | Stop | Update Jira ticket status |
-| `session-checkpoint.sh` | Stop | Save session summary |
-| `cost-tracking.sh` | Stop | Log session cost for review |
-
-### Agent System
-
-50 specialized agents across 8 categories. Commands spawn them automatically.
-
-| Category | Count | Key Agents |
-|----------|-------|------------|
-| Core | 12 | `coder`, `tester`, `reviewer`, `planner`, `researcher`, `orchestrator-task`, `architect-review`, `backend-architect`, `frontend-developer`, `fullstack-developer` |
-| Firebase | 12 | `firebase-auth-specialist`, `firebase-firestore-specialist`, `firebase-functions-specialist`, `firebase-crashlytics-specialist` |
-| Languages | 7 | `typescript-pro`, `python-pro`, `golang-pro`, `rust-pro`, `java-pro`, `javascript-pro`, `flutter-pro` |
-| Data & AI | 6 | `database-admin`, `database-optimizer`, `ml-engineer`, `llm-architect`, `sql-pro`, `data-engineer` |
-| Infrastructure | 6 | `cloud-architect`, `kubernetes-architect`, `terraform-specialist`, `deployment-engineer`, `monitoring-specialist`, `sre-engineer` |
-| Quality | 5 | `debugger`, `security-auditor`, `performance-engineer`, `test-automator`, `chaos-engineer` |
-| GitHub | 5 | `pr-manager`, `issue-tracker`, `release-manager`, `repo-architect`, `workflow-automation` |
-| Specialized | 5 | `jira-specialist`, `agile-coach`, `api-documenter`, `prompt-engineer`, `refactoring-specialist` |
-| Testing | 2 | `tdd-london-swarm`, `production-validator` |
-
-For the full catalog: `.uatu/guides/AGENTS-GUIDE.md`
+```
+your-project/
+├── .claude/
+│   ├── rules/uatu-core.md          # Behavioral rules (auto-loaded)
+│   ├── rules/typescript.md          # Language rules (auto-loaded)
+│   ├── commands/                    # 8 slash commands + speckit
+│   └── skills/                      # Auto-triggered skills
+├── .uatu/
+│   ├── QUICKSTART.md                # User manual (this reference)
+│   ├── UATU.md                      # Framework overview
+│   ├── config/
+│   │   ├── project.md               # Project settings, Jira key
+│   │   ├── architecture.md          # Tech stack (auto-generated)
+│   │   ├── constitution.md          # AI behavior principles
+│   │   └── prompt-templates.md      # Copy-paste prompt starters
+│   ├── hooks/                       # Lifecycle hooks
+│   ├── guides/                      # Reference documentation
+│   ├── tools/                       # Utilities (time tracking, etc.)
+│   └── delivery/                    # Specs, plans, tasks, checkpoints
+├── .mcp.json                        # Project-level MCP servers
+└── .env                             # Tokens (gitignored)
+```
 
 ---
 
@@ -233,38 +497,39 @@ For the full catalog: `.uatu/guides/AGENTS-GUIDE.md`
 
 | Component | Count |
 |-----------|-------|
-| Agents | ~50 across 9 categories |
-| Commands | ~30 (`/orchestrate`, `/speckit.*`, workflow commands) |
-| Skills | ~20 (react-component, test-file + language/pattern skills) |
-| Hooks | ~15 (8 active + examples) |
+| Commands | 8 + 10 speckit |
+| Agents | 53 across 8 categories |
+| Skills | 19 (auto-triggered by context) |
+| Rules | 5 (uatu-core + 4 language rules) |
+| Hooks | 17 active (session, prompt, tool, stop) |
 | Packages | 3 (SOLO, SQUAD, HIVE) |
 
 ---
 
 ## Attribution
 
-### Foundation (directly adopted)
+### Foundation (Directly Adopted)
 
 | Project | Author | What Was Adopted | License |
 |---------|--------|-----------------|---------|
-| [spec-kit](https://github.com/closedloop-technologies/spec-kit) | ClosedLoop Technologies | Speckit workflow — the full specify → clarify → plan → tasks → implement chain | MIT |
-| [claude-flow](https://github.com/ruvnet/claude-flow) | ruvnet | Claude Flow MCP (SQUAD/HIVE coordination, shared memory, DAA agents) | Apache-2.0 |
-| [awesome-claude-code-subagents](https://github.com/hesreallyhim/awesome-claude-code-subagents) | hesreallyhim | Curated agent collection — base agent definitions across all categories | MIT |
-| [sequential-thinking](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking) | Anthropic / MCP | Sequential Thinking MCP server for structured task analysis | MIT |
+| [spec-kit](https://github.com/anthropics/spec-kit) | GitHub, Inc. | Speckit command suite — specify, clarify, plan, tasks, implement, analyze, constitution | MIT |
+| [claude-flow](https://github.com/ruvnet/claude-flow) | @ruvnet | SQUAD/HIVE package model, swarm coordination MCP tools, memory persistence | MIT |
+| [awesome-claude-code-subagents](https://github.com/anthropics/awesome-claude-code-subagents) | VoltAgent Contributors | Agent library structure, YAML+frontmatter format, category organization | MIT |
+| [@anthropic-ai/sequential-thinking](https://www.npmjs.com/package/@anthropic-ai/sequential-thinking) | Anthropic | Pre-analysis structured reasoning, used in `/prompt-rewrite` and `/plan-work` | — |
 
-### Inspiration (patterns and ideas)
+### Inspiration (Patterns & Ideas)
 
-| Project | Author | What Was Learned | License |
+| Project | Author | What We Learned | License |
 |---------|--------|-----------------|---------|
-| [claude-mem](https://github.com/grll/claude-mem) | grll | Memory system design — session checkpoints and context restoration patterns | MIT |
-| [superpowers](https://github.com/SuperpoweredAI/spRAG) | Superpowered AI | Agent capability extension patterns and tool selection heuristics | Apache-2.0 |
-| [get-shit-done](https://github.com/patchy631/ai-engineering-hub) | Patchy631 | Pragmatic task execution flow — commit early, verify often | MIT |
-| [ui-ux-pro-max](https://github.com/slamdunc/ui-ux-pro-max) | slamdunc | UX-first agent design — frequency-based hierarchy and header conventions | MIT |
-| [n8n-mcp](https://github.com/leonardsellem/n8n-mcp) | leonardsellem | Workflow automation bridge — hook trigger patterns for external integrations | MIT |
-| [obsidian-skills](https://github.com/MarkMindCkm/obsidian-markmind) | MarkMindCkm | Knowledge graph patterns for session memory and delivery artifact linking | MIT |
-| [LightRAG](https://github.com/HKUDS/LightRAG) | HKUDS | Graph-based retrieval for architecture scanning and cross-artifact analysis | MIT |
-| [everything-claude-code](https://github.com/disler/everything-claude-code) | disler | 16 production skills (tdd-workflow, security-review, backend/frontend-patterns, python, golang, api-design) | MIT |
-| [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | hesreallyhim | Command organization patterns and slash command naming conventions | MIT |
+| [claude-mem](https://github.com/thedotmack/claude-mem) | @thedotmack | Cross-session memory patterns, 3-layer progressive search | AGPL-3.0 |
+| [superpowers](https://github.com/obra/superpowers) | @obra | Two-stage code review, systematic 4-phase debugging, self-review checklists | MIT |
+| [get-shit-done](https://github.com/gsd-build/get-shit-done) | @gsd-build | Wave-based execution, context rot prevention, atomic commits, plan validation | — |
+| [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | @nextlevelbuilder | Design intelligence knowledge base, pre-delivery UX checklist | — |
+| [n8n-mcp](https://github.com/czlonkowski/n8n-mcp) | @czlonkowski | MCP server integration patterns for external tools | MIT |
+| [obsidian-skills](https://github.com/kepano/obsidian-skills) | @kepano | Agent Skills specification, modular skill architecture | MIT |
+| [LightRAG](https://github.com/hkuds/lightrag) | @hkuds | Graph-based knowledge retrieval concepts | MIT |
+| [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | @affaan-m | Language rule ecosystems, AgentShield security scanning, build-error-resolver agents | — |
+| [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | @hesreallyhim | Ecosystem curation, resource validation patterns | CC-BY-NC-ND-4.0 |
 
 ---
 
