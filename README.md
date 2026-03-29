@@ -354,7 +354,7 @@ These happen without you typing anything — driven by hooks and rules in `uatu-
 | Scope detection | Large-scope prompt | Suggests `/orchestrate` for multi-file work |
 | Agent suggestion | Edit auth/db/UI files | Suggests relevant specialized agent |
 | Branch guard | Session starts on main | Warns, suggests creating feature branch |
-| Code auto-formatting | After every Write/Edit | Runs prettier/black/gofmt |
+| Code auto-formatting | New files only | Runs prettier/black/gofmt (skips existing files to avoid noisy diffs) |
 | Self-review checklist | After code writes | Scans for TODO, placeholders, debug statements |
 | Commit cadence | 3+ tasks without commit | Nudges to commit |
 | Review cadence | 10+ writes without review | Nudges to review |
@@ -442,6 +442,32 @@ Scope = domain or component (not project name). PR includes Jira key, commits do
 
 ---
 
+## CLI Dependencies
+
+All checked during `uatu-setup` and `uatu-install`. Installation blocks if any are missing.
+
+### Required (all projects)
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| git | Version control | https://git-scm.com |
+| jq | JSON parsing (all hooks) | `brew install jq` |
+| node 18+ | Runtime | https://nodejs.org |
+| npx | Package runner | Comes with npm |
+| gh | GitHub CLI (`/pr` command) | `brew install gh` |
+| prettier | Code formatting (format hook) | `npm i -g prettier` |
+| playwright-cli | E2E testing (`--e2e` flag) | `npm i -g @playwright/cli@latest` |
+
+### Language-specific (checked with `--languages` flag)
+
+| Language | Tools | Install |
+|----------|-------|---------|
+| typescript | vitest or jest | `npm i -D vitest` |
+| python | black, pytest | `pip install black pytest` |
+| golang | gofmt | Bundled with Go |
+
+---
+
 ## Architecture
 
 ### Packages
@@ -459,8 +485,8 @@ your-project/
 ├── .claude/
 │   ├── rules/uatu-core.md          # Behavioral rules (auto-loaded)
 │   ├── rules/typescript.md          # Language rules (auto-loaded)
-│   ├── commands/                    # 8 slash commands + speckit
-│   └── skills/                      # Auto-triggered skills
+│   ├── commands/                    # 7 slash commands + speckit
+│   └── skills/                      # 20 auto-triggered skills
 ├── .uatu/
 │   ├── QUICKSTART.md                # User manual (this reference)
 │   ├── UATU.md                      # Framework overview
@@ -485,7 +511,7 @@ your-project/
 |-----------|-------|
 | Commands | 7 + 10 speckit |
 | Agents | 53 across 8 categories |
-| Skills | 19 (auto-triggered by context) |
+| Skills | 20 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |
 | Hooks | 17 active (session, prompt, tool, stop) |
 | Packages | 3 (SOLO, SQUAD, HIVE) |

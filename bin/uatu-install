@@ -101,6 +101,84 @@ if [ ${#MISSING_MCPS[@]} -gt 0 ]; then
 fi
 echo ""
 
+# ─── Mandatory CLI Tool Check ──────────────────────────────────────
+
+echo -e "${BLUE}Checking required CLI tools...${NC}"
+MISSING_CLI=()
+
+for tool in git jq node npx gh prettier; do
+    if command -v "$tool" &> /dev/null; then
+        echo -e "  ${GREEN}✓ $tool${NC}"
+    else
+        echo -e "  ${RED}✗ $tool${NC}"
+        MISSING_CLI+=("$tool")
+    fi
+done
+
+# Check playwright-cli
+if command -v playwright-cli &> /dev/null; then
+    echo -e "  ${GREEN}✓ playwright-cli${NC}"
+else
+    echo -e "  ${RED}✗ playwright-cli${NC}"
+    MISSING_CLI+=("playwright-cli (npm i -g @playwright/cli@latest)")
+fi
+
+# Language-specific checks
+if [ -n "$LANGUAGES" ]; then
+    echo -e "${BLUE}Checking language-specific tools (${LANGUAGES})...${NC}"
+    IFS=',' read -ra LANG_ARRAY <<< "$LANGUAGES"
+    for lang in "${LANG_ARRAY[@]}"; do
+        case "$lang" in
+            typescript)
+                if command -v vitest &> /dev/null || npx vitest --version &> /dev/null 2>&1; then
+                    echo -e "  ${GREEN}✓ vitest (typescript)${NC}"
+                elif command -v jest &> /dev/null || npx jest --version &> /dev/null 2>&1; then
+                    echo -e "  ${GREEN}✓ jest (typescript)${NC}"
+                else
+                    echo -e "  ${RED}✗ vitest or jest (typescript)${NC}"
+                    MISSING_CLI+=("vitest or jest (for typescript testing)")
+                fi
+                ;;
+            python)
+                if command -v black &> /dev/null; then
+                    echo -e "  ${GREEN}✓ black (python)${NC}"
+                else
+                    echo -e "  ${RED}✗ black (python)${NC}"
+                    MISSING_CLI+=("black (pip install black)")
+                fi
+                if command -v pytest &> /dev/null; then
+                    echo -e "  ${GREEN}✓ pytest (python)${NC}"
+                else
+                    echo -e "  ${RED}✗ pytest (python)${NC}"
+                    MISSING_CLI+=("pytest (pip install pytest)")
+                fi
+                ;;
+            golang)
+                if command -v gofmt &> /dev/null; then
+                    echo -e "  ${GREEN}✓ gofmt (golang)${NC}"
+                else
+                    echo -e "  ${RED}✗ gofmt (golang — bundled with go)${NC}"
+                    MISSING_CLI+=("gofmt (install go)")
+                fi
+                ;;
+        esac
+    done
+fi
+
+if [ ${#MISSING_CLI[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${RED}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${RED}  Missing required CLI tools:${NC}"
+    for tool in "${MISSING_CLI[@]}"; do
+        echo -e "${RED}    → $tool${NC}"
+    done
+    echo -e "${RED}═══════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo "Install the missing tools and run uatu-install again."
+    exit 1
+fi
+echo ""
+
 # Detect if this is an upgrade
 UPGRADE_MODE=false
 CURRENT_VERSION=""
