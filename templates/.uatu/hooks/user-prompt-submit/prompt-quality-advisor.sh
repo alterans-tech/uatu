@@ -12,17 +12,23 @@ INPUT="$(cat)"
 
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null)
 
-# Skip if no prompt or too short
+# Skip if no prompt
 if [ -z "$PROMPT" ]; then
+  echo '{"additionalContext": "", "error": null}'
+  exit 0
+fi
+
+# Skip slash commands — they're tool usage, not prompts to score
+if echo "$PROMPT" | grep -qE '^\s*/'; then
   echo '{"additionalContext": "", "error": null}'
   exit 0
 fi
 
 WORD_COUNT=$(echo "$PROMPT" | wc -w | tr -d ' ')
 
-# For terse prompts (<=10 words), give a brief nudge
-if [ "$WORD_COUNT" -le 10 ]; then
-  echo '{"additionalContext": "Prompt tip: Consider adding file paths, done-when criteria, and constraints for better results. Templates: .uatu/config/prompt-templates.md", "error": null}'
+# Skip ultra-short confirmations (yes, no, go, next, ok, continue, do it)
+if [ "$WORD_COUNT" -le 5 ]; then
+  echo '{"additionalContext": "", "error": null}'
   exit 0
 fi
 

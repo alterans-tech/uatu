@@ -1,78 +1,38 @@
 # Uatu Quick Reference
 
-Everything you can do with Uatu at a glance.
-
 ---
 
-## Automatic (No Action Required)
-
-These fire automatically via hooks:
-
-| What Happens | When |
-|---|---|
-| Project context loaded | Every session start |
-| Last checkpoint restored | Every session start |
-| Branch guard (warns if on main) | Every session start |
-| Prompt quality scored + coaching | Every prompt > 15 words |
-| Scope detection (suggests /orchestrate) | Large-scope prompts |
-| Credential writes blocked | Write to .env, .pem, .key |
-| Config file writes blocked | Write to tsconfig, eslint configs |
-| Code auto-formatted | After every Write/Edit |
-| Agent suggestion (context-aware) | After Write/Edit on auth/db/UI files |
-| Review cadence nudge | After 10+ writes without review |
-| Commit cadence nudge | After 3+ tasks without commit |
-| Missing test warning | Session end |
-| Session checkpoint saved | Session end |
-| Time auto-logged | Session start + end |
-| Cost logged | Session end |
-
----
-
-## Commands
-
-### Orchestration
+## Commands (8)
 
 | Command | When to Use | Example |
-|---|---|---|
-| `/orchestrate swarm` | Multi-file work, 3+ tasks | `/orchestrate swarm "refactor auth module"` |
-| `/orchestrate feature` | New feature end-to-end | `/orchestrate feature "add email notifications"` |
-| `/orchestrate bugfix` | Bug with unknown root cause | `/orchestrate bugfix "login 500 after deploy"` |
-| `/squad` | Agents must coordinate mid-task | `/squad "frontend + backend co-design API"` |
+|---------|-------------|---------|
+| `/status` | Start of session — see what's going on | `/status` |
+| `/orchestrate` | Multi-file work, features, bugs, refactors | `/orchestrate "add email notifications"` |
+| `/pre-flight-check` | Before merging — full quality gate | `/pre-flight-check` |
+| `/review-pr` | Review someone else's PR | `/review-pr 234` |
+| `/self-review` | Handle review comments on your PR | `/self-review 234` |
+| `/plan-work` | Create Jira cards with proper hierarchy | `/plan-work "password reset feature"` |
+| `/prompt-rewrite` | Improve a draft prompt | `/prompt-rewrite "fix the login thing"` |
+| `/time-report` | Time tracking | `/time-report --all --week` |
 
-### Development
+### Orchestrate Flags
 
-| Command | When to Use | Example |
-|---|---|---|
-| `/tdd` | Test-first development | `/tdd "add retry logic to payment processor"` |
-| `/e2e` | Generate + run Playwright tests | `/e2e "test checkout flow"` |
-| `/debug` | Systematic 4-phase debugging | `/debug "users see stale data after cache clear"` |
-| `/research` | Investigate before planning | `/research "best approach for real-time collab"` |
-| `/build-fix` | Build is broken | `/build-fix` |
+| Flag | Effect | Example |
+|------|--------|---------|
+| `--tdd` | Every agent writes tests first | `/orchestrate "build user dashboard" --tdd` |
+| `--e2e` | Playwright E2E tests after completion | `/orchestrate "checkout flow" --e2e` |
+| `--review` | Two-stage review after each wave | `/orchestrate "refactor auth" --review` |
 
-### Quality
+Orchestrate auto-detects the right workflow from your description:
+- Bug keywords ("fix", "broken", "error") → 4-phase debugging
+- Refactor keywords ("refactor", "restructure") → architect review + refactor
+- Security keywords ("audit", "vulnerability") → security audit
+- Everything else → feature workflow (research → plan → wave execution)
 
-| Command | When to Use | Example |
-|---|---|---|
-| `/code-review` | Before commit/merge | `/code-review` |
-| `/security-scan` | Before deploy, after auth changes | `/security-scan` |
-| `/verify` | Full verification loop | `/verify` |
-
-### Workflow
-
-| Command | When to Use | Example |
-|---|---|---|
-| `/checkpoint` | Save session state | `/checkpoint` |
-| `/refactor-clean` | Code cleanup with quality gates | `/refactor-clean "extract shared error handling"` |
-| `/test-coverage` | Analyze + improve coverage | `/test-coverage` |
-| `/update-docs` | Sync docs with code changes | `/update-docs` |
-| `/time` | Check time tracking | `/time --all --week` |
-| `/run-assessment` | Prompt quality assessment | `/run-assessment` |
-| `/prompt-rewrite` | Improve a prompt | `/prompt-rewrite "fix the login thing"` |
-
-### Speckit (Specification Workflow)
+### Speckit Commands
 
 | Command | Phase | Example |
-|---|---|---|
+|---------|-------|---------|
 | `/speckit.specify` | Define | `/speckit.specify "user can export reports as PDF"` |
 | `/speckit.clarify` | Refine | `/speckit.clarify` |
 | `/speckit.plan` | Design | `/speckit.plan` |
@@ -82,51 +42,39 @@ These fire automatically via hooks:
 | `/speckit.checklist` | Verify | `/speckit.checklist` |
 | `/speckit.taskstoissues` | Track | `/speckit.taskstoissues` |
 | `/speckit.constitution` | Setup | `/speckit.constitution` |
+| `/speckit.complete` | Close | `/speckit.complete` |
 
 ---
 
-## Skills (Auto-Triggered)
+## Automatic Behaviors (No Commands Needed)
 
-Skills activate automatically when Claude detects matching context:
+These happen automatically — you don't invoke them:
 
-| Skill | Triggers When |
+| What Happens | When |
 |---|---|
-| `react-component` | Creating a new React component |
-| `test-file` | Creating tests for existing code |
-| `tdd-workflow` | TDD-related work |
-| `backend-patterns` | Backend API work |
-| `frontend-patterns` | React/Next.js UI work |
-| `api-design` | REST API design |
-| `coding-standards` | TypeScript/JavaScript code |
-| `python-patterns` | Python code |
-| `golang-patterns` | Go code |
-| `docker-patterns` | Docker/compose work |
-| `database-migrations` | Schema changes |
-| `deployment-patterns` | CI/CD, deploy work |
-| `security-review` | Auth, secrets, user input |
-| `e2e-testing` | Playwright tests |
-| `verification-loop` | Running verifications |
-
----
-
-## Key Agents
-
-You rarely invoke agents directly — commands select them. But you CAN request by name:
-
-| Agent | When to Request |
-|---|---|
-| `researcher` | "I need deep research on X" |
-| `debugger` | "Investigate this, don't fix yet" |
-| `security-auditor` | "Audit this for vulnerabilities" |
-| `architect-review` | "Review this architecture decision" |
-| `database-expert` | "Review this schema/migration" |
-| `prompt-engineer` | "Help me write a better prompt" |
+| Project context loaded | Every session start |
+| Branch guard (warns if on main) | Every session start |
+| Prompt quality coaching | Every prompt > 15 words |
+| Scope detection (suggests /orchestrate) | Large-scope prompts |
+| 4-phase debugging | You describe a bug or error |
+| Two-stage code review | You ask to review code |
+| Security scan suggestion | You modify auth/payment files |
+| Build auto-diagnosis | Build command fails |
+| Credential writes blocked | Write to .env, .pem, .key |
+| Code auto-formatted | After every Write/Edit |
+| Self-review checklist | After code writes (TODO/placeholder scan) |
+| Agent suggestion | After Write/Edit on auth/db/UI files |
+| Review cadence nudge | After 10+ writes without review |
+| Commit cadence nudge | After 3+ tasks without commit |
+| Missing test warning | Session end |
+| Session checkpoint saved | Session end |
+| Time auto-logged | Session start + end |
 
 ---
 
 ## Prompt Templates
 
-Copy-paste starters in `.uatu/config/prompt-templates.md`. Key patterns:
+Copy-paste starters at `.uatu/config/prompt-templates.md`:
 
 **Bug fix:**
 ```
@@ -157,21 +105,10 @@ Recon first: confirm state before acting.
 
 ---
 
-## Package Selection
-
-```
-Can you give each agent everything it needs before it starts?
-  YES → SOLO (use /orchestrate)
-  NO  → SQUAD (use /squad — agents coordinate mid-work)
-        → Need persistence? → HIVE (experimental)
-```
-
----
-
 ## Workflow Conventions
 
 | Element | Format | Example |
-|---|---|---|
+|---------|--------|---------|
 | Branch | `UAT-{N}/{type}/{desc}` | `UAT-61/feat/wave-execution` |
 | Worktree | `uatu-UAT-{N}-{desc}` | `uatu-UAT-61-wave-execution` |
 | Commit | `{type}({scope}): {subject}` | `feat(orchestrate): add wave execution` |
