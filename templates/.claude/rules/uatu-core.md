@@ -21,6 +21,26 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 
 ---
 
+## Sequential Thinking
+
+Use `mcp__sequential-thinking__sequentialthinking` for structured reasoning.
+
+**Mandatory for:** `/prompt-rewrite`, `/plan-work` (hardcoded in command)
+
+**Use when:**
+- Decomposing complex tasks in `/orchestrate` (multi-file, unclear scope)
+- Reviewing large PRs in `/review-pr` (architectural impact assessment)
+- Debugging non-obvious bugs (root cause isolation)
+- Any task where the first approach might be wrong
+
+**Skip when:**
+- Simple data gathering (`/status`, `/time-report`)
+- Procedural checks (`/pre-flight-check`)
+- Interactive workflows (`/self-review` — read comment, propose fix, wait)
+- Clear single-file tasks
+
+---
+
 ## Proactive Behavior
 
 Before starting any task, SUGGEST the appropriate approach:

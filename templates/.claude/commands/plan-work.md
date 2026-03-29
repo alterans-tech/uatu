@@ -10,7 +10,15 @@ $ARGUMENTS
 
 ## Execution
 
-Take the user's feature description and produce a properly structured Jira hierarchy. Every card must follow the writing rules below.
+**FIRST**, use Sequential Thinking (`mcp__sequential-thinking__sequentialthinking`) to analyze the work:
+
+- Thought 1: What product domain does this belong to? (Epic identification)
+- Thought 2: What are the distinct user-visible outcomes? (Story boundaries)
+- Thought 3: For each outcome — what does the user see, do, or get? (AC that a non-developer can verify)
+- Thought 4: What are the implementation steps to build each outcome? (Subtasks — technical, ordered by build sequence)
+- Thought 5: Validate — any Story mixing multiple outcomes? Any AC with implementation details? Any Subtask > 1 day?
+
+**THEN** produce a properly structured Jira hierarchy. Every card must follow the writing rules below.
 
 ### Step 1 — Identify the Epic
 
