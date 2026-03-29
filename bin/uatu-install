@@ -31,6 +31,20 @@ TARGET_DIR="$(pwd)"
 PROJECT_NAME="$(basename "$TARGET_DIR")"
 CURRENT_DATE="$(date +%Y-%m-%d)"
 
+# Parse arguments
+PROFILE="standard"
+LANGUAGES=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --profile) PROFILE="$2"; shift 2 ;;
+    --languages) LANGUAGES="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
+echo "Installation profile: $PROFILE"
+[ -n "$LANGUAGES" ] && echo "Languages: $LANGUAGES"
+
 echo ""
 echo -e "${CYAN}    ██╗   ██╗ █████╗ ████████╗██╗   ██╗${NC}"
 echo -e "${CYAN}    ██║   ██║██╔══██╗╚══██╔══╝██║   ██║${NC}"
@@ -400,6 +414,7 @@ cat > "$TARGET_DIR/.mcp.json" << 'EOF'
 EOF
 echo -e "  ${GREEN}.mcp.json created${NC}"
 
+if [ "$PROFILE" = "standard" ] || [ "$PROFILE" = "full" ]; then
 # Copy speckit commands (always update - these are framework commands)
 echo -e "${BLUE}Installing speckit commands...${NC}"
 if [[ -d "$TEMPLATES_DIR/.claude/commands" ]]; then
@@ -450,12 +465,20 @@ if [[ -d "$TEMPLATES_DIR/.claude/skills" ]]; then
 else
     echo -e "  ${YELLOW}No skills found in templates${NC}"
 fi
+fi # end standard|full
 
 # Copy rules (always update - these are framework activation rules)
 echo -e "${BLUE}Installing rules...${NC}"
 if [[ -d "$TEMPLATES_DIR/.claude/rules" ]]; then
     mkdir -p "$TARGET_DIR/.claude/rules"
-    cp "$TEMPLATES_DIR/.claude/rules/"*.md "$TARGET_DIR/.claude/rules/" 2>/dev/null || true
+    if [ -n "$LANGUAGES" ]; then
+        IFS=',' read -ra LANG_ARRAY <<< "$LANGUAGES"
+        for lang in "${LANG_ARRAY[@]}"; do
+            [ -f "$TEMPLATES_DIR/.claude/rules/${lang}.md" ] && cp "$TEMPLATES_DIR/.claude/rules/${lang}.md" "$TARGET_DIR/.claude/rules/"
+        done
+    else
+        cp "$TEMPLATES_DIR/.claude/rules/"*.md "$TARGET_DIR/.claude/rules/" 2>/dev/null || true
+    fi
     RULE_COUNT=$(ls -1 "$TARGET_DIR/.claude/rules/"*.md 2>/dev/null | wc -l | tr -d ' ')
     if [[ "$UPGRADE_MODE" == false ]]; then
         echo -e "  ${GREEN}$RULE_COUNT rules installed${NC}"
@@ -538,6 +561,7 @@ fi
 # Project-specific agents should be created in .claude/agents/{project-name}/ as needed
 echo -e "${BLUE}Project agents directory created (empty - for project-specific agents only)${NC}"
 
+if [ "$PROFILE" = "full" ]; then
 # Install agents to user's ~/.claude/agents (only if empty)
 USER_AGENTS_DIR="$HOME/.claude/agents"
 if [[ -d "$TEMPLATES_DIR/.claude/agents" ]]; then
@@ -557,6 +581,7 @@ if [[ -d "$TEMPLATES_DIR/.claude/agents" ]]; then
         echo -e "  ${CYAN}To reinstall: rm -rf ~/.claude/agents && uatu-install${NC}"
     fi
 fi
+fi # end full
 
 # Generate architecture overview using scanner script
 echo -e "${BLUE}Generating architecture overview...${NC}"

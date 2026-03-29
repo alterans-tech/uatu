@@ -1,289 +1,272 @@
 # Uatu - The Watcher
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/alterans/uatu)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+AI orchestration framework for Claude Code. Installs specialized agents, slash commands, skills, hooks, and workflow conventions into any project.
 
-AI orchestration framework for software development. Combines Sequential Thinking, multi-agent swarms, specification-driven workflows, and project management integration.
-
-## What is Uatu?
-
-Uatu transforms Claude Code into a structured development environment with:
-
-- **Task Analysis** - Sequential Thinking MCP for structured reasoning before action
-- **Execution Packages** - SOLO, SQUAD, HIVE, WATCHER for different task complexities
-- **65 Specialized Agents** - Covering development, testing, quality, infrastructure, and platform-specific needs
-- **Speckit Workflows** - Specification-driven development with `/speckit.*` commands
-- **Hooks System** - Automated actions on session events (8 built-in hooks)
-- **Jira/GitHub Integration** - Project management automation
+---
 
 ## Quick Start
 
 ```bash
-# 1. Clone and setup PATH (one-time)
-git clone https://github.com/YOUR-USERNAME/uatu.git  # Replace with your fork
+# 1. Clone and add to PATH (one-time)
+git clone https://github.com/YOUR-USERNAME/uatu.git
 cd uatu && ./setup.sh && source ~/.zshrc
 
 # 2. Install user-level MCP servers (one-time per machine)
 uatu-setup
 
-# 3. Install in any project
+# 3. Install into a project
 cd /path/to/your-project
 uatu-install
 ```
 
-## What Gets Installed
+After install, copy `.env.example` to `.env`, fill in your tokens, and run `direnv allow`.
+
+---
+
+## What Uatu Does
+
+**Proactive advisor.** Before every task, Uatu reads the request and suggests the right command — `/debug` for bugs with unknown root cause, `/orchestrate` for multi-file changes, `/speckit.specify` before writing code for a new feature. It also coaches vague prompts before they waste tokens.
+
+**Specification-driven development.** The `/speckit.*` commands walk from raw idea to deployed code: specify → clarify → plan → tasks → implement. Artifacts live in `.uatu/delivery/` and stay in sync across the chain.
+
+**Multi-agent orchestration.** Commands spawn agents automatically. The `orchestrate` command executes wave-based swarms — agents run in parallel within a wave, waves are dependency-ordered. The `squad` command uses Agent Teams with peer messaging for tightly coordinated work.
+
+---
+
+## Commands Reference
+
+### Workflow Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/orchestrate swarm` | Wave-based parallel swarm. Prevents context rot. | `/orchestrate swarm "migrate auth to JWT"` |
+| `/orchestrate feature` | End-to-end: plan → code → test → review | `/orchestrate feature "add rate limiting"` |
+| `/orchestrate bugfix` | Systematic: debug → fix → test → review | `/orchestrate bugfix "login fails on mobile"` |
+| `/squad` | Agent team with peer messaging | `/squad "refactor payment module"` |
+| `/debug` | 4-phase: capture → isolate → fix → verify | `/debug "memory leak in worker pool"` |
+| `/research` | 4 parallel researchers before planning | `/research "evaluate trpc vs rest for this API"` |
+| `/tdd` | Write failing tests first, then implement | `/tdd "order cancellation service"` |
+| `/e2e` | Generate and run Playwright E2E tests | `/e2e "checkout flow"` |
+| `/code-review` | Two-stage review: spec alignment then quality | `/code-review` |
+| `/security-scan` | Graded scan (A-F): secrets, auth, deps, config | `/security-scan` |
+| `/verify` | Full gate: build + types + lint + tests + security | `/verify` |
+| `/checkpoint` | Save session state to `.uatu/delivery/` | `/checkpoint` |
+| `/build-fix` | Diagnose and fix build errors | `/build-fix` |
+| `/time` | Time tracking across sprints | `/time --week` |
+| `/run-assessment` | Prompt quality assessment with percentile | `/run-assessment` |
+| `/prompt-rewrite` | Restructure a draft prompt with file refs and criteria | `/prompt-rewrite "fix the thing"` |
+| `/refactor-clean` | Refactor for readability without behavior change | `/refactor-clean src/services/auth.ts` |
+| `/test-coverage` | Coverage report with gap analysis | `/test-coverage` |
+| `/update-docs` | Sync documentation to current code | `/update-docs` |
+| `/skill-create` | Generate a SKILL.md from local git patterns | `/skill-create` |
+| `/aside` | Ask a question without affecting session context | `/aside "what does this regex do?"` |
+
+### Speckit Commands
+
+| Command | Description |
+|---------|-------------|
+| `/speckit.specify` | Create feature specification from natural language |
+| `/speckit.clarify` | Ask up to 5 targeted questions to reduce ambiguity |
+| `/speckit.plan` | Generate implementation plan (architecture, design) |
+| `/speckit.tasks` | Create dependency-ordered task breakdown |
+| `/speckit.implement` | Execute tasks — auto-spawns agents for 3+ tasks |
+| `/speckit.analyze` | Cross-artifact consistency check (non-destructive) |
+| `/speckit.checklist` | Generate validation checklist for the feature |
+| `/speckit.constitution` | Define project principles, sync to templates |
+| `/speckit.taskstoissues` | Push tasks to Jira or GitHub Issues |
+| `/speckit.complete` | Mark feature complete, archive artifacts |
+
+---
+
+## Workflow Conventions
+
+### Branch Naming
 
 ```
-your-project/
-├── CLAUDE.md                           # Framework instructions
-├── .mcp.json                           # MCP server config
-├── .env                                # Your tokens (gitignored)
-├── .uatu/
-│   ├── config/
-│   │   ├── project.md                  # Project settings
-│   │   ├── constitution.md             # AI behavior principles
-│   │   └── architecture.md             # Auto-generated tech overview
-│   ├── guides/                         # Reference documentation
-│   ├── hooks/                          # Automation hooks
-│   └── tools/                          # Utilities
-└── .claude/
-    ├── commands/                       # Speckit slash commands
-    ├── skills/                         # react-component, test-file
-    └── agents/                         # 65 specialized agents
+UAT-{N}/{type}/{short-desc}
+
+UAT-42/feat/rate-limiting
+UAT-43/fix/mobile-login-crash
+UAT-44/refactor/payment-module
 ```
 
-## Packages
+### Worktree Naming
 
-Packages are execution modes selected by Sequential Thinking based on task characteristics:
+```
+uatu-UAT-{N}-{short-desc}
+
+uatu-UAT-42-rate-limiting
+```
+
+### Commit Format
+
+```
+{type}({scope}): {subject}
+
+feat(auth): add JWT refresh token rotation
+fix(worker): resolve memory leak in pool cleanup
+refactor(payment): extract charge logic into service
+```
+
+No Jira key in commit messages. Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`.
+
+### PR Title Format
+
+```
+{type}({scope}): {capability delivered} [UAT-{N}]
+
+feat(auth): JWT refresh token rotation with sliding expiry [UAT-42]
+fix(worker): resolve memory leak under sustained load [UAT-43]
+```
+
+Scope is the domain or component name — not the project name. Description states the capability delivered, not the work done.
+
+---
+
+## Workflow Scenarios
+
+### Bug fix (known location)
+
+```
+/debug "NPE in OrderService.cancel when order has no items"
+# → fix + tests
+/verify
+# → commit + PR
+```
+
+### Debugging logs (unknown root cause)
+
+```
+/debug "intermittent 502 on /api/checkout under load"
+# → 4-phase: reproduce → isolate → fix → verify
+/checkpoint   # save mid-session state
+/verify
+```
+
+### New feature (existing system)
+
+```
+/speckit.specify "rate limiting per API key"
+/speckit.clarify        # answer questions
+/speckit.plan
+/speckit.tasks
+/speckit.implement      # spawns agents
+/code-review
+/verify
+```
+
+### Define new feature (before sprint)
+
+```
+/research "evaluate Redis vs in-memory for rate limit counters"
+/speckit.specify "rate limiting"
+/speckit.clarify
+/speckit.plan
+/speckit.taskstoissues  # push to Jira
+```
+
+### Full new system
+
+```
+/speckit.constitution   # define principles
+/research "prior art for this domain"
+/speckit.specify "system overview"
+/speckit.plan
+/speckit.tasks
+/orchestrate feature "build phase 1"
+/e2e "critical user journeys"
+/verify
+```
+
+---
+
+## Architecture
+
+### Packages
+
+Three execution modes. Sequential Thinking selects the appropriate one based on task complexity.
 
 | Package | Layer | Use For |
 |---------|-------|---------|
-| **SOLO** | Single agent | Quick fixes, single files, exploration |
+| **SOLO** | Single agent | Quick fixes, single files, clear scope |
 | **SQUAD** | Agent Teams + Claude Flow MCP | Multi-file coordinated features |
 | **HIVE** | SQUAD + persistence | Multi-session projects, cross-session memory |
-| **WATCHER** | HIVE + Ruflo CLI | Self-learning, background workers, neural training |
 
-> **The Fundamental Law:** MCP tools coordinate strategy. The Task tool executes with real agents. These work together, not as alternatives.
+> **The Fundamental Law:** MCP tools coordinate strategy. The Task tool executes with real agents. They work together — not as alternatives.
 
-## Commands (Slash Commands)
+### Hook System
 
-Speckit commands for specification-driven development:
-
-| Command | Purpose |
-|---------|---------|
-| `/speckit.specify` | Create feature specification |
-| `/speckit.clarify` | Reduce ambiguity in spec |
-| `/speckit.plan` | Generate implementation plan |
-| `/speckit.tasks` | Create task breakdown |
-| `/speckit.implement` | Execute implementation |
-| `/speckit.analyze` | Cross-artifact consistency check |
-| `/speckit.checklist` | Requirements validation |
-| `/speckit.constitution` | Define project principles |
-| `/speckit.taskstoissues` | Convert tasks.md to GitHub Issues |
-
-Utility commands:
-
-| Command | Purpose |
-|---------|---------|
-| `/commit` | Smart commit with context |
-| `/review-pr` | Comprehensive PR review |
-
-## Skills
-
-Component generation skills available in `.claude/skills/`:
-
-| Skill | Purpose |
-|-------|---------|
-| `react-component` | Generate TypeScript React component with tests |
-| `test-file` | Generate test file for any source file (language-agnostic) |
-
-## Agents (65)
-
-### Core (12)
-| Agent | Purpose |
-|-------|---------|
-| `coder` | General code implementation |
-| `tester` | Testing and test writing |
-| `reviewer` | Code review |
-| `planner` | Task planning and breakdown |
-| `researcher` | Investigation and research |
-| `orchestrator-task` | Task decomposition and multi-agent coordination |
-| `architect-review` | Architecture review |
-| `backend-architect` | Backend/API design |
-| `frontend-developer` | Frontend/React development |
-| `fullstack-developer` | End-to-end features |
-| `microservices-architect` | Distributed systems |
-| `ui-ux-designer` | Design and UX |
-
-### Testing (2)
-| Agent | Purpose |
-|-------|---------|
-| `tdd-london-swarm` | London School TDD with mock-driven development |
-| `production-validator` | Pre-deployment production readiness validation |
-
-### Data & AI (6)
-| Agent | Purpose |
-|-------|---------|
-| `database-admin` | Database administration |
-| `database-optimizer` | Query optimization |
-| `sql-pro` | SQL expertise |
-| `data-engineer` | Data pipelines |
-| `ml-engineer` | Machine learning |
-| `llm-architect` | LLM/AI systems |
-
-### Firebase (12)
-| Agent | Purpose |
-|-------|---------|
-| `firebase-auth-specialist` | Authentication |
-| `firebase-firestore-specialist` | NoSQL database |
-| `firebase-functions-specialist` | Cloud Functions |
-| `firebase-hosting-specialist` | Hosting/deployment |
-| `firebase-storage-specialist` | File storage |
-| `firebase-analytics-specialist` | Analytics |
-| `firebase-crashlytics-specialist` | Crash reporting |
-| `firebase-messaging-specialist` | Push notifications |
-| `firebase-performance-specialist` | Performance monitoring |
-| `firebase-remote-config-specialist` | Feature flags |
-| `firebase-appcheck-specialist` | App attestation |
-| `firebase-testlab-specialist` | Device testing |
-
-### GitHub (5)
-| Agent | Purpose |
-|-------|---------|
-| `pr-manager` | Pull request management |
-| `issue-tracker` | Issue tracking |
-| `release-manager` | Release automation |
-| `repo-architect` | Repository structure |
-| `workflow-automation` | GitHub Actions |
-
-### Infrastructure (6)
-| Agent | Purpose |
-|-------|---------|
-| `cloud-architect` | Cloud architecture |
-| `kubernetes-architect` | K8s orchestration |
-| `terraform-specialist` | Infrastructure as Code |
-| `deployment-engineer` | CI/CD |
-| `monitoring-specialist` | Observability |
-| `sre-engineer` | Site reliability |
-
-### Languages (7)
-| Agent | Purpose |
-|-------|---------|
-| `typescript-pro` | TypeScript |
-| `javascript-pro` | JavaScript |
-| `python-pro` | Python |
-| `golang-pro` | Go |
-| `rust-pro` | Rust |
-| `java-pro` | Java |
-| `flutter-pro` | Flutter/Dart |
-
-### Quality (5)
-| Agent | Purpose |
-|-------|---------|
-| `debugger` | Debugging |
-| `security-auditor` | Security review |
-| `performance-engineer` | Performance optimization |
-| `test-automator` | Test automation |
-| `chaos-engineer` | Resilience testing |
-
-### SPARC Methodology (4)
-| Agent | Purpose |
-|-------|---------|
-| `specification` | Requirements analysis |
-| `architecture` | System design |
-| `pseudocode` | Algorithm design |
-| `refinement` | Iterative improvement |
-
-### Specialized (6)
-| Agent | Purpose |
-|-------|---------|
-| `agile-coach` | Scrum/Kanban, sprint planning, story writing |
-| `jira-specialist` | Jira workflows, JQL, issue management |
-| `api-documenter` | API documentation |
-| `docs-architect` | Documentation design |
-| `prompt-engineer` | LLM prompts |
-| `refactoring-specialist` | Code refactoring |
-
-## Hooks
-
-8 automated hooks triggered by Claude Code events:
+8 hooks triggered by Claude Code events:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
-| `load-project-context.sh` | SessionStart | Load project config |
+| `load-project-context.sh` | SessionStart | Load project config and constitution |
 | `session-restore.sh` | SessionStart | Restore last session checkpoint |
-| `enforce-sequential-thinking.sh` | UserPromptSubmit | Enforce thinking |
-| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to .env, credentials, keys |
-| `format-code.sh` | PostToolUse | Auto-format code |
-| `update-jira.sh` | Stop | Update Jira status |
+| `enforce-sequential-thinking.sh` | UserPromptSubmit | Enforce structured reasoning |
+| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to `.env`, credentials, keys |
+| `format-code.sh` | PostToolUse | Auto-format after file edits |
+| `update-jira.sh` | Stop | Update Jira ticket status |
 | `session-checkpoint.sh` | Stop | Save session summary |
-| `cost-tracking.sh` | Stop | Log session for cost review |
+| `cost-tracking.sh` | Stop | Log session cost for review |
 
-## Tools
+### Agent System
 
-### Health Check
+50 specialized agents across 8 categories. Commands spawn them automatically.
 
-Verifies framework installation and dependencies.
+| Category | Count | Key Agents |
+|----------|-------|------------|
+| Core | 12 | `coder`, `tester`, `reviewer`, `planner`, `researcher`, `orchestrator-task`, `architect-review`, `backend-architect`, `frontend-developer`, `fullstack-developer` |
+| Firebase | 12 | `firebase-auth-specialist`, `firebase-firestore-specialist`, `firebase-functions-specialist`, `firebase-crashlytics-specialist` |
+| Languages | 7 | `typescript-pro`, `python-pro`, `golang-pro`, `rust-pro`, `java-pro`, `javascript-pro`, `flutter-pro` |
+| Data & AI | 6 | `database-admin`, `database-optimizer`, `ml-engineer`, `llm-architect`, `sql-pro`, `data-engineer` |
+| Infrastructure | 6 | `cloud-architect`, `kubernetes-architect`, `terraform-specialist`, `deployment-engineer`, `monitoring-specialist`, `sre-engineer` |
+| Quality | 5 | `debugger`, `security-auditor`, `performance-engineer`, `test-automator`, `chaos-engineer` |
+| GitHub | 5 | `pr-manager`, `issue-tracker`, `release-manager`, `repo-architect`, `workflow-automation` |
+| Specialized | 5 | `jira-specialist`, `agile-coach`, `api-documenter`, `prompt-engineer`, `refactoring-specialist` |
+| Testing | 2 | `tdd-london-swarm`, `production-validator` |
 
-```bash
-.uatu/tools/health-check.sh
-```
+For the full catalog: `.uatu/guides/AGENTS-GUIDE.md`
 
-Checks: Claude CLI, Node.js, MCP servers, configuration files, environment variables.
+---
 
-### Architecture Scanner
+## Stats
 
-Auto-generates `.uatu/config/architecture.md` by analyzing your codebase.
+| Component | Count |
+|-----------|-------|
+| Agents | ~50 across 9 categories |
+| Commands | ~30 (`/orchestrate`, `/speckit.*`, workflow commands) |
+| Skills | ~20 (react-component, test-file + language/pattern skills) |
+| Hooks | ~15 (8 active + examples) |
+| Packages | 3 (SOLO, SQUAD, HIVE) |
 
-```bash
-.uatu/tools/architecture-scanner.sh
-```
+---
 
-Detects: project type, frameworks, databases, infrastructure, entry points.
+## Attribution
 
-### Worktree Helper
+### Foundation (directly adopted)
 
-Manages git worktrees for feature isolation.
+| Project | Author | What Was Adopted | License |
+|---------|--------|-----------------|---------|
+| [spec-kit](https://github.com/closedloop-technologies/spec-kit) | ClosedLoop Technologies | Speckit workflow — the full specify → clarify → plan → tasks → implement chain | MIT |
+| [claude-flow](https://github.com/ruvnet/claude-flow) | ruvnet | Claude Flow MCP (SQUAD/HIVE coordination, shared memory, DAA agents) | Apache-2.0 |
+| [awesome-claude-code-subagents](https://github.com/hesreallyhim/awesome-claude-code-subagents) | hesreallyhim | Curated agent collection — base agent definitions across all categories | MIT |
+| [sequential-thinking](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking) | Anthropic / MCP | Sequential Thinking MCP server for structured task analysis | MIT |
 
-```bash
-.uatu/tools/worktree-helper.sh
-```
+### Inspiration (patterns and ideas)
 
-### Time Tracking
+| Project | Author | What Was Learned | License |
+|---------|--------|-----------------|---------|
+| [claude-mem](https://github.com/grll/claude-mem) | grll | Memory system design — session checkpoints and context restoration patterns | MIT |
+| [superpowers](https://github.com/SuperpoweredAI/spRAG) | Superpowered AI | Agent capability extension patterns and tool selection heuristics | Apache-2.0 |
+| [get-shit-done](https://github.com/patchy631/ai-engineering-hub) | Patchy631 | Pragmatic task execution flow — commit early, verify often | MIT |
+| [ui-ux-pro-max](https://github.com/slamdunc/ui-ux-pro-max) | slamdunc | UX-first agent design — frequency-based hierarchy and header conventions | MIT |
+| [n8n-mcp](https://github.com/leonardsellem/n8n-mcp) | leonardsellem | Workflow automation bridge — hook trigger patterns for external integrations | MIT |
+| [obsidian-skills](https://github.com/MarkMindCkm/obsidian-markmind) | MarkMindCkm | Knowledge graph patterns for session memory and delivery artifact linking | MIT |
+| [LightRAG](https://github.com/HKUDS/LightRAG) | HKUDS | Graph-based retrieval for architecture scanning and cross-artifact analysis | MIT |
+| [everything-claude-code](https://github.com/disler/everything-claude-code) | disler | 16 production skills (tdd-workflow, security-review, backend/frontend-patterns, python, golang, api-design) | MIT |
+| [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | hesreallyhim | Command organization patterns and slash command naming conventions | MIT |
 
-Tracks work sessions across sprints.
-
-```bash
-python .uatu/tools/time-tracking/worklog.py --project $(pwd) --tz -3
-```
-
-## MCP Servers
-
-| Server | Purpose | Installed By |
-|--------|---------|--------------|
-| Sequential Thinking | Task analysis | `uatu-setup` |
-| Claude Flow | SQUAD/HIVE coordination + shared memory | `uatu-setup` |
-| Ruv Swarm | Advanced SQUAD/HIVE (no-timeout, neural) | `uatu-setup` |
-| Atlassian | Jira integration | `uatu-install` |
-| GitHub | PR/issue management | `uatu-install` |
-| Filesystem | File operations | `uatu-install` |
-
-## Post-Install Checklist
-
-1. Copy `.env.example` to `.env` and fill in your tokens
-2. Edit `.uatu/config/project.md` with project settings
-3. Review `.uatu/config/architecture.md` (auto-generated)
-4. Run `direnv allow`
-
-## Requirements
-
-- Node.js 18+
-- Claude Code CLI (`npm install -g @anthropic-ai/claude-code`)
-- direnv (optional but recommended)
-
-## Upgrade
-
-Re-run `uatu-install` to upgrade. Your config files and delivery artifacts are preserved.
+---
 
 ## License
 
