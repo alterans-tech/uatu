@@ -10,7 +10,15 @@ $ARGUMENTS
 
 ## Execution
 
-You are rewriting the user's draft prompt to follow the 7-dimension framework.
+**FIRST**, use Sequential Thinking (`mcp__sequential-thinking__sequentialthinking`) to analyze the prompt:
+
+- Thought 1: What is the user actually trying to accomplish?
+- Thought 2: Score each of the 7 dimensions (1-10) for the original prompt
+- Thought 3: What files, context, and constraints are implied but missing?
+- Thought 4: What's the best structure for this type of request? (match to a template from `.uatu/config/prompt-templates.md`)
+- Thought 5: Write the rewritten prompt with all dimensions addressed
+
+**THEN** rewrite the prompt following the 7-dimension framework.
 
 **Input prompt:** $ARGUMENTS
 
