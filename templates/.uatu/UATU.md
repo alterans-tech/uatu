@@ -1,13 +1,13 @@
 # Uatu - The Watcher
 
-AI orchestration framework.
+AI orchestration framework for Claude Code.
 
 ---
 
 ## Before Any Task
 
 1. **Read project config** — `.uatu/config/project.md`
-2. **Select package** — Based on task characteristics
+2. **Check `.claude/rules/uatu-core.md`** — behavioral rules are auto-loaded
 3. **Consider Sequential Thinking** — For complex or ambiguous tasks
 
 ---
@@ -19,67 +19,27 @@ AI orchestration framework.
 | `.uatu/config/project.md` | Project settings, conventions | Every session |
 | `.uatu/config/architecture.md` | Tech stack (auto-generated) | When exploring codebase |
 | `.uatu/config/constitution.md` | AI behavior principles | When unsure about approach |
+| `.uatu/config/prompt-templates.md` | Copy-paste prompt starters | When crafting prompts |
+| `.claude/rules/uatu-core.md` | Framework behavior rules | Auto-loaded every session |
 
 ---
 
-## Core Rules
+## Commands (8 + Speckit)
 
-| Rule | Action |
-|------|--------|
-| **Sequential Thinking** | Optional — use for complex or ambiguous tasks |
-| **Package Selection** | Choose based on task needs |
-| **Artifacts in `.uatu/`** | All deliverables go in `.uatu/delivery/` |
-| **Use Speckit** | Run `/speckit.*` commands for specs |
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
+| `/orchestrate` | Smart multi-agent execution | `/orchestrate "add notifications" --tdd` |
+| `/pre-flight-check` | Pre-merge gate: review + verify + security | `/pre-flight-check` |
+| `/review-pr` | Review someone else's PR | `/review-pr 234` |
+| `/self-review` | Handle review comments on your PR | `/self-review 234` |
+| `/plan-work` | Create Jira cards (Epic/Story/Subtask) | `/plan-work "password reset"` |
+| `/prompt-rewrite` | Rewrite a prompt with structure | `/prompt-rewrite "fix the thing"` |
+| `/time-report` | Time tracking across projects | `/time-report --week` |
 
----
+**Orchestrate flags:** `--tdd` (test-first), `--e2e` (Playwright), `--review` (two-stage review)
 
-## Package Selection
-
-All packages support dynamic scaling (1 to 25+ agents). Choose by **coordination model**, not agent count:
-
-| Package | Coordination | Use When | Command |
-|---------|-------------|----------|---------|
-| **SOLO** | Hub-and-spoke (no inter-agent talk) | Independent parallel work at any scale | `/orchestrate` |
-| **SQUAD** | Peer messaging + shared memory | Agents need to coordinate mid-task | `/squad` |
-| **HIVE** | SQUAD + session persistence (experimental) | Work spans multiple sessions | Manual setup |
-
-```
-Can you give each agent everything it needs before it starts?
-  YES → SOLO (+ orchestrator-task for multi-agent, any scale)
-  NO  → Agents discover things mid-work that other agents need
-        → SQUAD → need persistence across sessions? → HIVE
-```
-
----
-
-## Guides
-
-| Trigger | Read This |
-|---------|-----------|
-| Complex or ambiguous task | `.uatu/guides/SEQUENTIAL-THINKING.md` |
-| Unsure which tool/package | `.uatu/guides/TOOL-SELECTION.md` |
-| Using SQUAD/HIVE | `.uatu/guides/SQUAD-GUIDE.md` |
-| Spawning agents | `.uatu/guides/AGENTS-GUIDE.md` |
-| Jira tasks, naming, specs | `.uatu/guides/WORKFLOW.md` |
-| Customizing hooks | `.uatu/guides/HOOKS.md` |
-
----
-
-## Agent Commands
-
-| When | Command | What It Does |
-|------|---------|-------------|
-| Multi-agent orchestration | `/orchestrate swarm <desc>` | Spawns orchestrator-task agent for decomposition + parallel execution |
-| Feature workflow | `/orchestrate feature <desc>` | Chain: planner → [coder + tester] → reviewer |
-| Bug fix | `/orchestrate bugfix <desc>` | Chain: debugger → coder → tester → reviewer |
-| Agent team (peer coordination) | `/squad <desc>` | Creates Agent Team with TeamCreate + SendMessage |
-| Test-driven development | `/tdd <desc>` | Spawns tester agent with TDD workflow |
-| End-to-end tests | `/e2e <desc>` | Spawns tester agent with Playwright workflow |
-| Code review | `/code-review` | Spawns reviewer agent on uncommitted changes |
-
----
-
-## Speckit Commands
+### Speckit Commands
 
 | When | Command |
 |------|---------|
@@ -89,53 +49,63 @@ Can you give each agent everything it needs before it starts?
 | Need task breakdown | `/speckit.tasks` |
 | Ready to implement | `/speckit.implement` |
 | Check consistency | `/speckit.analyze` |
-| Convert tasks to GitHub Issues | `/speckit.taskstoissues` |
+| Validation checklist | `/speckit.checklist` |
+| Project principles | `/speckit.constitution` |
+| Push to Jira/GitHub | `/speckit.taskstoissues` |
+| Mark complete | `/speckit.complete` |
 
 ---
 
-## Tools
+## Package Selection
 
-| Tool | Purpose |
-|------|---------|
-| `.uatu/tools/architecture-scanner.sh` | Generate tech stack overview |
-| `.uatu/tools/worktree-helper.sh` | Git worktree management |
-| `.uatu/tools/time-tracking/worklog.py` | Track work sessions |
-
----
-
-## Hooks
-
-Hooks run automatically at key events. Configured in `.claude/settings.json`:
-
-| Hook | Event | Purpose |
-|------|-------|---------|
-| `load-project-context.sh` | SessionStart | Load project config |
-| `session-restore.sh` | SessionStart | Restore last session checkpoint |
-| `enforce-sequential-thinking.sh` | UserPromptSubmit | Remind to use ST |
-| `format-code.sh` | PostToolUse | Auto-format code |
-| `prevent-sensitive-writes.sh` | PreToolUse | Block writes to sensitive files |
-| `update-jira.sh` | Stop | Update Jira status |
-| `session-checkpoint.sh` | Stop | Save session summary |
-| `cost-tracking.sh` | Stop | Log session end for cost review |
-
-See `.uatu/guides/HOOKS.md` for customization.
-
----
-
-## Folder Structure
+| Package | When | How |
+|---------|------|-----|
+| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` |
+| **HIVE** | Work spans multiple sessions (experimental) | Manual setup with persistence |
 
 ```
-.uatu/
-├── config/
-│   ├── project.md         # Project settings
-│   ├── architecture.md    # Tech overview (auto-generated)
-│   └── constitution.md    # AI principles
-├── guides/                 # Framework documentation
-├── hooks/                  # Automation scripts
-├── tools/                  # Utilities
-└── delivery/
-    └── sprints/           # Feature specs and tasks
+Can you give each agent everything it needs before it starts?
+  YES → SOLO (orchestrate handles parallelism)
+  NO  → SQUAD (auto-escalates when agents need mid-task coordination)
+        → Need persistence? → HIVE
 ```
+
+---
+
+## Automatic Behaviors
+
+These happen without commands — driven by hooks and rules:
+
+| Behavior | When |
+|----------|------|
+| 4-phase debugging | You describe a bug or error |
+| Two-stage code review | You ask to review code |
+| Security scan suggestion | You modify auth/payment files |
+| Build auto-diagnosis | Build command fails |
+| Prompt quality coaching | Every prompt > 5 words |
+| Branch guard | Session starts on main |
+| Missing test warning | Session ends |
+| Session checkpoint | Session ends (JSONL) |
+
+---
+
+## Guides
+
+| Guide | When to Read |
+|-------|-------------|
+| `.uatu/guides/SEQUENTIAL-THINKING.md` | Complex or ambiguous task |
+| `.uatu/guides/TOOL-SELECTION.md` | Unsure which approach |
+| `.uatu/guides/SQUAD-GUIDE.md` | Using SQUAD/HIVE |
+| `.uatu/guides/AGENTS-GUIDE.md` | Selecting agents |
+| `.uatu/guides/WORKFLOW.md` | Jira, naming, specs |
+| `.uatu/guides/HOOKS.md` | Customizing hooks |
+
+---
+
+## Quick Reference
+
+Full user manual: `.uatu/QUICKSTART.md`
 
 ---
 
@@ -143,7 +113,7 @@ See `.uatu/guides/HOOKS.md` for customization.
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | Complex/ambiguous tasks (optional) |
-| `claude-flow` | SQUAD, HIVE (shared memory, strategy coordination) |
+| `sequential-thinking` | `/prompt-rewrite`, `/plan-work`, complex tasks |
+| `claude-flow` | SQUAD/HIVE coordination |
 
 Run `uatu-setup` to install.

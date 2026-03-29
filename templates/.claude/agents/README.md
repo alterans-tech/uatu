@@ -6,19 +6,20 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 
 ## Quick Reference
 
-**Total Agents**: 62 specialized agents across 9 categories
+**Total Agents**: 53 specialized agents across 10 categories
 
 | Category | Count | Purpose |
 |----------|-------|---------|
-| core | 11 | General development |
-| firebase | 12 | Firebase platform |
-| languages | 7 | Language specialists |
-| data | 6 | Data & databases |
-| infrastructure | 6 | Cloud & DevOps |
-| specialized | 6 | Domain-specific |
-| quality | 5 | Testing & QA |
-| github | 5 | GitHub integration |
-| sparc | 4 | SPARC methodology |
+| core | 12 | General development (coder, tester, reviewer, planner, etc.) |
+| languages | 7 | Language specialists (typescript, python, golang, rust, java, etc.) |
+| infrastructure | 6 | Cloud & DevOps (cloud-architect, kubernetes, terraform, etc.) |
+| specialized | 5 | Domain-specific (jira-specialist, api-documenter, etc.) |
+| quality | 5 | Testing & QA (debugger, security-auditor, etc.) |
+| github | 5 | GitHub integration (pr-manager, issue-tracker, etc.) |
+| firebase | 4 | Firebase platform (auth, firestore, functions, hosting) |
+| data | 4 | Data & databases (database-expert, ml-engineer, etc.) |
+| build-resolvers | 3 | Build error specialists (typescript, python, golang) |
+| testing | 2 | Testing swarms (tdd-london-swarm, production-validator) |
 
 ---
 

@@ -182,7 +182,7 @@ fi
 # Add Uatu header to project's CLAUDE.md (prepend, never overwrite content)
 UATU_HEADER='> **Uatu Framework Active** — Full docs: `.uatu/UATU.md` | Quick ref: `.uatu/QUICKSTART.md`
 >
-> Commands: `/orchestrate` (multi-agent), `/debug` (systematic debugging), `/speckit.specify` (define features), `/code-review` (two-stage review)
+> Commands: `/orchestrate` (multi-agent), `/status` (session recon), `/pre-flight-check` (merge gate), `/plan-work` (Jira cards)
 >
 > Rules auto-loaded from `.claude/rules/uatu-core.md`
 

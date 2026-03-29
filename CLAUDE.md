@@ -68,9 +68,9 @@ uatu/
 │   │   ├── hooks/                # 8 active + 6 examples
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── commands/             # 20 slash commands (/speckit.*, /tdd, /code-review, etc.)
-│       ├── skills/               # 18 skills (react-component, test-file + 16 ECC skills)
-│       └── agents/               # 65 agents
+│       ├── commands/             # 18 slash commands (8 core + 10 speckit.*)
+│       ├── skills/               # 19 skills (react-component, test-file + language/pattern skills)
+│       └── agents/               # 53 agents across 10 categories
 └── README.md                     # User documentation
 ```
 
@@ -86,18 +86,21 @@ uatu/
 | worktree-helper | `.uatu/tools/worktree-helper.sh` | Git worktree management |
 | time-tracking | `.uatu/tools/time-tracking/worklog.py` | Work session tracking |
 
-### Commands (9 slash commands)
+### Commands (8 core + 10 speckit)
+
+**Core Commands:**
 | Command | Purpose |
 |---------|---------|
-| `/speckit.specify` | Create feature specification |
-| `/speckit.clarify` | Reduce spec ambiguity |
-| `/speckit.plan` | Generate implementation plan |
-| `/speckit.tasks` | Create task breakdown |
-| `/speckit.implement` | Execute implementation |
-| `/speckit.analyze` | Cross-artifact consistency |
-| `/speckit.taskstoissues` | Convert tasks to GitHub Issues |
-| `/commit` | Smart git commit |
-| `/review-pr` | PR review |
+| `/status` | Sprint board + branches + worktrees + checkpoint |
+| `/orchestrate` | Smart multi-agent execution (--tdd, --e2e, --review) |
+| `/pre-flight-check` | Pre-merge gate: review + verify + security |
+| `/review-pr` | Review someone else's PR, post inline comments |
+| `/self-review` | Handle review comments on your PR |
+| `/plan-work` | Create Jira cards (Epic/Story/Subtask) |
+| `/prompt-rewrite` | Rewrite a prompt with proper structure |
+| `/time-report` | Time tracking across projects |
+
+**Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, taskstoissues, complete
 
 ### Skills (2 — in `.claude/skills/`)
 | Skill | Purpose |
@@ -109,46 +112,54 @@ uatu/
 | Guide | Purpose |
 |-------|---------|
 | WORKFLOW.md | Naming, folders, Jira, Speckit |
-| SEQUENTIAL-THINKING.md | Task analysis patterns (PRE-PACKAGE) |
+| SEQUENTIAL-THINKING.md | Task analysis patterns (optional, for complex tasks) |
 | TOOL-SELECTION.md | Tool/package selection |
-| SQUAD-GUIDE.md | SQUAD/HIVE/WATCHER: Agent Teams + Claude Flow MCP |
-| WATCHER.md | Learning + persistence |
+| SQUAD-GUIDE.md | SQUAD/HIVE: Agent Teams + Claude Flow MCP |
+| WATCHER.md | Reference: learning + persistence patterns |
 | AGENTS-GUIDE.md | Agent selection |
 | HOOKS.md | Hook system |
 
-### Hooks (8 active)
+### Hooks (17 active)
 | Hook | Trigger | Purpose |
 |------|---------|---------|
 | load-project-context.sh | SessionStart | Load project config |
 | session-restore.sh | SessionStart | Restore last session checkpoint |
-| enforce-sequential-thinking.sh | UserPromptSubmit | Enforce thinking |
+| branch-guard.sh | SessionStart | Warn if on main/master |
+| prompt-quality-advisor.sh | UserPromptSubmit | Score prompts, suggest improvements |
+| scope-detection.sh | UserPromptSubmit | Suggest /orchestrate for large scope |
 | prevent-sensitive-writes.sh | PreToolUse | Block sensitive file writes |
-| format-code.sh | PostToolUse | Format code |
-| update-jira.sh | Stop | Update Jira status |
-| session-checkpoint.sh | Stop | Save session summary |
+| protect-config-files.sh | PreToolUse | Block config file modifications |
+| format-code.sh | PostToolUse | Auto-format code |
+| self-review-checklist.sh | PostToolUse | Scan for TODOs, placeholders |
+| smart-agent-suggestion.sh | PostToolUse | Suggest agents by file pattern |
+| warn-file-length.sh | PostToolUse | Warn if file > 400 lines |
+| event-log.sh | PostToolUse | Log tool usage (strict profile) |
+| session-checkpoint.sh | Stop | Save session summary (JSONL) |
 | cost-tracking.sh | Stop | Log session for cost review |
+| missing-test-warning.sh | Stop | Warn about untested modifications |
+| update-jira.sh | Stop | Update Jira status |
+| desktop-notification.sh | Stop | macOS notification (strict profile) |
 
-### Agents (65 across 10 categories)
+### Agents (53 across 10 categories)
 | Category | Count | Key Agents |
 |----------|-------|------------|
 | core | 12 | coder, tester, reviewer, planner, researcher, orchestrator-task |
-| firebase | 12 | auth, firestore, functions, hosting, crashlytics |
-| languages | 7 | typescript, python, golang, rust, java, flutter |
-| data | 6 | database-admin, ml-engineer, llm-architect |
-| infrastructure | 6 | cloud-architect, kubernetes, terraform |
-| specialized | 6 | agile-coach, jira-specialist, api-documenter |
-| github | 5 | pr-manager, issue-tracker, release-manager |
+| languages | 7 | typescript-pro, python-pro, golang-pro, rust-pro, java-pro |
+| infrastructure | 6 | cloud-architect, kubernetes-architect, terraform-specialist |
+| specialized | 5 | jira-specialist, api-documenter, docs-architect |
 | quality | 5 | debugger, security-auditor, performance-engineer |
-| sparc | 4 | specification, architecture, pseudocode, refinement |
+| github | 5 | pr-manager, issue-tracker, release-manager |
+| firebase | 4 | auth, firestore, functions, hosting |
+| data | 4 | database-expert, ml-engineer, llm-architect, data-engineer |
+| build-resolvers | 3 | typescript-build-resolver, python-build-resolver, golang-build-resolver |
 | testing | 2 | tdd-london-swarm, production-validator |
 
-### Packages (4)
+### Packages (3)
 | Package | Layer | Use Case |
 |---------|-------|----------|
 | SOLO | 0A: Single agent | Single file, clear task, low risk |
 | SQUAD | 0B+1: Agent Teams + Claude Flow MCP | Multi-file coordinated work |
 | HIVE | 0B+1 + persistence | Multi-session, context must persist |
-| WATCHER | 0B+1+2: + Ruflo CLI | Self-learning, background workers |
 
 ---
 
@@ -228,9 +239,8 @@ chmod +x templates/.uatu/tools/new-tool/new-tool.sh
 ### User-Level (uatu-setup)
 | Server | Prefix | Purpose |
 |--------|--------|---------|
-| Sequential Thinking | `mcp__sequential-thinking__` | Task analysis |
+| Sequential Thinking | `mcp__sequential-thinking__` | Optional task analysis for complex problems |
 | Claude Flow | `mcp__claude-flow__` | SQUAD/HIVE swarms |
-| Ruv Swarm | `mcp__ruv-swarm__` | Advanced SQUAD/HIVE (no-timeout, neural) |
 
 ### Project-Level (uatu-install)
 | Server | Prefix | Purpose |
@@ -279,13 +289,14 @@ chore: maintenance
 
 ## Current Stats
 
-- **65 agents** across 10 categories
-- **20 commands** (9 speckit.* + 11 workflow commands: tdd, code-review, verify, e2e, checkpoint, refactor-clean, test-coverage, update-docs, build-fix, skill-create, orchestrate)
-- **18 skills** (react-component, test-file + 16 from ECC: tdd-workflow, security-review, backend-patterns, frontend-patterns, python-*, golang-*, api-design, etc.)
+- **53 agents** across 10 categories
+- **18 commands** (8 core + 10 speckit.*)
+- **19 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
-- **8 active hooks** + 6 examples
+- **17 active hooks** + 6 examples
+- **5 rules** (uatu-core + 4 language rules)
 - **4 tools**
-- **4 packages** (SOLO, SQUAD, HIVE, WATCHER)
+- **3 packages** (SOLO, SQUAD, HIVE)
 
 ---
 
