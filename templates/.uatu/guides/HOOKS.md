@@ -339,10 +339,10 @@ Uatu includes 8 pre-built hooks:
 **Purpose:** Scores prompts and injects coaching suggestions
 
 **Behavior:**
-- Scores prompts against 4 dimensions (file refs, success criteria, structure, constraints)
-- Skips slash commands and short confirmations (< 5 words)
-- Low-scoring prompts get improvement suggestions
-- References `.uatu/config/prompt-templates.md` for templates
+- Scores prompts against 5 research-backed dimensions: intent, context, specificity, scope, verifiability
+- Exempt categories excluded from scoring: slash commands, execution confirmations, follow-ups, continuations, corrections, acknowledgments
+- Low-scoring prompts (≤3/5 on prompts >12 words) get improvement suggestions
+- References `.uatu/config/prompt-templates.md` for templates and `/prompt-rewrite` for restructuring
 
 **Required:** Recommended (standard profile)
 

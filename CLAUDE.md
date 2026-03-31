@@ -69,7 +69,7 @@ uatu/
 │   │   └── tools/                # 4 tools
 │   └── .claude/
 │       ├── commands/             # 17 slash commands (7 core + 10 speckit.*)
-│       ├── skills/               # 19 skills (react-component, test-file + language/pattern skills)
+│       ├── skills/               # 20 skills (react-component, test-file + language/pattern skills)
 │       └── agents/               # 53 agents across 10 categories
 └── README.md                     # User documentation
 ```
@@ -124,7 +124,7 @@ uatu/
 | load-project-context.sh | SessionStart | Load project config |
 | session-restore.sh | SessionStart | Restore last session checkpoint |
 | branch-guard.sh | SessionStart | Warn if on main/master |
-| prompt-quality-advisor.sh | UserPromptSubmit | Score prompts, suggest improvements |
+| prompt-quality-advisor.sh | UserPromptSubmit | Score prompts on 5 dimensions (intent, context, specificity, scope, verifiability), suggest improvements |
 | scope-detection.sh | UserPromptSubmit | Suggest /orchestrate for large scope |
 | prevent-sensitive-writes.sh | PreToolUse | Block sensitive file writes |
 | protect-config-files.sh | PreToolUse | Block config file modifications |
@@ -290,7 +290,7 @@ chore: maintenance
 
 - **53 agents** across 10 categories
 - **17 commands** (7 core + 10 speckit.*)
-- **19 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
+- **20 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
 - **17 active hooks** + 6 examples
 - **5 rules** (uatu-core + 4 language rules)

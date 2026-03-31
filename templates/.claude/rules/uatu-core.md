@@ -63,12 +63,14 @@ If the user's task clearly matches one of these, suggest it BEFORE starting work
 
 ## Prompt Quality Coaching
 
+Prompts are scored on 5 dimensions: intent, context, specificity, scope, verifiability.
 When the user's prompt is missing critical elements, ASK briefly before proceeding:
 
-- **No file references** → "Which files are involved?"
-- **No success criteria** → Propose a "Done when:" condition
-- **Vague scope** ("fix the thing") → Ask for specifics
-- **Multiple concerns in one sentence** → Suggest numbered items
+- **Weak intent** (no verb or target) → "What action should I take, and on what?"
+- **No context** (no file refs) → "Which files are involved?"
+- **Vague specificity** ("make it better") → Ask for concrete behavior
+- **No scope** (multi-concern, no decomposition) → Suggest numbered items or "Do NOT" boundaries
+- **No verifiability** → Propose a "Done when:" condition
 
 Do NOT block work. Ask, then proceed with best interpretation.
 

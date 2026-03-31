@@ -1,6 +1,6 @@
 # Prompt Templates
 
-Copy-paste starters for common scenarios. Each template addresses the 3 weakest dimensions: Structure, Success Criteria, and Context.
+Copy-paste starters for common scenarios. Each template targets the dimensions that matter most: Context, Specificity, Scope, and Verifiability.
 
 ---
 
