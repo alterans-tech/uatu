@@ -10,6 +10,16 @@ check_profile "standard" || { echo '{"additionalContext": "", "error": null}'; e
 CHECKPOINT_DIR=".uatu/delivery/checkpoints"
 mkdir -p "$CHECKPOINT_DIR"
 
+# Dedup: skip if last checkpoint was less than 1 hour ago
+LATEST=$(ls -t "$CHECKPOINT_DIR"/*.md 2>/dev/null | head -1)
+if [[ -n "$LATEST" ]]; then
+  LATEST_AGE=$(( $(date +%s) - $(stat -f %m "$LATEST" 2>/dev/null || stat -c %Y "$LATEST" 2>/dev/null || echo 0) ))
+  if [[ $LATEST_AGE -lt 3600 ]]; then
+    echo '{"additionalContext": "", "error": null}'
+    exit 0
+  fi
+fi
+
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 ISO_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 

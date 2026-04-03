@@ -230,15 +230,12 @@ mkdir -p "$TARGET_DIR/.uatu/config"
 mkdir -p "$TARGET_DIR/.uatu/guides"
 mkdir -p "$TARGET_DIR/.uatu/tools"
 mkdir -p "$TARGET_DIR/.uatu/hooks"
-mkdir -p "$TARGET_DIR/.uatu/delivery/sprints"
-mkdir -p "$TARGET_DIR/.uatu/delivery/research"
+mkdir -p "$TARGET_DIR/.uatu/templates/jira"
+mkdir -p "$TARGET_DIR/.uatu/delivery/checkpoints"
 mkdir -p "$TARGET_DIR/.claude/commands"
-mkdir -p "$TARGET_DIR/.claude/agents"
 mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.claude/rules"
-mkdir -p "$TARGET_DIR/.specify/memory"
-mkdir -p "$TARGET_DIR/.specify/scripts/bash"
-mkdir -p "$TARGET_DIR/.specify/templates"
+# Note: delivery/sprints, delivery/research, .specify/ removed — created on-demand by commands
 echo -e "  ${GREEN}Directories created${NC}"
 
 # Copy UATU.md and QUICKSTART.md to .uatu/ (always update to latest)
@@ -313,20 +310,42 @@ else
     echo -e "  ${YELLOW}No tools found in templates${NC}"
 fi
 
-# Copy hooks (always update - these are framework automation)
+# Copy hooks — only wired hooks (referenced in settings) + hook-profile.sh utility
+# Unwired hooks are not installed to avoid clutter. Add them manually if needed.
 echo -e "${BLUE}Installing hooks...${NC}"
 if [[ -d "$TEMPLATES_DIR/.uatu/hooks" ]]; then
-    cp -r "$TEMPLATES_DIR/.uatu/hooks/"* "$TARGET_DIR/.uatu/hooks/" 2>/dev/null || true
+    # Always copy hook-profile.sh (utility, not a hook itself)
+    cp "$TEMPLATES_DIR/.uatu/hooks/hook-profile.sh" "$TARGET_DIR/.uatu/hooks/" 2>/dev/null || true
 
-    # Make all hook scripts executable (.sh and .py)
+    # Copy only hooks that are referenced in the active settings
+    # These are the hooks wired in the project's settings.json
+    WIRED_HOOKS=(
+        "session-start/load-project-context.sh"
+        "session-start/session-restore.sh"
+        "user-prompt-submit/prompt-quality-advisor.sh"
+        "post-tool-use/format-code.sh"
+        "stop/session-checkpoint.sh"
+        "stop/update-jira.sh"
+        "stop/cost-tracking.sh"
+    )
+
+    for hook in "${WIRED_HOOKS[@]}"; do
+        if [[ -f "$TEMPLATES_DIR/.uatu/hooks/$hook" ]]; then
+            HOOK_DIR=$(dirname "$hook")
+            mkdir -p "$TARGET_DIR/.uatu/hooks/$HOOK_DIR"
+            cp "$TEMPLATES_DIR/.uatu/hooks/$hook" "$TARGET_DIR/.uatu/hooks/$hook"
+        fi
+    done
+
+    # Make all hook scripts executable
     find "$TARGET_DIR/.uatu/hooks" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod +x {} \; 2>/dev/null || true
 
-    HOOK_COUNT=$(find "$TARGET_DIR/.uatu/hooks" -type f 2>/dev/null | wc -l | tr -d ' ')
+    HOOK_COUNT=$(find "$TARGET_DIR/.uatu/hooks" -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
     if [[ "$UPGRADE_MODE" == false ]]; then
-        echo -e "  ${GREEN}$HOOK_COUNT hooks installed and made executable${NC}"
+        echo -e "  ${GREEN}$HOOK_COUNT hooks installed (wired only)${NC}"
         NEW_FILES+=(".uatu/hooks/ ($HOOK_COUNT files)")
     else
-        echo -e "  ${GREEN}$HOOK_COUNT hooks updated and made executable${NC}"
+        echo -e "  ${GREEN}$HOOK_COUNT hooks updated (wired only)${NC}"
         UPDATED_FILES+=(".uatu/hooks/ ($HOOK_COUNT files)")
     fi
 else

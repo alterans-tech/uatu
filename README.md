@@ -521,7 +521,7 @@ your-project/
 | Agents | 53 across 8 categories |
 | Skills | 20 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |
-| Hooks | 17 active (session, prompt, tool, stop) |
+| Hooks | 7 wired (installed) + 11 available (opt-in) |
 | Packages | 3 (SOLO, SQUAD, HIVE) |
 
 ---
