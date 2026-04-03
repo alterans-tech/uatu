@@ -2,7 +2,7 @@
 
 ---
 
-## Commands (7 + Speckit)
+## Commands (8 + Speckit)
 
 | Command | When to Use | Example |
 |---------|-------------|---------|
@@ -11,7 +11,8 @@
 | `/pre-flight-check` | Before merging — full quality gate | `/pre-flight-check` |
 | `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342` |
 | `/plan-work` | Create Jira cards with proper hierarchy | `/plan-work "password reset"` |
-| `/prompt-rewrite` | Improve a draft prompt | `/prompt-rewrite "fix the login thing"` |
+| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the login thing"` |
+| `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking | `/time-report --all --week` |
 
 ---
@@ -214,7 +215,7 @@ Enforces: verb-first titles, user-observable AC, technical subtasks < 1 day, 3-6
 
 ## `/prompt-rewrite`
 
-Rewrite a draft prompt with structure. Uses Sequential Thinking to score and improve.
+Rewrite a draft prompt with structure, file refs, constraints, and done-conditions. Uses Sequential Thinking.
 
 ```
 /prompt-rewrite "fix the login bug it broke after the last deploy"
@@ -222,24 +223,17 @@ Rewrite a draft prompt with structure. Uses Sequential Thinking to score and imp
 
 **What you get:**
 ```
-## Original (Score: 2/10)
+### Original (Score: 2/10)
 fix the login bug it broke after the last deploy
 
-## Rewritten (Score: 8/10)
-Problem: Login is broken after the last deploy.
-Evidence: [paste error message or logs]
-Files:
-- src/auth/login.ts
-- src/middleware/session.ts
-Action: Diagnose first — do NOT fix yet.
-Done when: Root cause identified with evidence.
+### Rewritten (Score: 8/10)
+[Full structured version with headers, file refs, constraints, done-when]
 
-## What Changed
-+ structure, file refs, success criteria, constraints
-  Score: 2 → 8 (+6 points)
+### Next Step
+Say "go" or run /orchestrate to use parallel agents.
 ```
 
-Not scored by the prompt quality hook — slash commands are excluded.
+**Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting needed — Claude already has the full context.
 
 ---
 
@@ -360,6 +354,37 @@ Scope = domain/component, NOT project name.
 
 ---
 
+## Model Routing (Cost Optimization)
+
+Commands route subagents to the cheapest model that can do the job:
+
+| Tier | Model | When | Savings vs Opus |
+|------|-------|------|-----------------|
+| **Planning** | Opus | Architecture, decomposition, security audit | — |
+| **Execution** | Sonnet | Code gen, tests, file ops, research | **40%** |
+| **Simple** | Haiku | Status, formatting, lookups | **80%** |
+
+Default: **Sonnet** for 80% of subagent calls. Opus only for planning/architecture/security.
+Typical `/orchestrate` run saves ~37% vs all-Opus default.
+
+---
+
+## Jira Issue Templates
+
+Templates at `.uatu/templates/jira/`:
+
+| File | Issue Type | Key Rule |
+|------|-----------|----------|
+| `epic.md` | Epic (initiative) | Goal/Hypothesis/Scope — NOT "As a..." |
+| `story.md` | Story | "As a... I want..." + behavioral AC |
+| `task.md` | Task | Technical work, code-level done criteria |
+| `bug.md` | Bug | Title = symptom, not cause |
+| `subtask.md` | Sub-task | Self-contained for AI agent execution |
+
+All issues get domain **Labels** (lowercase kebab-case: `authentication`, `api`, `ui-ux`).
+
+---
+
 ## Config Files
 
 | File | Purpose |
@@ -368,7 +393,8 @@ Scope = domain/component, NOT project name.
 | `.uatu/config/architecture.md` | Tech stack (auto-generated) |
 | `.uatu/config/constitution.md` | AI behavior principles |
 | `.uatu/config/prompt-templates.md` | Copy-paste prompt starters |
-| `.claude/rules/uatu-core.md` | Framework behavior rules (auto-loaded) |
+| `.uatu/templates/jira/*.md` | Jira issue templates (epic, story, task, bug, subtask) |
+| `.claude/rules/uatu-core.md` | Framework behavior rules + model routing (auto-loaded) |
 
 ---
 

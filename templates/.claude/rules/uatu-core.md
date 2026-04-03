@@ -12,8 +12,9 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 | `/orchestrate` | Smart multi-agent execution | `/orchestrate "add notifications" --tdd --jira ORI-240` |
 | `/pre-flight-check` | Pre-merge gate: review + verify + security | `/pre-flight-check` |
 | `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342`, `/pr --respond 338` |
-| `/plan-work` | Create Jira cards (Epic/Story/Subtask) | `/plan-work "password reset feature"` |
-| `/prompt-rewrite` | Rewrite a prompt with proper structure | `/prompt-rewrite "fix the login thing"` |
+| `/plan-work` | Create Jira cards (Epic/Story/Task/Bug/Subtask + Components) | `/plan-work "password reset feature"` |
+| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the login thing"` |
+| `/prompt-analyzer` | Session effectiveness + prompt quality dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
 **Orchestrate flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
@@ -157,3 +158,18 @@ Key agents: `coder`, `tester`, `reviewer`, `planner`, `researcher`, `debugger`, 
 
 Full catalog: `.uatu/guides/AGENTS-GUIDE.md`
 Quick reference: `.uatu/QUICKSTART.md`
+
+---
+
+## Model Routing (Cost Optimization)
+
+When spawning subagents, use the `model` parameter to route to the right tier.
+Subagents inherit the parent model if not specified — always set it explicitly.
+
+| Tier | Model | Use For |
+|------|-------|---------|
+| **Planning** | `opus` | Architecture, decomposition, spec writing, security audit, complex debugging |
+| **Execution** | `sonnet` | Code generation, test writing, file operations, research, reviews |
+| **Simple** | `haiku` | Status checks, formatting, simple lookups |
+
+**Default to `sonnet`** for 80% of subagent calls. Reserve `opus` for tasks requiring multi-file reasoning or high-stakes judgment. Sonnet delivers 98.5% of Opus quality on coding tasks at 40% lower cost.

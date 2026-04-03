@@ -17,7 +17,7 @@ Run all three checks and present a consolidated report. This is the quality gate
 Spawn a reviewer agent:
 
 ```
-Agent(subagent_type="reviewer", prompt="Stage 1: SPEC ALIGNMENT REVIEW.
+Agent(subagent_type="reviewer", model="opus", prompt="Stage 1: SPEC ALIGNMENT REVIEW.
 
 Run git diff HEAD to see all uncommitted changes. Check for spec context:
 1. .uatu/delivery/ — tasks.md, spec.md, plan.md
@@ -37,7 +37,7 @@ Verdict: PASS or FAIL with specific gaps.")
 ### Stage 2 — Code Quality Review (only if Stage 1 passes)
 
 ```
-Agent(subagent_type="reviewer", prompt="Stage 2: CODE QUALITY REVIEW.
+Agent(subagent_type="reviewer", model="sonnet", prompt="Stage 2: CODE QUALITY REVIEW.
 
 Run git diff HEAD. Check:
 CRITICAL: hardcoded secrets, SQL/XSS injection, missing auth
@@ -65,7 +65,7 @@ Run automated checks:
 Only if changes touch auth, payment, credential, session, token, or encryption files:
 
 ```
-Agent(subagent_type="security-auditor", prompt="Scan the uncommitted changes for:
+Agent(subagent_type="security-auditor", model="opus", prompt="Scan the uncommitted changes for:
 1. Secrets in code (API keys, tokens, passwords)
 2. Input validation gaps (injection vectors)
 3. Auth/session issues

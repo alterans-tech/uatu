@@ -86,6 +86,16 @@ def score_prompt(text):
     Each signal is counted in exactly one dimension (no double-counting).
     Base score = 1 for all dimensions, giving a dynamic range of 1.0-9.0+.
     """
+    # Strip command prefix for instructional commands so we score the content
+    _instructional_prefixes = [
+        "/prompt-rewrite", "/plan-work", "/orchestrate",
+        "/speckit.specify", "/speckit.clarify",
+    ]
+    for prefix in _instructional_prefixes:
+        if text.lower().strip().startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+
     scores = {}
     t = text.lower().strip()
     words = t.split()
@@ -290,8 +300,24 @@ def classify_prompt_type(text):
     if t in execution_phrases or (wc <= 4 and any(t.startswith(p) for p in execution_phrases)):
         return "execution"
 
-    # Slash commands and shell commands — user is using tools, not writing prose
+    # Slash commands and shell commands — user is using tools, not writing prose.
+    # EXCEPTION: commands that contain real instructional content after the prefix
+    # should be scored, not exempted. Strip the command prefix and score the content.
     if any(t.startswith(p) for p in ["/", "!"]):
+        # Commands with instructional content — score the CONTENT, not the prefix
+        # /prompt-rewrite is exempt — it's a tool input, the rewrite is the real prompt.
+        # The other commands contain real instructional content worth scoring.
+        instructional_commands = [
+            "/plan-work", "/orchestrate",
+            "/speckit.specify", "/speckit.clarify",
+        ]
+        for cmd in instructional_commands:
+            if t.startswith(cmd.lower()):
+                # Extract the content after the command name
+                content = text[len(cmd):].strip()
+                if content and len(content.split()) >= 3:
+                    return "instructional-command"  # scored, not exempt
+                break
         return "command"
 
     # Acknowledgments — social/conversational, not instructional
@@ -880,6 +906,58 @@ def print_outcome_report(correlated, correlations):
               f" when ≤ {dim_mean:.0f}.")
     else:
         print("  No strong dimension-friction correlation found in current data.")
+
+
+# ─── Session Effectiveness Score ─────────────────────────────────────────────
+# Combines prompt quality (our scorer) with session outcomes (/insights data)
+# into a single metric that rewards both good prompts AND good results.
+#
+# Formula: Session Score = (Prompt Quality × 0.3) + (Outcome × 0.4) + (Efficiency × 0.3)
+# - Prompt Quality: mean composite of initiating prompts (scaled to 0-10)
+# - Outcome: /insights outcome (fully=10, mostly=7, partially=4, not=1)
+# - Efficiency: outcome relative to friction: 10 × outcome_score / (1 + friction)
+
+OUTCOME_TO_10 = {
+    "fully_achieved": 10,
+    "mostly_achieved": 7,
+    "partially_achieved": 4,
+    "not_achieved": 1,
+}
+
+
+def compute_session_scores(correlated):
+    """Compute Session Effectiveness Score for each linked session.
+
+    Returns list of dicts with session_id, session_score, and components.
+    """
+    scored_sessions = []
+    for c in correlated:
+        outcome = c.get("outcome", "unknown")
+        outcome_10 = OUTCOME_TO_10.get(outcome)
+        if outcome_10 is None:
+            continue
+
+        prompt_quality = c["prompt_mean"]  # already 1-10 scale
+        friction = c["total_friction"]
+        efficiency = 10 * (outcome_10 / 10) / (1 + friction)
+        efficiency = min(efficiency, 10)  # cap at 10
+
+        session_score = (prompt_quality * 0.3) + (outcome_10 * 0.4) + (efficiency * 0.3)
+
+        scored_sessions.append({
+            "session_id": c["session_id"],
+            "session_score": session_score,
+            "prompt_quality": prompt_quality,
+            "outcome_score": outcome_10,
+            "efficiency": efficiency,
+            "outcome": outcome,
+            "friction": friction,
+            "helpfulness": c.get("helpfulness", "unknown"),
+            "goal": c.get("goal", ""),
+            "summary": c.get("summary", ""),
+        })
+
+    return scored_sessions
 
 
 def main():

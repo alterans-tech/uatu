@@ -96,7 +96,8 @@ uatu/
 | `/pre-flight-check` | Pre-merge gate: review + verify + security |
 | `/pr` | Open, review, or respond to PRs (--review, --respond, --draft, --jira) |
 | `/plan-work` | Create Jira cards (Epic/Story/Subtask) |
-| `/prompt-rewrite` | Rewrite a prompt with proper structure |
+| `/prompt-rewrite` | Rewrite a prompt + Quick Version for /orchestrate |
+| `/prompt-analyzer` | Session effectiveness dashboard + prompt dimensions |
 | `/time-report` | Time tracking across projects |
 
 **Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, taskstoissues, complete

@@ -80,10 +80,10 @@ Flags work with ANY detected workflow. Examples:
 Spawn 4 researchers in ONE message:
 
 ```
-Agent(subagent_type="researcher", name="stack", prompt="What libraries/tools does this project use? Check package files.", run_in_background=true)
-Agent(subagent_type="researcher", name="feature", prompt="How do similar features work in this codebase?", run_in_background=true)
-Agent(subagent_type="researcher", name="architecture", prompt="Where should this hook into existing architecture?", run_in_background=true)
-Agent(subagent_type="researcher", name="pitfalls", prompt="What could go wrong? Edge cases, rate limits, known issues?", run_in_background=true)
+Agent(subagent_type="researcher", name="stack", prompt="What libraries/tools does this project use? Check package files.", model="sonnet", run_in_background=true)
+Agent(subagent_type="researcher", name="feature", prompt="How do similar features work in this codebase?", model="sonnet", run_in_background=true)
+Agent(subagent_type="researcher", name="architecture", prompt="Where should this hook into existing architecture?", model="sonnet", run_in_background=true)
+Agent(subagent_type="researcher", name="pitfalls", prompt="What could go wrong? Edge cases, rate limits, known issues?", model="sonnet", run_in_background=true)
 ```
 
 Compress each output to ~500-token brief.
@@ -93,7 +93,7 @@ Compress each output to ~500-token brief.
 Spawn planner with research briefs:
 
 ```
-Agent(subagent_type="planner", prompt="Create implementation plan for: $ARGUMENTS. Research context: [briefs]. Break into tasks with dependencies, verify criteria, and file targets.")
+Agent(subagent_type="planner", model="opus", prompt="Create implementation plan for: $ARGUMENTS. Research context: [briefs]. Break into tasks with dependencies, verify criteria, and file targets.")
 ```
 
 **Validate the plan:** Check all tasks have verify criteria, dependencies are mapped, referenced files exist. If validation fails, regenerate (max 3 tries).
@@ -104,7 +104,7 @@ Agent(subagent_type="planner", prompt="Create implementation plan for: $ARGUMENT
 
 Group tasks by dependency level into waves. Execute each wave:
 
-1. Spawn ALL agents in the wave in ONE message with `isolation="worktree"`, `run_in_background=true`
+1. Spawn ALL agents in the wave in ONE message with `model="sonnet"`, `isolation="worktree"`, `run_in_background=true`
 2. If `--tdd`: each agent's prompt includes "Write a failing test FIRST, then implement minimal code to pass"
 3. If `--scope`: each agent's prompt includes "ONLY modify files within: [scope list]"
 4. Wait for all agents to complete
@@ -168,7 +168,7 @@ Automatic 4-phase debugging:
 ### Phase 1 — Architecture Review
 
 ```
-Agent(subagent_type="architect-review", prompt="Analyze current code for: $ARGUMENTS. Produce target architecture: module boundaries, dependency directions, interface contracts, migration sequence.")
+Agent(subagent_type="architect-review", model="opus", prompt="Analyze current code for: $ARGUMENTS. Produce target architecture: module boundaries, dependency directions, interface contracts, migration sequence.")
 ```
 
 **If `--dry-run`:** Show architecture plan and STOP.
@@ -195,19 +195,19 @@ If `--verify`: run tests between each refactoring step.
 ### Phase 1 — Audit
 
 ```
-Agent(subagent_type="security-auditor", prompt="Full security audit: secrets detection, input validation, auth/authz, dependency vulnerabilities, config security. Grade A-F with file:line references.")
+Agent(subagent_type="security-auditor", model="opus", prompt="Full security audit: secrets detection, input validation, auth/authz, dependency vulnerabilities, config security. Grade A-F with file:line references.")
 ```
 
 ### Phase 2 — Review
 
 ```
-Agent(subagent_type="reviewer", prompt="Review security findings. Validate fix recommendations. Flag incomplete remediation.")
+Agent(subagent_type="reviewer", model="sonnet", prompt="Review security findings. Validate fix recommendations. Flag incomplete remediation.")
 ```
 
 ### Phase 3 — Architecture Check
 
 ```
-Agent(subagent_type="architect-review", prompt="Verify proposed security fixes don't introduce architectural regressions or new attack surfaces.")
+Agent(subagent_type="architect-review", model="opus", prompt="Verify proposed security fixes don't introduce architectural regressions or new attack surfaces.")
 ```
 
 ---

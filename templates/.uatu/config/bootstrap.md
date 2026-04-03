@@ -38,7 +38,8 @@ Can you give each agent everything it needs before it starts?
 | Pre-merge gate | `/pre-flight-check` |
 | Open / review / respond to PRs | `/pr`, `/pr --review N`, `/pr --respond N` |
 | Create Jira cards | `/plan-work "description"` |
-| Improve a prompt | `/prompt-rewrite "draft"` |
+| Rewrite + Quick Version | `/prompt-rewrite "draft"` |
+| Session effectiveness dashboard | `/prompt-analyzer --compare YYYY-MM-DD` |
 | Time tracking | `/time-report --week` |
 | Spec-driven workflow | `/speckit.specify`, `.plan`, `.tasks`, `.implement` |
 

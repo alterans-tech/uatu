@@ -34,7 +34,8 @@ AI orchestration framework for Claude Code.
 | `/review-pr` | Review someone else's PR | `/review-pr 234` |
 | `/self-review` | Handle review comments on your PR | `/self-review 234` |
 | `/plan-work` | Create Jira cards (Epic/Story/Subtask) | `/plan-work "password reset"` |
-| `/prompt-rewrite` | Rewrite a prompt with structure | `/prompt-rewrite "fix the thing"` |
+| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the thing"` |
+| `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
 **Orchestrate flags:** `--tdd` (test-first), `--e2e` (Playwright), `--review` (two-stage review)

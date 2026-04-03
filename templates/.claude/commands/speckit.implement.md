@@ -112,7 +112,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **3+ tasks**: Spawn the orchestrator-task agent NOW and let it handle parallel execution:
 
      ```
-     Agent(subagent_type="orchestrator-task", prompt="Execute these implementation tasks from <path to tasks.md>. Plan: <path to plan.md>. Respect task dependencies and parallel markers [P]. Read .uatu/config/project.md for conventions. Mark each task as [X] in tasks.md when complete.")
+     Agent(subagent_type="orchestrator-task", model="sonnet", prompt="Execute these implementation tasks from <path to tasks.md>. Plan: <path to plan.md>. Respect task dependencies and parallel markers [P]. Read .uatu/config/project.md for conventions. Mark each task as [X] in tasks.md when complete.")
      ```
 
      After the orchestrator completes, skip to step 9 (completion validation).

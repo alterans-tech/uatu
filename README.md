@@ -264,36 +264,31 @@ Also handles Bugs (symptom as title), Spikes (time-boxed investigation), and Tec
 
 ### `/prompt-rewrite`
 
-Rewrite a draft prompt with proper structure. Uses Sequential Thinking to analyze each dimension before rewriting.
+Rewrite a draft prompt with structure, file references, constraints, and success criteria.
 
 ```
 /prompt-rewrite "fix the login bug it broke after the last deploy"
 ```
 
 **What you get:**
+- **Original** — your draft with score
+- **Rewritten** — full structured version (headers, file refs, constraints, done-when)
+- **Next Step** — suggested command or "say go" based on task complexity
+
+**Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting — Claude already has the context.
+
+### `/prompt-analyzer`
+
+Session effectiveness dashboard combining prompt quality with `/insights` outcome data.
+
 ```
-## Original (Score: 2/10)
-fix the login bug it broke after the last deploy
-
-## Rewritten (Score: 8/10)
-Problem: Login is broken after the last deploy.
-
-Evidence: [what error do you see? paste error message or logs]
-
-Files:
-- src/auth/login.ts
-- src/middleware/session.ts
-
-Action: Diagnose first — do NOT fix yet.
-
-Done when: Root cause identified with evidence pointing to specific file and line.
-
-## What Changed
-- Added: structure (sections), file references, success criteria, constraints
-- Score improvement: 2 → 8 (+6 points)
+/prompt-analyzer                          # full dashboard
+/prompt-analyzer --compare 2026-03-31     # before/after comparison
+/prompt-analyzer --since 2026-03-31       # recent only
+/prompt-analyzer --brief                  # one-page summary
 ```
 
-Not scored by the prompt quality hook — `/prompt-rewrite` and all slash commands are excluded from scoring.
+**Headline metric:** Session Effectiveness Score = (Prompt Quality × 0.3) + (Outcome × 0.4) + (Efficiency × 0.3)
 
 ---
 
@@ -478,23 +473,36 @@ All checked during `uatu-setup` and `uatu-install`. Installation blocks if any a
 | **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` when needed |
 | **HIVE** | Work spans multiple sessions (experimental) | Manual setup with memory persistence |
 
+### Model Routing (Cost Optimization)
+
+Commands automatically route subagents to the right model tier:
+
+| Tier | Model | Cost | Use For |
+|------|-------|------|---------|
+| **Planning** | Opus | $25/MTok out | Architecture, decomposition, security audit |
+| **Execution** | Sonnet | $15/MTok out | Code generation, tests, file operations (80% of calls) |
+| **Simple** | Haiku | $5/MTok out | Status checks, formatting, lookups |
+
+Subagents inherit the parent model by default. Uatu commands explicitly set `model="sonnet"` on execution agents and `model="opus"` on planning agents, saving ~37% vs all-Opus.
+
 ### Project Structure (After Install)
 
 ```
 your-project/
 ├── .claude/
-│   ├── rules/uatu-core.md          # Behavioral rules (auto-loaded)
+│   ├── rules/uatu-core.md          # Behavioral rules + model routing (auto-loaded)
 │   ├── rules/typescript.md          # Language rules (auto-loaded)
 │   ├── commands/                    # 7 slash commands + speckit
 │   └── skills/                      # 20 auto-triggered skills
 ├── .uatu/
-│   ├── QUICKSTART.md                # User manual (this reference)
+│   ├── QUICKSTART.md                # User manual
 │   ├── UATU.md                      # Framework overview
 │   ├── config/
 │   │   ├── project.md               # Project settings, Jira key
 │   │   ├── architecture.md          # Tech stack (auto-generated)
 │   │   ├── constitution.md          # AI behavior principles
 │   │   └── prompt-templates.md      # Copy-paste prompt starters
+│   ├── templates/jira/              # Issue templates (epic, story, task, bug, subtask)
 │   ├── hooks/                       # Lifecycle hooks
 │   ├── guides/                      # Reference documentation
 │   ├── tools/                       # Utilities (time tracking, etc.)
@@ -509,7 +517,7 @@ your-project/
 
 | Component | Count |
 |-----------|-------|
-| Commands | 7 + 10 speckit |
+| Commands | 8 + 10 speckit |
 | Agents | 53 across 8 categories |
 | Skills | 20 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |
