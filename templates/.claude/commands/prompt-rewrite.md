@@ -17,6 +17,7 @@ $ARGUMENTS
 - Thought 3: What files, context, and constraints are implied but missing?
 - Thought 4: What's the best structure for this type of request?
 - Thought 5: Write the rewritten prompt with all dimensions addressed
+- Thought 6: Which execution path is best? Consider: task complexity, number of files, risk level, Jira tracking, research needs
 
 **THEN** output the rewrite following this EXACT format.
 
@@ -49,32 +50,49 @@ Present EXACTLY this structure:
 
 [full structured rewrite with all 5 dimensions addressed — headers, bullets, file refs, constraints, done-when]
 
-### Next Step
+### Recommended: `[keyword]`
 
-[Pick ONE based on task complexity. Evaluate each case — not every task needs a command.]
+[One sentence explaining WHY this path fits this specific task.]
 
-**Simple task** (single file, quick fix):
-> Say **"go"** to execute directly.
+| Option | What happens |
+|--------|-------------|
+| `go` | Execute directly in this session |
+| `plan` | Enter plan mode — see execution plan before any changes |
+| `orch` | Run `/orchestrate` with parallel agents |
+| `plan-work` | Create Jira cards, then execute |
+| `plan-work` → `orch` | Create Jira cards, then `/orchestrate --jira [KEY]` with parallel agents |
+| `spec` | Start `/speckit.specify` pipeline for requirements |
+| `spec` → `orch` | Spec pipeline, then orchestrate the implementation |
 
-**Multi-file task** (needs research + parallel agents):
-> Say **"go"** or run `/orchestrate` to use parallel agents.
-
-**Jira-tracked task** (needs cards + execution):
-> 1. Run `/plan-work` to create Jira cards from the rewrite above
-> 2. After cards are approved, run `/orchestrate --jira [KEY]`
-
-**Research or spec work:**
-> Run `/speckit.specify` to start the spec pipeline.
+Bold the recommended row with ← recommended marker.
 
 ---
 
+## Recommendation Logic (Thought 6)
+
+Evaluate the task and pick ONE recommendation. Combinations are valid when a task benefits from multiple stages.
+
+| Condition | Recommend | Why |
+|-----------|-----------|-----|
+| 1 file, clear fix, low risk | `go` | No overhead needed |
+| 2-3 files, or risky changes (auth, payments, migrations, deploy) | `plan` | Validate approach before touching files |
+| 4+ files, needs research, complex | `orch` | Parallel agents + research phase |
+| Should be in Jira, part of sprint | `plan-work` | Creates cards for tracking |
+| Jira-tracked AND complex (4+ files) | `plan-work` → `orch` | Cards first, then parallel execution |
+| New feature, unclear requirements | `spec` | Needs spec before implementation |
+| New feature AND complex implementation | `spec` → `orch` | Spec first, then parallel execution |
+| Refactoring across many files | `orch` | Wave execution prevents conflicts |
+| Investigation or research only | `go` | No files to change |
+| Question or explanation | Skip Recommended section | Nothing to execute |
+
 ## Rules
 
-- Show ONLY ONE next step — the one that fits the task
+- Always show the FULL options table — user can pick any option
+- Bold the recommended row with ← recommended
+- Include ONE sentence explaining why BEFORE the table
+- Combinations (→) are first-class options, not afterthoughts
 - Do NOT show "What Changed" — the score delta in the headers is enough
-- Do NOT ask the user to copy-paste the rewrite — Claude already has the full context
-- Slash commands go on their own line, never embedded mid-sentence
-- If the task is a question or investigation, skip the Next Step
-- Evaluate case by case — not every task needs `/orchestrate` or `/plan-work`
+- Do NOT ask the user to copy-paste — Claude already has context
+- If the task is a question, skip the Recommended section entirely
 
 **Reference templates at:** `.uatu/config/prompt-templates.md`
