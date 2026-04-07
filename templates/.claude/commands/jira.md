@@ -119,7 +119,18 @@ Before creating anything, validate the hierarchy:
 
 If any check fails, fix it before presenting to the user.
 
-### Step 6 — Present for Approval
+### Step 6 — Review (parallel agents)
+
+Before presenting to the user, spawn two reviewers in ONE message:
+
+```
+Agent(subagent_type="agile-specialist", model="sonnet", prompt="Review this Jira card hierarchy for agile quality. Check INVEST criteria, AC writing, One Truth Per Level, and story splitting. Report Pass/Fix for each issue.\n\n[paste full hierarchy draft]")
+Agent(subagent_type="jira-specialist", model="sonnet", prompt="Review this Jira card hierarchy for Jira conventions. Check issue types, labels, field usage, title conventions, and sub-task self-containment. Report Pass/Fix for each issue.\n\n[paste full hierarchy draft]")
+```
+
+Apply all fixes from both reviewers before presenting. If reviewers disagree, prefer the agile-specialist on methodology and jira-specialist on Jira-specific conventions.
+
+### Step 7 — Present for Approval
 
 Show the full hierarchy with Label assignments:
 
@@ -147,7 +158,7 @@ Epic: Password Reset Feature
 
 Wait for user approval before creating in Jira.
 
-### Step 7 — Create in Jira
+### Step 8 — Create in Jira
 
 After user approves:
 

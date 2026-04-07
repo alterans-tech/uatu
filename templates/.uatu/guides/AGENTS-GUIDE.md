@@ -273,6 +273,8 @@ Deterministic agent selection based on file patterns and task keywords. Use this
 | "UI", "component", "layout", "responsive" | `frontend-developer` | SOLO |
 | "database", "query", "migration", "schema" | `database-expert` | SOLO |
 | "auth", "payment", "credential", "encrypt" | `security-auditor` | SOLO + plan mode |
+| "prompt", "system prompt", "chain-of-thought", "few-shot" | `prompt-engineer` | SOLO |
+| "LLM", "RAG", "embeddings", "fine-tune", "inference", "AI system" | `llm-architect` | SOLO |
 | "multi-file", "refactor all", "migrate" | `orchestrator-task` | SOLO (swarm) |
 | "coordinate", "negotiate", "co-design" | `/orch` (auto-detects SQUAD) | SQUAD |
 

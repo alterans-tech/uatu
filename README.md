@@ -277,19 +277,6 @@ Rewrite a draft prompt with structure, file references, constraints, and success
 
 **Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting — Claude already has the context.
 
-### `/prompt-analyzer`
-
-Session effectiveness dashboard combining prompt quality with `/insights` outcome data.
-
-```
-/prompt-analyzer                          # full dashboard
-/prompt-analyzer --compare 2026-03-31     # before/after comparison
-/prompt-analyzer --since 2026-03-31       # recent only
-/prompt-analyzer --brief                  # one-page summary
-```
-
-**Headline metric:** Session Effectiveness Score = (Prompt Quality × 0.3) + (Outcome × 0.4) + (Efficiency × 0.3)
-
 ---
 
 ### `/time-report`

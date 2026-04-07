@@ -8,11 +8,9 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
 | `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd --jira ORI-240` |
 | `/jira` | Create Jira cards (Epic/Story/Task/Bug/Subtask) | `/jira "password reset feature"` |
 | `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
-| `/prompt-analyzer` | Session effectiveness + prompt quality dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
 **Orch flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
@@ -31,7 +29,7 @@ Use `mcp__sequential-thinking__sequentialthinking` for structured reasoning.
 - Any task where the first approach might be wrong
 
 **Skip when:**
-- Simple data gathering (`/status`, `/time-report`)
+- Simple data gathering (`/time-report`)
 - `/frame` — uses sonnet only, no sequential thinking
 - Clear single-file tasks
 
@@ -86,7 +84,7 @@ When the user describes a bug, error, or broken behavior, automatically use:
 
 ### Code Review → Two-Stage
 
-When the user asks to review code (not via `/review-pr` or `/pre-flight-check`):
+When the user asks to review code:
 
 1. **Stage 1 — Spec alignment:** Does the code match the task/spec/PR description?
 2. **Stage 2 — Quality:** Security, error handling, naming, tests (only if Stage 1 passes)
@@ -132,7 +130,7 @@ After significant code changes, suggest updating relevant docs. Don't do it auto
 - Never mark work complete without running relevant tests
 - After completing implementation, suggest an atomic git commit
 - When modifying auth/payment/security files, mention security implications
-- Before merge, always suggest `/pre-flight-check`
+- Before merge, run build + type check + lint + tests and report results
 
 ---
 

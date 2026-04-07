@@ -72,9 +72,9 @@ uatu/
 │   │   ├── hooks/                # 17 active hooks
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── commands/             # 13 active + 4 archived
-│       ├── skills/               # 21 skills
-│       └── agents/               # 53 agents across 10 categories
+│       ├── commands/             # 13 active + 3 archived
+│       ├── skills/               # 20 skills
+│       └── agents/               # 25 agents across 7 categories
 └── README.md                     # User documentation
 ```
 
@@ -100,7 +100,7 @@ uatu/
 | `/jira` | Create Jira cards (Epic/Story/Subtask) |
 | `/time-report` | Time tracking across projects |
 
-**Archived** (in `commands/archive/`): status, pr, pre-flight-check, prompt-analyzer
+**Archived** (in `commands/archive/`): status, pr, pre-flight-check
 
 **Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, complete
 
@@ -160,19 +160,16 @@ uatu/
 | update-jira.sh | Stop | Update Jira status |
 | desktop-notification.sh | Stop | macOS notification (strict profile) |
 
-### Agents (53 across 10 categories)
-| Category | Count | Key Agents |
-|----------|-------|------------|
-| core | 12 | coder, tester, reviewer, planner, researcher, orchestrator-task |
-| languages | 7 | typescript-pro, python-pro, golang-pro, rust-pro, java-pro |
-| infrastructure | 6 | cloud-architect, kubernetes-architect, terraform-specialist |
-| specialized | 5 | jira-specialist, api-documenter, docs-architect |
-| quality | 5 | debugger, security-auditor, performance-engineer |
-| github | 5 | pr-manager, issue-tracker, release-manager |
-| firebase | 4 | auth, firestore, functions, hosting |
-| data | 4 | database-expert, ml-engineer, llm-architect, data-engineer |
-| build-resolvers | 3 | typescript-build-resolver, python-build-resolver, golang-build-resolver |
-| testing | 2 | tdd-london-swarm, production-validator |
+### Agents (25 — minimal set, 7 categories)
+| Category | Count | Agents |
+|----------|-------|--------|
+| core | 11 | coder, tester, reviewer, code-reviewer, planner, researcher, debugger, architect-review, backend-architect, fullstack-developer, orchestrator-task |
+| languages | 2 | golang-pro, python-pro |
+| infrastructure | 2 | cloud-architect, deployment-engineer |
+| specialized | 5 | jira-specialist, agile-specialist, mermaid-diagrammer, docs-architect, prompt-engineer |
+| quality | 1 | security-auditor |
+| data | 2 | database-expert, llm-architect |
+| ui | 2 | frontend-developer, ui-ux-designer |
 
 ### Packages (4)
 | Package | Layer | Use Case |
@@ -310,9 +307,9 @@ chore: maintenance
 
 ## Current Stats
 
-- **53 agents** across 10 categories
-- **13 commands** (4 core + 9 speckit.*) — 4 archived (status, pr, pre-flight-check, prompt-analyzer)
-- **21 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
+- **25 agents** across 7 categories
+- **13 commands** (4 core + 9 speckit.*) — 3 archived (status, pr, pre-flight-check)
+- **20 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
 - **17 active hooks**
 - **5 rules** (uatu-core + 4 language rules)

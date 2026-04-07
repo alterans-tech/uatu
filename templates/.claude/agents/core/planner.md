@@ -3,7 +3,7 @@ name: planner
 type: coordinator
 color: "#4ECDC4"
 description: Strategic planning and task orchestration agent
-model: sonnet
+model: opus
 capabilities:
   - task_decomposition
   - dependency_analysis
