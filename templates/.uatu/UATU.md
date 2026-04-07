@@ -24,15 +24,13 @@ AI orchestration framework for Claude Code.
 
 ---
 
-## Commands (6 + Speckit)
+## Commands (3 core + Speckit)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
-| `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
 | `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd` |
-| `/jira` | Create Jira cards (Epic/Story/Subtask) | `/jira "password reset"` |
 | `/frame` | Organize + sharpen a draft prompt | `/frame "fix the thing"` |
-| `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
+| `/jira` | Create Jira cards (Epic/Story/Subtask) | `/jira "password reset"` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
 **Orch flags:** `--tdd` (test-first), `--e2e` (Playwright), `--review` (two-stage review), `--dry-run` (plan first), `--verify` (test between waves), `--scope` (constrain paths), `--no-commit` (manual commit), `--jira` (Jira link)

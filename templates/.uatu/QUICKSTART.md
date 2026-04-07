@@ -10,7 +10,6 @@
 | `/orch` | Multi-file work, features, bugs, refactors | `/orch "add notifications" --tdd` |
 | `/jira` | Create Jira cards with proper hierarchy | `/jira "password reset"` |
 | `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
-| `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking | `/time-report --all --week` |
 
 ---
@@ -335,11 +334,6 @@ All issues get domain **Labels** (lowercase kebab-case: `authentication`, `api`,
 **Plan sprint work:**
 ```
 /jira "users need document sharing with permissions"
-```
-
-**Check your prompting:**
-```
-/prompt-analyzer
 ```
 
 ---
