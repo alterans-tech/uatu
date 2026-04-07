@@ -96,7 +96,7 @@ MISSING=$(echo "$MISSING" | sed 's/, $//')
 
 # Only inject coaching for low scores on prompts with enough words to improve
 if [ "$SCORE" -le 3 ] && [ "$WORD_COUNT" -gt 12 ]; then
-  CONTEXT="Prompt quality: ${SCORE}/5. Consider adding: ${MISSING}. Run /prompt-rewrite to restructure, or add the missing elements before proceeding."
+  CONTEXT="Prompt quality: ${SCORE}/5. Consider adding: ${MISSING}. Run /prw to restructure, or add the missing elements before proceeding."
   echo "{\"additionalContext\": $(echo "$CONTEXT" | jq -Rs .), \"error\": null}"
 else
   echo '{"additionalContext": "", "error": null}'

@@ -56,7 +56,7 @@ Thought 4: Which package fits? (SOLO/SQUAD/HIVE/WATCHER)
 Thought 5: What's my execution plan? (Concrete steps)
 ```
 
-**Sequential Thinking is PRE-PACKAGE** — use it before any package is selected. It helps you choose the right approach. Mandatory for `/prompt-rewrite` and `/plan-work`, recommended for complex `/orchestrate` tasks.
+**Sequential Thinking is PRE-PACKAGE** — use it before any package is selected. It helps you choose the right approach. Mandatory for `/frame` and `/jira`, recommended for complex `/orch` tasks.
 
 Then set `nextThoughtNeeded: false` and execute.
 
@@ -73,6 +73,7 @@ Use Sequential Thinking to decide:
 | Multi-file, needs coordination | **SQUAD** |
 | Multi-phase, needs cross-session persistence | **HIVE** |
 | Self-learning, background, neural | **WATCHER** |
+| Risky/irreversible, want step-by-step control | **Plan mode** (toggle `/plan`, then execute as SOLO) |
 
 ---
 

@@ -313,7 +313,7 @@ Commands in a `"hooks"` array run in order. To run different hooks based on tool
 
 ## Uatu-Provided Hooks
 
-Uatu includes 8 pre-built hooks:
+Uatu includes 17 active hooks:
 
 ### 1. load-project-context.sh
 
@@ -342,7 +342,7 @@ Uatu includes 8 pre-built hooks:
 - Scores prompts against 5 research-backed dimensions: intent, context, specificity, scope, verifiability
 - Exempt categories excluded from scoring: slash commands, execution confirmations, follow-ups, continuations, corrections, acknowledgments
 - Low-scoring prompts (≤3/5 on prompts >12 words) get improvement suggestions
-- References `.uatu/config/prompt-templates.md` for templates and `/prompt-rewrite` for restructuring
+- References `.uatu/config/prompt-templates.md` for templates and `/frame` for restructuring
 
 **Required:** Recommended (standard profile)
 
@@ -785,7 +785,7 @@ echo "DEBUG: $(date) - Event: $EVENT" >> /tmp/hook-debug.log
 
 **Check 1: Enabled in config**
 ```bash
-cat .claude/hooks.json | jq '.hooks[] | select(.event=="SessionStart")'
+cat .claude/settings.json | jq '.hooks.SessionStart'
 ```
 
 **Check 2: Executable permissions**
@@ -836,7 +836,7 @@ chmod +x .uatu/hooks/session-start/my-hook.sh
 
 3. **Test manually:**
 ```bash
-echo '{"event":"SessionStart","workingDirectory":"'$(pwd)'"}' | \
+echo '{"hook_event_name":"SessionStart","working_directory":"'$(pwd)'"}' | \
     .uatu/hooks/my-hook.sh
 ```
 
@@ -936,16 +936,21 @@ Same-event hooks chain in order:
 
 ```json
 {
-  "event": "SessionStart",
-  "scripts": [
-    {"path": "hooks/1-setup.sh"},      // Runs first
-    {"path": "hooks/2-verify.sh"},     // Runs second
-    {"path": "hooks/3-display.sh"}     // Runs third
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "hooks/1-setup.sh" },
+          { "type": "command", "command": "hooks/2-verify.sh" },
+          { "type": "command", "command": "hooks/3-display.sh" }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-If any hook returns `error`, chain stops.
+If any hook returns a non-null `error`, chain stops.
 
 ---
 

@@ -8,14 +8,14 @@
 
 ## Quick Start
 
-**90% of tasks are SOLO.** Use `/orchestrate` for independent parallel work (hub-and-spoke).
+**90% of tasks are SOLO.** Use `/orch` for independent parallel work (hub-and-spoke).
 
-For the 10% where agents need to discover and share information mid-task, `/orchestrate` auto-detects and escalates to SQUAD coordination:
+For the 10% where agents need to discover and share information mid-task, `/orch` auto-detects and escalates to SQUAD coordination:
 
 ```
-/orchestrate "Refactor all services to use new error pattern"          → SOLO (independent work)
-/orchestrate "Add user authentication with JWT"                        → SOLO (sequential chain)
-/orchestrate "Frontend + backend co-design the new API contract"       → SQUAD (auto-detected: agents negotiate mid-task)
+/orch "Refactor all services to use new error pattern"          → SOLO (independent work)
+/orch "Add user authentication with JWT"                        → SOLO (sequential chain)
+/orch "Frontend + backend co-design the new API contract"       → SQUAD (auto-detected: agents negotiate mid-task)
 ```
 
 **HIVE** (cross-session persistence) and **WATCHER** (neural learning) are experimental and require additional infrastructure setup. See sections below.
@@ -236,6 +236,15 @@ Agent(name="coder-3", ..., run_in_background=true)
 # All three start simultaneously
 ```
 
+### Plan Mode Warning
+
+Plan mode gates every `Agent()` call behind approval. In SQUAD/HIVE workflows that batch-spawn agents, this means:
+- Each agent in a parallel batch requires individual approval before starting
+- `run_in_background=true` agents still require approval before they launch
+- The autonomous pipeline breaks into manual step-by-step confirmation
+
+**Exit plan mode before running SQUAD/HIVE workflows.** Use `/orch --dry-run` if you want to review the plan first — it provides semantic-level approval (approve the plan, not each tool call), then runs the execution waves autonomously.
+
 ---
 
 ## Discovery Relay
@@ -396,7 +405,7 @@ For WATCHER setup, refer to Ruflo CLI documentation.
 
 ## Named Team Presets
 
-Pre-built agent compositions for common SQUAD use cases. Use these with `/orchestrate` (auto-detects SQUAD) or assemble manually.
+Pre-built agent compositions for common SQUAD use cases. Use these with `/orch` (auto-detects SQUAD) or assemble manually.
 
 ### Security Team
 ```

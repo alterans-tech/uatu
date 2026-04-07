@@ -7,7 +7,7 @@ These rules are auto-injected every session. Full docs: `.uatu/UATU.md` | Quick 
 ## Before Any Task
 
 1. Check `.claude/rules/uatu-core.md` — behavioral rules are auto-loaded
-2. For complex/multi-file tasks, use `/orchestrate` to spawn agents
+2. For complex/multi-file tasks, use `/orch` to spawn agents
 3. For complex or ambiguous tasks, consider **Sequential Thinking**
 
 ---
@@ -16,9 +16,10 @@ These rules are auto-injected every session. Full docs: `.uatu/UATU.md` | Quick 
 
 | Package | When | How |
 |---------|------|-----|
-| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
-| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` |
+| **SOLO** | Independent parallel work (90% of tasks) | `/orch` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orch` |
 | HIVE | SQUAD + cross-session persistence (experimental) | Manual setup |
+| WATCHER | HIVE + ruv-swarm DAA learning agents | Ruflo CLI |
 
 ```
 Can you give each agent everything it needs before it starts?
@@ -34,11 +35,9 @@ Can you give each agent everything it needs before it starts?
 | Task | Command |
 |------|---------|
 | Session recon | `/status` |
-| Multi-agent execution | `/orchestrate "description"` |
-| Pre-merge gate | `/pre-flight-check` |
-| Open / review / respond to PRs | `/pr`, `/pr --review N`, `/pr --respond N` |
-| Create Jira cards | `/plan-work "description"` |
-| Rewrite + Quick Version | `/prompt-rewrite "draft"` |
+| Multi-agent execution | `/orch "description"` |
+| Create Jira cards | `/jira "description"` |
+| Organize a prompt | `/frame "draft"` |
 | Session effectiveness dashboard | `/prompt-analyzer --compare YYYY-MM-DD` |
 | Time tracking | `/time-report --week` |
 | Spec-driven workflow | `/speckit.specify`, `.plan`, `.tasks`, `.implement` |

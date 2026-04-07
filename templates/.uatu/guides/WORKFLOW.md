@@ -73,10 +73,14 @@ rainbow-015-fix-RED-2700-cross-project
 ├── config/
 │   ├── project.md          # Project configuration
 │   └── constitution.md     # Project principles
-├── guides/                 # These reference docs
+├── guides/                 # 7 reference guides
 │   ├── WORKFLOW.md
 │   ├── SEQUENTIAL-THINKING.md
-│   └── SQUAD-GUIDE.md
+│   ├── SQUAD-GUIDE.md
+│   ├── AGENTS-GUIDE.md
+│   ├── TOOL-SELECTION.md
+│   ├── HOOKS.md
+│   └── WATCHER.md
 └── delivery/
     ├── research/           # General research (not task-specific)
     └── sprints/
@@ -264,7 +268,48 @@ Proceed? (yes/no)
 
 ---
 
-## 6. Worktree Workflow
+## 6. Execution Modes
+
+| Mode | When | How |
+|------|------|-----|
+| **Normal (Sonnet)** | Daily work, clear tasks, known codebase | Default — no toggle needed |
+| **Plan mode** | Risky changes, unfamiliar area, want to review approach | `/plan` to toggle on; Claude shows plan, you approve before any tool runs |
+| **Orchestrate** | Multi-file features, parallel research needed | `/orch "description"` — autonomous pipeline |
+| **Orchestrate --dry-run** | Multi-file but want to review the plan first | Research runs freely, plan shown, you approve before execution waves start |
+
+### Plan Mode vs --dry-run
+
+Both let you "see before doing." The difference:
+
+- **Plan mode**: Gates EVERY tool call. Good for manual, step-by-step control of direct (non-orchestrated) work.
+- **--dry-run**: Gates at the PLAN level. Research agents run freely, you approve the execution plan, then waves run autonomously.
+
+**Use plan mode for direct work. Use `--dry-run` for `/orch`.**
+
+### Decision Matrix
+
+| Scenario | Recommended Mode | Why |
+|----------|-----------------|-----|
+| Single file, clear fix | Normal (Sonnet) | No overhead needed |
+| Multi-file feature | `/orch` | Parallel agents, autonomous |
+| Multi-file, want to review plan first | `/orch --dry-run` | See plan, then autonomous execution |
+| Touching auth/payment/security/migration files | Plan mode | Step-by-step approval for risky changes |
+| First time in unfamiliar codebase area | Plan mode → then normal | Validate approach, then execute freely |
+| Quick data gathering (`/status`, `/time-report`) | Normal | Read-only, no risk |
+| Creating Jira cards (`/jira`) | Normal | Command has built-in approval gate |
+| PR review (`/pr --review`) | Normal | Read-only analysis |
+| Pre-merge check (archived) | Normal | Read-only quality gate; already has stage gates |
+
+### Mode Switching During Session
+
+Toggle plan mode with `/plan`. Typical pattern:
+1. Enter plan mode → review approach
+2. Approve the plan → exit plan mode
+3. Execute in normal mode (or hand off to `/orch`)
+
+---
+
+## 7. Worktree Workflow
 
 ### When to Use Worktrees
 
@@ -389,26 +434,6 @@ This maintains consistency and makes it clear these worktrees are related.
 
 ---
 
-## 7. Git Operations
-
-### Create Worktree
-```bash
-git worktree add {project}-{NNN}-{type}-{JIRA-KEY}-{description} -b {JIRA-KEY}/{description}
-```
-
-### Remove Worktree
-```bash
-git worktree remove {worktree-path}
-git branch -d {branch-name}  # if branch no longer needed
-```
-
-### List Worktrees
-```bash
-git worktree list
-```
-
----
-
 ## 8. Quick Reference
 
 | What | Format |
@@ -459,4 +484,4 @@ Attempt 2: Implement from clean state with refined plan → works
 
 ---
 
-*Mechanics reference v3.0*
+*Mechanics reference v3.1*

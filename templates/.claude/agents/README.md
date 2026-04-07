@@ -29,32 +29,19 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 .claude/agents/
 ├── README.md
 │
-├── core/                     # General development (11)
+├── core/                     # General development (12)
 │   ├── architect-review.md
 │   ├── backend-architect.md
 │   ├── coder.md
-│   ├── debugger.md
 │   ├── frontend-developer.md
 │   ├── fullstack-developer.md
 │   ├── microservices-architect.md
+│   ├── orchestrator-task.md
 │   ├── planner.md
-│   ├── refactoring-specialist.md
 │   ├── researcher.md
-│   └── reviewer.md
-│
-├── firebase/                 # Firebase platform (12)
-│   ├── firebase-analytics-specialist.md
-│   ├── firebase-appcheck-specialist.md
-│   ├── firebase-auth-specialist.md
-│   ├── firebase-crashlytics-specialist.md
-│   ├── firebase-firestore-specialist.md
-│   ├── firebase-functions-specialist.md
-│   ├── firebase-hosting-specialist.md
-│   ├── firebase-messaging-specialist.md
-│   ├── firebase-performance-specialist.md
-│   ├── firebase-remote-config-specialist.md
-│   ├── firebase-storage-specialist.md
-│   └── firebase-testlab-specialist.md
+│   ├── reviewer.md
+│   ├── tester.md
+│   └── ui-ux-designer.md
 │
 ├── languages/                # Language specialists (7)
 │   ├── flutter-pro.md
@@ -65,14 +52,6 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 │   ├── rust-pro.md
 │   └── typescript-pro.md
 │
-├── data/                     # Data & databases (6)
-│   ├── data-engineer.md
-│   ├── database-admin.md
-│   ├── database-optimizer.md
-│   ├── llm-architect.md
-│   ├── ml-engineer.md
-│   └── sql-pro.md
-│
 ├── infrastructure/           # Cloud & DevOps (6)
 │   ├── cloud-architect.md
 │   ├── deployment-engineer.md
@@ -81,17 +60,16 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 │   ├── sre-engineer.md
 │   └── terraform-specialist.md
 │
-├── specialized/              # Domain-specific (6)
-│   ├── agile-coach.md
+├── specialized/              # Domain-specific (5)
 │   ├── api-documenter.md
 │   ├── docs-architect.md
 │   ├── jira-specialist.md
 │   ├── prompt-engineer.md
-│   └── ui-ux-designer.md
+│   └── refactoring-specialist.md
 │
 ├── quality/                  # Testing & QA (5)
 │   ├── chaos-engineer.md
-│   ├── code-reviewer.md
+│   ├── debugger.md
 │   ├── performance-engineer.md
 │   ├── security-auditor.md
 │   └── test-automator.md
@@ -103,11 +81,26 @@ Specialized agent definitions for the Uatu framework. Agents provide domain-spec
 │   ├── repo-architect.md
 │   └── workflow-automation.md
 │
-└── sparc/                    # SPARC methodology (4)
-    ├── architecture.md
-    ├── pseudocode.md
-    ├── refinement.md
-    └── specification.md
+├── firebase/                 # Firebase platform (4)
+│   ├── firebase-auth-specialist.md
+│   ├── firebase-firestore-specialist.md
+│   ├── firebase-functions-specialist.md
+│   └── firebase-hosting-specialist.md
+│
+├── data/                     # Data & AI (4)
+│   ├── data-engineer.md
+│   ├── database-expert.md
+│   ├── llm-architect.md
+│   └── ml-engineer.md
+│
+├── build-resolvers/          # Build error specialists (3)
+│   ├── golang-build-resolver.md
+│   ├── python-build-resolver.md
+│   └── typescript-build-resolver.md
+│
+└── testing/                  # Testing swarms (2)
+    ├── production-validator.md
+    └── tdd-london-swarm.md
 ```
 
 ---

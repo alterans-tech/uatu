@@ -70,11 +70,11 @@ Uatu operates on three layers:
 
 2. **Hooks** — Fire on Claude Code lifecycle events. Score your prompts, suggest agents based on file patterns, warn about missing tests, guard branches, auto-format code, save checkpoints.
 
-3. **Commands** — 7 slash commands you type when you need explicit control. Everything else is automatic.
+3. **Commands** — 8 slash commands you type when you need explicit control. Everything else is automatic.
 
 ---
 
-## Commands (7 + Speckit)
+## Commands (8 + Speckit)
 
 ### `/status`
 
@@ -113,15 +113,15 @@ Use `--all` to see all projects.
 
 ---
 
-### `/orchestrate`
+### `/orch`
 
 Smart multi-agent execution. Analyzes your description and picks the right workflow automatically — you don't choose modes.
 
 ```
-/orchestrate "add email notifications for shipped orders"
-/orchestrate "add email notifications" --tdd
-/orchestrate "refactor auth into separate services"
-/orchestrate "fix the login 500 error after deploy"
+/orch "add email notifications for shipped orders"
+/orch "add email notifications" --tdd
+/orch "refactor auth into separate services"
+/orch "fix the login 500 error after deploy"
 ```
 
 **Auto-detection:**
@@ -136,7 +136,7 @@ Smart multi-agent execution. Analyzes your description and picks the right workf
 | `--tdd` | Every agent writes failing tests first, then implements |
 | `--e2e` | Playwright E2E tests generated after all waves complete |
 | `--review` | Two-stage review (spec alignment + quality) after each wave |
-| `--dry-run` | Show plan without executing, wait for approval |
+| `--dry-run` | Show plan without executing, wait for approval — preferred over plan mode for orchestrated work |
 | `--verify` | Run test suite between each wave, stop on failure |
 | `--scope <paths>` | Constrain agents to specified files/directories only |
 | `--no-commit` | Execute but don't commit — you review and commit manually |
@@ -219,12 +219,12 @@ Full PR lifecycle — open, review, or respond to feedback. One command, three m
 
 ---
 
-### `/plan-work`
+### `/jira`
 
 Create properly structured Jira cards. Enforces Epic (domain) → Story (user outcome) → Subtask (implementation step) hierarchy with strict writing rules.
 
 ```
-/plan-work "users need to reset their password via email"
+/jira "users need to reset their password via email"
 ```
 
 **What you get:**
@@ -262,12 +262,12 @@ Also handles Bugs (symptom as title), Spikes (time-boxed investigation), and Tec
 
 ---
 
-### `/prompt-rewrite`
+### `/frame`
 
 Rewrite a draft prompt with structure, file references, constraints, and success criteria.
 
 ```
-/prompt-rewrite "fix the login bug it broke after the last deploy"
+/frame "fix the login bug it broke after the last deploy"
 ```
 
 **What you get:**
@@ -320,7 +320,6 @@ A deliberate workflow for spec-driven development. Enter it when you want struct
 | `/speckit.implement` | Build | Execute tasks (auto-spawns agents for 3+ tasks) |
 | `/speckit.analyze` | Validate | Cross-artifact consistency check |
 | `/speckit.checklist` | Verify | Generate validation checklist |
-| `/speckit.taskstoissues` | Track | Push tasks to Jira/GitHub |
 | `/speckit.complete` | Close | Verify completion, archive artifacts |
 
 **Typical flow:**
@@ -346,7 +345,8 @@ These happen without you typing anything — driven by hooks and rules in `uatu-
 | Security scan suggestion | You modify auth/payment files | Hook suggests running security audit |
 | Build auto-diagnosis | Build command fails | Reads errors, identifies root cause, applies fix |
 | Prompt quality coaching | Every prompt > 5 words | Scores against structure/context/criteria, suggests improvements |
-| Scope detection | Large-scope prompt | Suggests `/orchestrate` for multi-file work |
+| Scope detection | Large-scope prompt | Suggests `/orch` for multi-file work |
+| Risk detection | Prompt mentions auth/payment/migration/deploy/credentials | Suggests plan mode or `--dry-run` before proceeding |
 | Agent suggestion | Edit auth/db/UI files | Suggests relevant specialized agent |
 | Branch guard | Session starts on main | Warns, suggests creating feature branch |
 | Code auto-formatting | New files only | Runs prettier/black/gofmt (skips existing files to avoid noisy diffs) |
@@ -375,7 +375,7 @@ Claude: [Phase 4 — Verify] All tests pass. Commit: fix(cart): handle boundary 
 ### "Build a new feature" (existing system)
 
 ```
-/orchestrate "add email notifications when orders are shipped" --tdd
+/orch "add email notifications when orders are shipped" --tdd
 ```
 
 Uatu runs: research (4 parallel agents) → plan → validate plan → wave execution (TDD per task) → review
@@ -383,7 +383,7 @@ Uatu runs: research (4 parallel agents) → plan → validate plan → wave exec
 ### "Plan work for the sprint"
 
 ```
-/plan-work "users need to be able to upload and share documents with their team"
+/jira "users need to be able to upload and share documents with their team"
 ```
 
 Uatu creates: Epic (if new domain) → Stories (upload, share, permissions) → Subtasks (API endpoint, storage service, UI component, tests) — all in Jira.
@@ -391,7 +391,7 @@ Uatu creates: Epic (if new domain) → Stories (upload, share, permissions) → 
 ### "Review a teammate's PR"
 
 ```
-/review-pr 342
+/pr --review 342
 ```
 
 Uatu reads diff, checks spec alignment, reviews quality, posts inline comments on GitHub.
@@ -399,7 +399,7 @@ Uatu reads diff, checks spec alignment, reviews quality, posts inline comments o
 ### "Handle review feedback on my PR"
 
 ```
-/self-review 338
+/pr --respond 338
 ```
 
 Uatu shows each comment, you decide: fix / reply / skip. Fixes are committed, replies posted, threads resolved.
@@ -411,6 +411,34 @@ Uatu shows each comment, you decide: fix / reply / skip. Fixes are committed, re
 ```
 
 Two-stage review + build/types/lint/tests + security scan. Shows verdict: READY or NOT READY.
+
+### "I want to review before anything changes"
+
+Use plan mode for direct work where you want step-by-step control:
+```
+/plan                                    # toggle plan mode on
+"update the JWT expiry logic in auth.ts"
+# Claude shows plan — you approve, then it executes
+/plan                                    # toggle off when done
+```
+
+For multi-file orchestrated work, use `--dry-run` instead — it shows you the full execution plan at the semantic level, then runs the waves autonomously after your approval:
+```
+/orch "refactor auth into separate services" --dry-run
+# Shows Phase 2 plan and stops. You approve → waves execute.
+```
+
+**When to use each:**
+
+| Situation | Use |
+|-----------|-----|
+| Risky single-file change (auth, migrations) | Plan mode |
+| Unfamiliar codebase area | Plan mode |
+| Multi-file feature, want to see plan first | `/orch --dry-run` |
+| Routine work, clear task | Normal (no mode needed) |
+| Multi-agent workflow (`/orch`) | Normal — plan mode breaks agent spawning |
+
+---
 
 ### "Start my day"
 
@@ -469,13 +497,23 @@ All checked during `uatu-setup` and `uatu-install`. Installation blocks if any a
 
 | Package | When | How |
 |---------|------|-----|
-| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
-| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` when needed |
+| **SOLO** | Independent parallel work (90% of tasks) | `/orch` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orch` when needed |
 | **HIVE** | Work spans multiple sessions (experimental) | Manual setup with memory persistence |
+
+### Session Modes
+
+| Mode | Toggle | Best For |
+|------|--------|----------|
+| **Normal (Sonnet)** | Default | Daily work, clear tasks |
+| **Plan mode** | `/plan` | Risky changes, unfamiliar areas — gates every tool call |
+| **Opus** | Model selector | Complex reasoning sessions, architectural decisions |
+
+> **Plan mode + `/orch` don't mix.** Plan mode gates every `Agent()` call, breaking the autonomous pipeline. Use `/orch --dry-run` for "see plan first" with orchestrated work.
 
 ### Model Routing (Cost Optimization)
 
-Commands automatically route subagents to the right model tier:
+Commands automatically route subagents to the right model tier regardless of your session model:
 
 | Tier | Model | Cost | Use For |
 |------|-------|------|---------|
@@ -483,7 +521,7 @@ Commands automatically route subagents to the right model tier:
 | **Execution** | Sonnet | $15/MTok out | Code generation, tests, file operations (80% of calls) |
 | **Simple** | Haiku | $5/MTok out | Status checks, formatting, lookups |
 
-Subagents inherit the parent model by default. Uatu commands explicitly set `model="sonnet"` on execution agents and `model="opus"` on planning agents, saving ~37% vs all-Opus.
+Subagents inherit the parent model by default. Uatu commands explicitly set `model="sonnet"` on execution agents and `model="opus"` on planning agents, saving ~37% vs all-Opus. This means subagent costs are consistent whether your session runs Sonnet or Opus.
 
 ### Project Structure (After Install)
 
@@ -492,7 +530,7 @@ your-project/
 ├── .claude/
 │   ├── rules/uatu-core.md          # Behavioral rules + model routing (auto-loaded)
 │   ├── rules/typescript.md          # Language rules (auto-loaded)
-│   ├── commands/                    # 7 slash commands + speckit
+│   ├── commands/                    # 8 slash commands + speckit
 │   └── skills/                      # 20 auto-triggered skills
 ├── .uatu/
 │   ├── QUICKSTART.md                # User manual
@@ -518,11 +556,11 @@ your-project/
 | Component | Count |
 |-----------|-------|
 | Commands | 8 + 10 speckit |
-| Agents | 53 across 8 categories |
-| Skills | 20 (auto-triggered by context) |
+| Agents | 53 across 10 categories |
+| Skills | 21 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |
-| Hooks | 7 wired (installed) + 11 available (opt-in) |
-| Packages | 3 (SOLO, SQUAD, HIVE) |
+| Hooks | 17 active (installed) |
+| Packages | 4 (SOLO, SQUAD, HIVE, WATCHER) |
 
 ---
 
@@ -535,7 +573,7 @@ your-project/
 | [spec-kit](https://github.com/anthropics/spec-kit) | GitHub, Inc. | Speckit command suite — specify, clarify, plan, tasks, implement, analyze, constitution | MIT |
 | [claude-flow](https://github.com/ruvnet/claude-flow) | @ruvnet | SQUAD/HIVE package model, swarm coordination MCP tools, memory persistence | MIT |
 | [awesome-claude-code-subagents](https://github.com/anthropics/awesome-claude-code-subagents) | VoltAgent Contributors | Agent library structure, YAML+frontmatter format, category organization | MIT |
-| [@anthropic-ai/sequential-thinking](https://www.npmjs.com/package/@anthropic-ai/sequential-thinking) | Anthropic | Pre-analysis structured reasoning, used in `/prompt-rewrite` and `/plan-work` | — |
+| [@anthropic-ai/sequential-thinking](https://www.npmjs.com/package/@anthropic-ai/sequential-thinking) | Anthropic | Pre-analysis structured reasoning, used in `/frame` and `/jira` | — |
 
 ### Inspiration (Patterns & Ideas)
 

@@ -2,7 +2,7 @@
 description: Create properly structured Jira cards — Epics (initiatives), Stories (user outcomes), Tasks/Bugs, Subtasks. Auto-assigns Jira Labels as domain tags.
 ---
 
-# Plan Work
+# Jira
 
 ## Arguments
 

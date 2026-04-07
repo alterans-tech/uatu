@@ -122,8 +122,8 @@ mcp__sequential-thinking__sequentialthinking({
 ## Coordination Tools (For Multi-Agent Work)
 
 ### The Fundamental Law
-> **MCP tools ONLY COORDINATE strategy. Claude Code's Task tool EXECUTES with real agents.**
-> Claude Flow tells agents what to do. Task tool agents actually do it.
+> **MCP tools ONLY COORDINATE strategy. Claude Code's Agent tool EXECUTES with real agents.**
+> Claude Flow tells agents what to do. Agent tool agents actually do it.
 
 ### Claude Flow (`mcp__claude-flow__`)
 
@@ -132,7 +132,7 @@ mcp__sequential-thinking__sequentialthinking({
 | Tool | Purpose |
 |------|---------|
 | `swarm_init` | Initialize coordination topology |
-| `agent_spawn` | Register agent in swarm (Task tool still executes it) |
+| `agent_spawn` | Register agent in swarm (Agent tool still executes it) |
 | `task_orchestrate` | Distribute and track work |
 | `memory_usage` | Shared state across agents |
 | `memory_persist` | Cross-session persistence (HIVE) |
@@ -216,6 +216,7 @@ Native tool → MCP tool → Swarm → Ask user
 | Agents must coordinate mid-task | SQUAD (Agent Teams + Claude Flow) |
 | Multi-day project | HIVE (SQUAD + memory_persist) |
 | Neural/long-running | WATCHER (Ruflo CLI) |
+| Touching auth/payment/security/migration | Plan mode first (`/plan`), then SOLO |
 
 ### By Complexity (Scaling Tiers)
 

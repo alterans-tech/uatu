@@ -50,7 +50,7 @@ All agents are located in `~/.claude/agents/` organized by category:
 | `frontend-developer` | React, Vue, UI components, CSS | sonnet |
 | `backend-architect` | API design, service architecture | sonnet |
 | `microservices-architect` | Distributed systems, service boundaries | opus |
-| `architect-review` | Architecture decisions, design patterns | sonnet |
+| `architect-review` | Architecture decisions, design patterns | opus |
 | `ui-ux-designer` | Design systems, accessibility, user flows | sonnet |
 
 ### Language Specialists
@@ -186,7 +186,7 @@ Agent(subagent_type="coder", name="coder-3", prompt="Refactor src/payments.ts...
 
 ### SOLO + Orchestrator (Independent Parallel Work)
 
-For tasks where agents work independently — no inter-agent communication needed. Use `orchestrator-task` agent or `/orchestrate swarm`.
+For tasks where agents work independently — no inter-agent communication needed. Use `orchestrator-task` agent or `/orch swarm`.
 
 ```
 Sequential Thinking → Independent parallel work → SOLO + orchestrator
@@ -272,8 +272,9 @@ Deterministic agent selection based on file patterns and task keywords. Use this
 | "API", "endpoint", "REST", "GraphQL" | `backend-architect` | SOLO |
 | "UI", "component", "layout", "responsive" | `frontend-developer` | SOLO |
 | "database", "query", "migration", "schema" | `database-expert` | SOLO |
+| "auth", "payment", "credential", "encrypt" | `security-auditor` | SOLO + plan mode |
 | "multi-file", "refactor all", "migrate" | `orchestrator-task` | SOLO (swarm) |
-| "coordinate", "negotiate", "co-design" | `/orchestrate` (auto-detects SQUAD) | SQUAD |
+| "coordinate", "negotiate", "co-design" | `/orch` (auto-detects SQUAD) | SQUAD |
 
 ### Routing Priority
 
@@ -311,12 +312,12 @@ When multiple patterns match: **task keyword > file pattern > default**. The tas
 
 ### By Risk Level
 
-| Risk | Primary Agent | Required Validation |
-|------|---------------|-------------------|
-| Low | Any appropriate | Self-review |
-| Medium | + `reviewer` | Peer review |
-| High | + `security-auditor` | Security + code review |
-| Critical | + `architect-review` | Full review chain |
+| Risk | Primary Agent | Required Validation | Notes |
+|------|---------------|-------------------|-------|
+| Low | Any appropriate | Self-review | |
+| Medium | + `reviewer` | Peer review | |
+| High | + `security-auditor` | Security + code review | Consider plan mode (`/plan`) |
+| Critical | + `architect-review` | Full review chain | Use plan mode + `/orch --dry-run` |
 
 ---
 

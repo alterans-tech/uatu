@@ -2,7 +2,7 @@
 description: Smart multi-agent execution. Analyzes your request, picks the right workflow. Composable flags for TDD, E2E, verification, Jira, scope control, and more.
 ---
 
-# Orchestrate
+# Orch
 
 ## Arguments
 
@@ -35,21 +35,32 @@ Parse flags from $ARGUMENTS:
 | Flag | Effect |
 |------|--------|
 | `--tdd` | Every write agent writes failing tests FIRST, then implements minimal code to pass |
-| `--e2e` | After all waves complete, spawn tester agent for Playwright E2E tests |
+| `--e2e` | Run Playwright E2E tests between each wave and at the end. Stop if tests fail. |
 | `--review` | Force two-stage review (spec alignment + quality) after each wave |
 | `--dry-run` | Show the full plan (waves, tasks, agents, files) but do NOT execute. Wait for user approval. |
-| `--verify` | Run test suite between each wave. Stop if tests fail. |
+| `--verify` | Run unit/integration test suite between each wave and at the end. Stop if tests fail. |
 | `--scope <paths>` | Constrain agents to ONLY modify files in the specified paths (comma-separated dirs/files) |
 | `--no-commit` | Execute all work but skip atomic commits. Changes staged, user commits manually. |
 | `--jira <KEY>` | Link to Jira issue: read description + AC for context, create branch, update status, comment on completion |
 
 Flags work with ANY detected workflow. Examples:
 ```
-/orchestrate "add email notifications" --tdd --verify
-/orchestrate "refactor auth" --dry-run --scope src/auth/
-/orchestrate "fix payment bug" --jira PAY-123 --verify --no-commit
-/orchestrate "build user dashboard" --jira ORI-240 --tdd --e2e --review
+/orch "add email notifications" --tdd --verify
+/orch "refactor auth" --dry-run --scope src/auth/
+/orch "fix payment bug" --jira PAY-123 --verify --no-commit
+/orch "build user dashboard" --jira ORI-240 --tdd --e2e --review
 ```
+
+---
+
+## Model Routing
+
+| Role | Model | Who |
+|------|-------|-----|
+| **Head / Planner** | `opus` | Planner, architect-review, security-auditor |
+| **Workers** | `sonnet` | Coders, testers, researchers, reviewers |
+
+**Rule: any agent making architectural decisions or decomposing work MUST use `model="opus"`. Worker agents executing tasks use `model="sonnet"`.**
 
 ---
 
@@ -109,10 +120,11 @@ Group tasks by dependency level into waves. Execute each wave:
 3. If `--scope`: each agent's prompt includes "ONLY modify files within: [scope list]"
 4. Wait for all agents to complete
 5. If NOT `--no-commit`: create atomic git commit per completed task: `feat(scope): description`
-6. If `--verify`: run test suite. If tests fail, STOP and report which task broke them.
-7. Compress outputs to ~500-token discovery relay briefs
-8. Report progress: "Wave N/M complete. Tasks: X/Y done."
-9. Feed briefs as context to next wave
+6. If `--verify`: run unit/integration test suite. If tests fail, STOP and report which task broke them.
+7. If `--e2e`: run Playwright E2E tests. If tests fail, STOP and report.
+8. Compress outputs to ~500-token discovery relay briefs
+9. Report progress: "Wave N/M complete. Tasks: X/Y done."
+10. Feed briefs as context to next wave
 
 ### Phase 4 — Final Review
 
@@ -121,7 +133,7 @@ If `--review` OR if total changes span 5+ files:
 - Stage 2: Code quality (security, error handling, naming)
 
 If `--e2e`:
-- Spawn tester agent for Playwright E2E tests after review
+- Run Playwright E2E tests after final review (in addition to between-wave runs)
 
 ### Phase 5 — Completion
 

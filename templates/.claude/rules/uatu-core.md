@@ -9,16 +9,13 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
-| `/orchestrate` | Smart multi-agent execution | `/orchestrate "add notifications" --tdd --jira ORI-240` |
-| `/pre-flight-check` | Pre-merge gate: review + verify + security | `/pre-flight-check` |
-| `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342`, `/pr --respond 338` |
-| `/plan-work` | Create Jira cards (Epic/Story/Task/Bug/Subtask + Components) | `/plan-work "password reset feature"` |
-| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the login thing"` |
+| `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd --jira ORI-240` |
+| `/jira` | Create Jira cards (Epic/Story/Task/Bug/Subtask) | `/jira "password reset feature"` |
+| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
 | `/prompt-analyzer` | Session effectiveness + prompt quality dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
-**Orchestrate flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
-**PR flags:** `--review <N>` (review others), `--respond <N>` (handle feedback), `--draft`, `--jira <KEY>`
+**Orch flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
 
 ---
 
@@ -26,18 +23,16 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 
 Use `mcp__sequential-thinking__sequentialthinking` for structured reasoning.
 
-**Mandatory for:** `/prompt-rewrite`, `/plan-work` (hardcoded in command)
+**Mandatory for:** `/jira` (hardcoded in command)
 
 **Use when:**
-- Decomposing complex tasks in `/orchestrate` (multi-file, unclear scope)
-- Reviewing large PRs in `/review-pr` (architectural impact assessment)
+- Decomposing complex tasks in `/orch` (multi-file, unclear scope)
 - Debugging non-obvious bugs (root cause isolation)
 - Any task where the first approach might be wrong
 
 **Skip when:**
 - Simple data gathering (`/status`, `/time-report`)
-- Procedural checks (`/pre-flight-check`)
-- Interactive workflows (`/pr --respond` — read comment, propose fix, wait)
+- `/frame` — uses sonnet only, no sequential thinking
 - Clear single-file tasks
 
 ---
@@ -48,15 +43,12 @@ Before starting any task, SUGGEST the appropriate approach:
 
 | User Intent | Suggest |
 |-------------|---------|
-| Multi-file work, complex feature | `/orchestrate "description"` |
-| Feature with test discipline | `/orchestrate "description" --tdd` |
+| Multi-file work, complex feature | `/orch "description"` |
+| Feature with test discipline | `/orch "description" --tdd` |
 | Define a new feature | `/speckit.specify "description"` |
 | Implement from existing spec | `/speckit.implement` |
-| Create Jira cards for new work | `/plan-work "description"` |
-| Before merge | `/pre-flight-check` |
-| Open a PR | `/pr` or `/pr --draft` |
-| Review a teammate's PR | `/pr --review <number>` |
-| Handle review comments on your PR | `/pr --respond <number>` |
+| Create Jira cards for new work | `/jira "description"` |
+| Risky/unfamiliar changes, wants to validate approach first | Enter plan mode (`/plan`), or `/orch --dry-run` |
 
 If the user's task clearly matches one of these, suggest it BEFORE starting work.
 
@@ -119,7 +111,7 @@ Before any merge suggestion, run: build + type check + lint + tests. Report resu
 
 ### Research → Part of Orchestrate
 
-Research is Phase 1 of `/orchestrate` feature workflow. Not a standalone action.
+Research is Phase 1 of `/orch` feature workflow. Not a standalone action.
 When the user asks to "research X" outside orchestrate, spawn researchers and present findings.
 
 ### Test Coverage → On Request

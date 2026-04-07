@@ -1,8 +1,8 @@
-> **MUST READ: `.uatu/UATU.md`** — Required framework rules for all tasks.
-
 # Uatu - Development Reference
 
 This is the **source repository** for the Uatu AI orchestration framework. This CLAUDE.md enables the framework to understand and improve itself.
+
+> **Note:** This project does NOT have `.uatu/` installed — it's the source, not a target. Templates live in `templates/`.
 
 ---
 
@@ -59,17 +59,21 @@ uatu/
 ├── setup.sh                      # PATH setup
 ├── .mcp.json                     # MCP config (uses ${WORKSPACE_PATH})
 ├── env.example                   # Environment template
+├── docs/                         # Reference material (not shipped)
+│   ├── claude-code-memory.md
+│   ├── mcp.json.template
+│   └── prompt-analysis/
 ├── templates/                    # Copied to target projects
 │   ├── CLAUDE.md                 # Framework instructions
 │   ├── .envrc                    # Direnv template
 │   ├── .uatu/
 │   │   ├── config/               # Created at install
 │   │   ├── guides/               # 7 guides
-│   │   ├── hooks/                # 8 active + 6 examples
+│   │   ├── hooks/                # 17 active hooks
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── commands/             # 17 slash commands (7 core + 10 speckit.*)
-│       ├── skills/               # 20 skills (react-component, test-file + language/pattern skills)
+│       ├── commands/             # 13 active + 4 archived
+│       ├── skills/               # 21 skills
 │       └── agents/               # 53 agents across 10 categories
 └── README.md                     # User documentation
 ```
@@ -86,27 +90,43 @@ uatu/
 | worktree-helper | `.uatu/tools/worktree-helper.sh` | Git worktree management |
 | time-tracking | `.uatu/tools/time-tracking/worklog.py` | Work session tracking |
 
-### Commands (8 core + 10 speckit)
+### Commands (4 core + 9 speckit = 13 active)
 
 **Core Commands:**
 | Command | Purpose |
 |---------|---------|
-| `/status` | Sprint board + branches + worktrees + checkpoint |
-| `/orchestrate` | Smart multi-agent (--tdd, --e2e, --verify, --dry-run, --jira, --scope, --no-commit, --review) |
-| `/pre-flight-check` | Pre-merge gate: review + verify + security |
-| `/pr` | Open, review, or respond to PRs (--review, --respond, --draft, --jira) |
-| `/plan-work` | Create Jira cards (Epic/Story/Subtask) |
-| `/prompt-rewrite` | Rewrite a prompt with structure, file refs, constraints |
-| `/prompt-analyzer` | Session effectiveness dashboard + prompt dimensions |
+| `/orch` | Smart multi-agent (--tdd, --e2e, --verify, --dry-run, --jira, --scope, --no-commit, --review) |
+| `/frame` | Organize + sharpen a draft prompt (sonnet only, no research) |
+| `/jira` | Create Jira cards (Epic/Story/Subtask) |
 | `/time-report` | Time tracking across projects |
 
-**Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, taskstoissues, complete
+**Archived** (in `commands/archive/`): status, pr, pre-flight-check, prompt-analyzer
 
-### Skills (2 — in `.claude/skills/`)
+**Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, complete
+
+### Skills (21 — in `.claude/skills/`)
 | Skill | Purpose |
 |-------|---------|
 | `react-component` | Generate TypeScript React component with tests |
 | `test-file` | Generate test file for any source file (language-agnostic) |
+| `api-design` | REST API design patterns |
+| `backend-patterns` | Backend architecture patterns |
+| `coding-standards` | Universal coding standards |
+| `database-migrations` | Database migration best practices |
+| `deployment-patterns` | Deployment workflows and CI/CD |
+| `docker-patterns` | Docker and Docker Compose patterns |
+| `e2e-testing` | Playwright E2E testing patterns |
+| `frontend-patterns` | Frontend development patterns |
+| `golang-patterns` | Idiomatic Go patterns |
+| `golang-testing` | Go testing patterns |
+| `python-patterns` | Pythonic idioms and best practices |
+| `python-testing` | Python testing with pytest |
+| `security-review` | Security checklist and patterns |
+| `security-scan` | Scan config for vulnerabilities |
+| `storybook` | Storybook story generation |
+| `tdd-workflow` | Test-driven development enforcement |
+| `ui-ux-design` | Design intelligence for UI/UX |
+| `verification-loop` | Verification system for sessions |
 
 ### Guides (7)
 | Guide | Purpose |
@@ -126,7 +146,7 @@ uatu/
 | session-restore.sh | SessionStart | Restore last session checkpoint |
 | branch-guard.sh | SessionStart | Warn if on main/master |
 | prompt-quality-advisor.sh | UserPromptSubmit | Score prompts on 5 dimensions (intent, context, specificity, scope, verifiability), suggest improvements |
-| scope-detection.sh | UserPromptSubmit | Suggest /orchestrate for large scope |
+| scope-detection.sh | UserPromptSubmit | Suggest `/orch` for large scope |
 | prevent-sensitive-writes.sh | PreToolUse | Block sensitive file writes |
 | protect-config-files.sh | PreToolUse | Block config file modifications |
 | format-code.sh | PostToolUse | Auto-format code |
@@ -154,12 +174,13 @@ uatu/
 | build-resolvers | 3 | typescript-build-resolver, python-build-resolver, golang-build-resolver |
 | testing | 2 | tdd-london-swarm, production-validator |
 
-### Packages (3)
+### Packages (4)
 | Package | Layer | Use Case |
 |---------|-------|----------|
 | SOLO | 0A: Single agent | Single file, clear task, low risk |
 | SQUAD | 0B+1: Agent Teams + Claude Flow MCP | Multi-file coordinated work |
 | HIVE | 0B+1 + persistence | Multi-session, context must persist |
+| WATCHER | HIVE + ruv-swarm DAA | Learning agents, no timeout |
 
 ---
 
@@ -290,13 +311,13 @@ chore: maintenance
 ## Current Stats
 
 - **53 agents** across 10 categories
-- **17 commands** (7 core + 10 speckit.*)
-- **20 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
+- **13 commands** (4 core + 9 speckit.*) — 4 archived (status, pr, pre-flight-check, prompt-analyzer)
+- **21 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
-- **17 active hooks** + 6 examples
+- **17 active hooks**
 - **5 rules** (uatu-core + 4 language rules)
 - **4 tools**
-- **3 packages** (SOLO, SQUAD, HIVE)
+- **4 packages** (SOLO, SQUAD, HIVE, WATCHER)
 
 ---
 
@@ -304,7 +325,7 @@ chore: maintenance
 
 Use the built-in `claude-code-guide` subagent_type:
 ```
-Task(subagent_type="claude-code-guide", prompt="How do I...")
+Agent(subagent_type="claude-code-guide", prompt="How do I...")
 ```
 
 Or use `/help` for CLI commands.

@@ -24,21 +24,18 @@ AI orchestration framework for Claude Code.
 
 ---
 
-## Commands (8 + Speckit)
+## Commands (6 + Speckit)
 
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/status` | Sprint board + branches + worktrees + checkpoint | `/status` |
-| `/orchestrate` | Smart multi-agent execution | `/orchestrate "add notifications" --tdd` |
-| `/pre-flight-check` | Pre-merge gate: review + verify + security | `/pre-flight-check` |
-| `/review-pr` | Review someone else's PR | `/review-pr 234` |
-| `/self-review` | Handle review comments on your PR | `/self-review 234` |
-| `/plan-work` | Create Jira cards (Epic/Story/Subtask) | `/plan-work "password reset"` |
-| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the thing"` |
+| `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd` |
+| `/jira` | Create Jira cards (Epic/Story/Subtask) | `/jira "password reset"` |
+| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the thing"` |
 | `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
-**Orchestrate flags:** `--tdd` (test-first), `--e2e` (Playwright), `--review` (two-stage review)
+**Orch flags:** `--tdd` (test-first), `--e2e` (Playwright), `--review` (two-stage review), `--dry-run` (plan first), `--verify` (test between waves), `--scope` (constrain paths), `--no-commit` (manual commit), `--jira` (Jira link)
 
 ### Speckit Commands
 
@@ -52,7 +49,6 @@ AI orchestration framework for Claude Code.
 | Check consistency | `/speckit.analyze` |
 | Validation checklist | `/speckit.checklist` |
 | Project principles | `/speckit.constitution` |
-| Push to Jira/GitHub | `/speckit.taskstoissues` |
 | Mark complete | `/speckit.complete` |
 
 ---
@@ -61,8 +57,8 @@ AI orchestration framework for Claude Code.
 
 | Package | When | How |
 |---------|------|-----|
-| **SOLO** | Independent parallel work (90% of tasks) | `/orchestrate` with wave execution |
-| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orchestrate` |
+| **SOLO** | Independent parallel work (90% of tasks) | `/orch` with wave execution |
+| **SQUAD** | Agents need to coordinate mid-task | Auto-detected by `/orch` |
 | **HIVE** | Work spans multiple sessions (experimental) | Manual setup with persistence |
 
 ```
@@ -114,7 +110,20 @@ Full user manual: `.uatu/QUICKSTART.md`
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | `/prompt-rewrite`, `/plan-work`, complex tasks |
+| `sequential-thinking` | `/frame`, `/jira`, complex tasks |
 | `claude-flow` | SQUAD/HIVE coordination |
+| `context7` | Library/framework documentation lookup |
 
 Run `uatu-setup` to install.
+
+---
+
+## Plan Mode
+
+Toggle with `/plan`. Gates every tool call behind approval — use for risky or unfamiliar changes.
+
+| Situation | Use |
+|-----------|-----|
+| Risky single-file change (auth, migrations, deploy) | Plan mode (`/plan`) |
+| Multi-file work, want to review plan first | `/orch --dry-run` |
+| Running `/orch` | Exit plan mode — it breaks agent spawning |

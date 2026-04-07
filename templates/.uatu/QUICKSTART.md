@@ -2,16 +2,14 @@
 
 ---
 
-## Commands (8 + Speckit)
+## Commands (6 + Speckit)
 
 | Command | When to Use | Example |
 |---------|-------------|---------|
 | `/status` | Start of session — what's going on | `/status` |
-| `/orchestrate` | Multi-file work, features, bugs, refactors | `/orchestrate "add notifications" --tdd` |
-| `/pre-flight-check` | Before merging — full quality gate | `/pre-flight-check` |
-| `/pr` | Open, review, or respond to PRs | `/pr`, `/pr --review 342` |
-| `/plan-work` | Create Jira cards with proper hierarchy | `/plan-work "password reset"` |
-| `/prompt-rewrite` | Rewrite + Quick Version for /orchestrate | `/prompt-rewrite "fix the login thing"` |
+| `/orch` | Multi-file work, features, bugs, refactors | `/orch "add notifications" --tdd` |
+| `/jira` | Create Jira cards with proper hierarchy | `/jira "password reset"` |
+| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
 | `/prompt-analyzer` | Session effectiveness + prompt dashboard | `/prompt-analyzer --compare 2026-03-31` |
 | `/time-report` | Time tracking | `/time-report --all --week` |
 
@@ -51,7 +49,7 @@ Time This Week: 12h 30m
 
 ---
 
-## `/orchestrate`
+## `/orch`
 
 Smart multi-agent execution. Auto-detects the right workflow from your description:
 - Bug keywords → 4-phase debugging
@@ -60,11 +58,11 @@ Smart multi-agent execution. Auto-detects the right workflow from your descripti
 - Everything else → feature (research → plan → wave execution)
 
 ```
-/orchestrate "add email notifications for shipped orders"
-/orchestrate "add email notifications" --tdd
-/orchestrate "refactor auth into microservices" --dry-run
-/orchestrate "fix login 500 error" --jira ORI-234 --verify
-/orchestrate "build dashboard" --tdd --e2e --jira ORI-240
+/orch "add email notifications for shipped orders"
+/orch "add email notifications" --tdd
+/orch "refactor auth into microservices" --dry-run
+/orch "fix login 500 error" --jira ORI-234 --verify
+/orch "build dashboard" --tdd --e2e --jira ORI-240
 ```
 
 ### Flags
@@ -97,93 +95,12 @@ Phase 4 — Review: Spec alignment PASS. Quality APPROVE.
 
 ---
 
-## `/pre-flight-check`
-
-Pre-merge gate. Runs two-stage code review + verification + security scan. Does NOT merge.
-
-```
-/pre-flight-check
-/pre-flight-check --fix     # auto-fix medium/low issues
-```
-
-**What you get:**
-```
-══════════════════════════════════════
-     PRE-FLIGHT CHECK — ORI-234
-══════════════════════════════════════
-
- Stage 1 — Spec Alignment:  PASS
- Stage 2 — Code Quality:    APPROVE
-   0 CRITICAL, 0 HIGH, 2 MEDIUM
- Stage 3 — Verification:    PASS
-   Build | Types | Lint | Tests: ALL PASS
- Stage 4 — Security:        SKIPPED
-
- Verdict: READY TO MERGE
-══════════════════════════════════════
-```
-
----
-
-## `/pr`
-
-Full PR lifecycle — open, review, or respond to feedback.
-
-### Open PR (default)
-
-```
-/pr                     # open from current branch
-/pr --draft             # open as draft
-/pr --jira ORI-234      # with specific Jira key
-```
-
-Auto-builds title: `feat(scope): capability delivered [JIRA-KEY]`
-Auto-generates body: Summary, Changes, Test Plan, Notes, Jira link.
-
-**What you get:**
-```
-Created PR #342:
-  feat(trip-format): PDF export with cover page [ORI-234]
-  https://github.com/alterans-tech/orion/pull/342
-  Status: Ready for Review
-```
-
-### Review Someone's PR
-
-```
-/pr --review 342
-```
-
-Reads diff, runs two-stage review, posts inline comments on GitHub. Submits APPROVE or REQUEST_CHANGES.
-
-### Respond to Feedback
-
-```
-/pr --respond 338
-```
-
-Shows each unresolved thread. You choose per thread:
-
-```
-Thread 1/5 — @reviewer
-File: src/auth/handler.ts:42
-Comment: "Missing rate limiting"
-
-Options: 1. Fix it  2. Reply  3. Skip
-> 1
-Applying fix... Committed. Thread resolved.
-```
-
-Never auto-resolves — always waits for your decision.
-
----
-
-## `/plan-work`
+## `/jira`
 
 Create Jira cards with proper Epic → Story → Subtask hierarchy. Uses Sequential Thinking.
 
 ```
-/plan-work "users need to reset their password via email"
+/jira "users need to reset their password via email"
 ```
 
 **What you get:**
@@ -213,12 +130,12 @@ Enforces: verb-first titles, user-observable AC, technical subtasks < 1 day, 3-6
 
 ---
 
-## `/prompt-rewrite`
+## `/frame`
 
 Rewrite a draft prompt with structure, file refs, constraints, and done-conditions. Uses Sequential Thinking.
 
 ```
-/prompt-rewrite "fix the login bug it broke after the last deploy"
+/frame "fix the login bug it broke after the last deploy"
 ```
 
 **What you get:**
@@ -230,7 +147,7 @@ fix the login bug it broke after the last deploy
 [Full structured version with headers, file refs, constraints, done-when]
 
 ### Next Step
-Say "go" or run /orchestrate to use parallel agents.
+Say "go" or run /orch to use parallel agents.
 ```
 
 **Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting needed — Claude already has the full context.
@@ -265,7 +182,6 @@ Specification-driven development. Enter when you want structured planning before
 | `/speckit.implement` | Build | Execute tasks (auto-spawns agents for 3+) |
 | `/speckit.analyze` | Validate | Cross-artifact consistency check |
 | `/speckit.checklist` | Verify | Generate validation checklist |
-| `/speckit.taskstoissues` | Track | Push tasks to Jira/GitHub |
 | `/speckit.complete` | Close | Verify completion, archive |
 
 **Typical flow:**
@@ -275,8 +191,6 @@ Specification-driven development. Enter when you want structured planning before
 /speckit.plan
 /speckit.tasks
 /speckit.implement
-/pre-flight-check
-/pr
 ```
 
 ---
@@ -292,10 +206,12 @@ These happen without commands — driven by hooks and rules:
 | Security scan | Edit auth/payment files | Suggests running audit |
 | Build auto-diagnosis | Build fails | Reads errors, finds root cause, fixes |
 | Prompt coaching | Every prompt > 5 words | Scores and suggests improvements |
-| Scope detection | Large-scope prompt | Suggests `/orchestrate` |
+| Scope detection | Large-scope prompt | Suggests `/orch` |
+| Risk detection | Auth/payment/migration prompt | Suggests plan mode or `--dry-run` |
 | Agent suggestion | Edit auth/db/UI files | Suggests relevant agent |
 | Branch guard | Session on main | Warns, suggests feature branch |
-| Code formatting | After Write/Edit | Runs prettier/black/gofmt |
+| Code formatting | After Write/Edit (new files) | Runs prettier/black/gofmt |
+| Plan mode guard | `/orch` while in plan mode | Warns to exit plan mode first |
 | Self-review scan | After code writes | Checks for TODOs, placeholders |
 | Commit nudge | 3+ tasks without commit | Suggests committing |
 | Review nudge | 10+ writes without review | Suggests reviewing |
@@ -365,7 +281,7 @@ Commands route subagents to the cheapest model that can do the job:
 | **Simple** | Haiku | Status, formatting, lookups | **80%** |
 
 Default: **Sonnet** for 80% of subagent calls. Opus only for planning/architecture/security.
-Typical `/orchestrate` run saves ~37% vs all-Opus default.
+Typical `/orch` run saves ~37% vs all-Opus default.
 
 ---
 
@@ -407,7 +323,7 @@ All issues get domain **Labels** (lowercase kebab-case: `authentication`, `api`,
 
 **Build a feature:**
 ```
-/orchestrate "add email notifications" --tdd --jira ORI-240
+/orch "add email notifications" --tdd --jira ORI-240
 ```
 
 **Fix a bug:**
@@ -418,29 +334,12 @@ All issues get domain **Labels** (lowercase kebab-case: `authentication`, `api`,
 
 **Plan sprint work:**
 ```
-/plan-work "users need document sharing with permissions"
-```
-
-**Before merge:**
-```
-/pre-flight-check
-/pr
-```
-
-**Review a teammate's PR:**
-```
-/pr --review 342
-```
-
-**Handle review feedback:**
-```
-/pr --respond 338
+/jira "users need document sharing with permissions"
 ```
 
 **Check your prompting:**
 ```
-"run my prompt assessment"
-→ Uatu runs analyze-prompts.py automatically
+/prompt-analyzer
 ```
 
 ---

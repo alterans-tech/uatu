@@ -21,118 +21,129 @@ Claude Code supports 6 hook events:
 
 ## Hook Configuration
 
-Hooks can be configured in **two locations** (choose one):
-
-### Option 1: Separate hooks file (Recommended)
-
-Create `.claude/hooks.json`:
+Hooks are configured in `.claude/settings.json` using an **event-keyed object**:
 
 ```json
 {
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/session-start/load-project-context.sh",
-          "enabled": true
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f .uatu/hooks/session-start/load-project-context.sh && .uatu/hooks/session-start/load-project-context.sh || exit 0"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f .uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh && .uatu/hooks/pre-tool-use/prevent-sensitive-writes.sh || exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f .uatu/hooks/stop/session-checkpoint.sh && .uatu/hooks/stop/session-checkpoint.sh || exit 0"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-**Pros:** Cleaner separation, easier to manage hooks independently
+> **Note:** Use the conditional `test -f ... && ... || exit 0` pattern to prevent failures in non-uatu directories.
 
-### Option 2: Add to existing config
+---
 
-Add to `.claude/settings.json` or `mcp.json`:
+## Hook Input Format
+
+Each hook receives JSON on stdin. Fields use **snake_case**:
 
 ```json
 {
-  "mcpServers": { ... },
-  "hooks": [
-    {
-      "event": "SessionStart",
-      "scripts": [
-        {
-          "path": ".uatu/hooks/session-start/load-project-context.sh",
-          "enabled": true
-        }
-      ]
-    }
-  ]
+  "hook_event_name": "SessionStart",
+  "working_directory": "/path/to/project",
+  "timestamp": "2026-01-30T12:34:56Z",
+  "tool_name": "Write",
+  "tool_input": { ... }
 }
 ```
 
-**Pros:** Single configuration file, all settings in one place
+**Important:** Fields are snake_case — `working_directory`, NOT `workingDirectory`.
 
 ---
 
-## Uatu-Provided Hooks
+## Hook Output Format
 
-### session-start/load-project-context.sh
+Hooks output JSON to stdout (stdout must be ONLY valid JSON):
 
-Loads project configuration at session start.
-
-**What it does:**
-- Checks for `.uatu/config/project.md`
-- Injects project context into Claude's initial prompt
-- Non-blocking if config missing
-
-**When to disable:** Never (required for Uatu)
-
----
-
-### user-prompt-submit/enforce-sequential-thinking.sh
-
-Reminds Claude to use Sequential Thinking for all tasks.
-
-**What it does:**
-- Adds reminder about Sequential Thinking requirement
-- Injects reference to SEQUENTIAL-THINKING.md guide
-- Non-intrusive context injection
-
-**When to disable:** If you want to manage Sequential Thinking manually
-
----
-
-### post-tool-use/format-code.sh
-
-Automatically formats code after Write/Edit operations.
-
-**What it does:**
-- Detects file extension from tool result
-- Runs appropriate formatter:
-  - `.ts/.tsx/.js/.jsx` → prettier
-  - `.py` → black
-  - `.go` → gofmt
-- Silent failure (doesn't break on missing formatters)
-- Non-blocking
-
-**When to disable:** If you have IDE auto-formatting or pre-commit hooks
-
-**Requirements:**
-```bash
-# Install formatters as needed
-npm install -g prettier
-pip install black
-# gofmt comes with Go
+```json
+{
+  "additionalContext": "Text to inject into Claude's context",
+  "error": null
+}
 ```
 
+- Use `>&2` for informational/debug output — `echo "..." >&2`
+- `additionalContext` is added to Claude's prompt
+- Non-null `error` stops execution and shows message to user
+- Empty `additionalContext` is valid (no-op)
+
 ---
 
-### stop/update-jira.sh
+## Active Hooks (17)
 
-Updates Jira issue when session ends (placeholder).
+### session-start/ (3)
 
-**What it does:**
-- Detects Jira key from conversation context
-- (Future) Posts summary to Jira issue
-- Currently a placeholder for future implementation
+| Hook | Purpose |
+|------|---------|
+| `load-project-context.sh` | Loads `.uatu/config/project.md` into context |
+| `session-restore.sh` | Restores last session checkpoint |
+| `branch-guard.sh` | Warns if session starts on main/master |
 
-**When to disable:** If not using Jira integration
+### user-prompt-submit/ (2)
+
+| Hook | Purpose |
+|------|---------|
+| `prompt-quality-advisor.sh` | Scores prompts on 5 dimensions, suggests improvements |
+| `scope-detection.sh` | Detects large scope → suggests `/orch`; detects risky keywords (auth/payment/migration) → suggests plan mode |
+
+### pre-tool-use/ (2)
+
+| Hook | Purpose |
+|------|---------|
+| `prevent-sensitive-writes.sh` | Blocks writes to sensitive files (.env, credentials, secrets) |
+| `protect-config-files.sh` | Blocks modifications to config files |
+
+### post-tool-use/ (5)
+
+| Hook | Purpose |
+|------|---------|
+| `format-code.sh` | Auto-formats after Write/Edit (new files) — prettier/black/gofmt |
+| `self-review-checklist.sh` | Scans for TODOs, placeholders after code writes |
+| `smart-agent-suggestion.sh` | Suggests relevant agents by file pattern |
+| `warn-file-length.sh` | Warns if file exceeds 400 lines |
+| `event-log.sh` | Logs tool usage (strict profile only) |
+
+### stop/ (5)
+
+| Hook | Purpose |
+|------|---------|
+| `session-checkpoint.sh` | Saves session summary to JSONL |
+| `cost-tracking.sh` | Logs session for cost review |
+| `missing-test-warning.sh` | Warns about modified files without tests |
+| `update-jira.sh` | Updates Jira status at session end |
+| `desktop-notification.sh` | macOS notification (strict profile only) |
 
 ---
 
@@ -147,47 +158,15 @@ Updates Jira issue when session ends (placeholder).
 # Read stdin (contains hook context)
 INPUT=$(cat)
 
-# Parse input (JSON)
-# Do your work here
+# Parse input (JSON) — fields are snake_case
+WORKING_DIR=$(echo "$INPUT" | jq -r '.working_directory // ""')
 
-# Output JSON response
-cat <<EOF
-{
-  "additionalContext": "Custom context to inject",
-  "error": null
-}
-EOF
+# Write informational output to stderr (NOT stdout)
+echo "Hook running in: $WORKING_DIR" >&2
+
+# Output JSON response to stdout (ONLY valid JSON)
+echo '{"additionalContext": "Custom context to inject", "error": null}'
 ```
-
-### Hook Input Format
-
-Each hook receives JSON on stdin:
-
-```json
-{
-  "event": "SessionStart",
-  "workingDirectory": "/path/to/project",
-  "timestamp": "2026-01-30T12:34:56Z",
-  "toolResult": { ... }  // Only for PostToolUse
-}
-```
-
-### Hook Output Format
-
-Hooks output JSON:
-
-```json
-{
-  "additionalContext": "Text to inject into Claude's context",
-  "error": "Error message if something failed (optional)"
-}
-```
-
-**Important:**
-- `additionalContext` is added to Claude's prompt
-- `error` stops execution and shows error to user
-- Empty `additionalContext` is valid (no-op)
-- Missing/malformed JSON causes hook to be skipped
 
 ---
 
@@ -202,7 +181,6 @@ chmod +x .uatu/hooks/session-start/my-hook.sh
 ### 2. Silent Failures for Non-Critical Hooks
 
 ```bash
-# Don't fail the entire session if formatter missing
 if ! command -v prettier &> /dev/null; then
     echo '{"additionalContext": "", "error": null}'
     exit 0
@@ -216,24 +194,17 @@ Hooks add latency. Keep them under 1 second:
 - Cache expensive operations
 - Use timeout for external commands
 
-### 4. Idempotent Operations
+### 4. stdout Must Be Pure JSON
 
-Hooks may run multiple times (retries, etc):
-- Check before creating files
-- Use atomic operations
-- Don't append to logs blindly
-
-### 5. Proper Error Handling
-
+Any non-JSON on stdout breaks hook parsing:
 ```bash
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
+# WRONG — breaks parsing
+echo "Running hook..."
+echo '{"additionalContext": "", "error": null}'
 
-# But catch expected failures
-if ! some_command; then
-    # Handle gracefully
-    echo '{"additionalContext": "", "error": null}'
-    exit 0
-fi
+# CORRECT — debug to stderr
+echo "Running hook..." >&2
+echo '{"additionalContext": "", "error": null}'
 ```
 
 ---
@@ -242,10 +213,9 @@ fi
 
 ### Hook Not Running
 
-1. **Check path in hooks.json:**
+1. **Check path in settings.json:**
    ```bash
-   cat .claude/hooks.json
-   # Path should be relative to project root
+   cat .claude/settings.json | jq '.hooks'
    ```
 
 2. **Verify executable:**
@@ -256,12 +226,12 @@ fi
 
 3. **Test manually:**
    ```bash
-   echo '{"event":"SessionStart","workingDirectory":"'$(pwd)'"}' | \
+   echo '{"hook_event_name":"SessionStart","working_directory":"'$(pwd)'"}' | \
      .uatu/hooks/session-start/load-project-context.sh
    ```
 
 4. **Check JSON output:**
-   Hook must output valid JSON or be skipped
+   Hook must output valid JSON or be skipped.
 
 ### Hook Slowing Down Claude
 
@@ -270,18 +240,14 @@ fi
    time .uatu/hooks/post-tool-use/format-code.sh < test-input.json
    ```
 
-2. **Disable non-essential hooks:**
-   Set `"enabled": false` in hooks.json
-
-3. **Optimize slow operations:**
-   - Cache results
-   - Use faster tools
-   - Move work to background processes
+2. **Remove from settings.json** to disable a specific hook.
 
 ### Hook Causing Errors
 
 1. **Check stderr:**
-   Claude logs hook errors - check terminal output
+   ```bash
+   .uatu/hooks/my-hook.sh < input.json 2>&1
+   ```
 
 2. **Validate JSON output:**
    ```bash
@@ -290,65 +256,41 @@ fi
 
 3. **Add debug logging:**
    ```bash
-   echo "DEBUG: $(date)" >> /tmp/hook-debug.log
+   echo "DEBUG: $(date)" >&2
    ```
-
-4. **Disable and test:**
-   Set `"enabled": false`, confirm Claude works, then debug hook
 
 ---
 
-## Advanced: Hook Chaining
+## Hook Chaining
 
-Multiple hooks for same event run in order:
+Multiple hooks for the same event use an array of hook entries in `settings.json`:
 
 ```json
 {
-  "event": "SessionStart",
-  "scripts": [
-    {"path": ".uatu/hooks/session-start/load-project-context.sh"},
-    {"path": ".uatu/hooks/session-start/check-dependencies.sh"},
-    {"path": ".uatu/hooks/session-start/verify-env.sh"}
-  ]
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".uatu/hooks/session-start/load-project-context.sh" },
+          { "type": "command", "command": ".uatu/hooks/session-start/session-restore.sh" },
+          { "type": "command", "command": ".uatu/hooks/session-start/branch-guard.sh" }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-Each hook's `additionalContext` is concatenated.
+Each hook's `additionalContext` is concatenated. If any hook returns a non-null `error`, the chain stops.
 
 ---
 
 ## Security Considerations
 
-1. **Hooks run with your user permissions** - be careful with destructive operations
-2. **Don't put secrets in hooks** - they may appear in logs/context
-3. **Validate input** - don't trust hook input blindly
-4. **Review third-party hooks** - only run hooks from trusted sources
-
----
-
-## Examples
-
-Uatu provides two types of hooks:
-
-### Core Hooks (Active by Default)
-
-Located in event-specific directories:
-- `session-start/load-project-context.sh` - Loads project configuration
-- `user-prompt-submit/enforce-sequential-thinking.sh` - Policy enforcement
-- `post-tool-use/format-code.sh` - Auto-formatting
-- `stop/update-jira.sh` - Session tracking (placeholder)
-
-### Example Hooks (Reference Only)
-
-Located in `examples/` directory:
-- `verify-git-branch.sh` - Warn if on protected branch
-- `check-dependencies.sh` - Verify required tools installed
-- `prevent-destructive-ops.sh` - Block dangerous commands
-- `track-tool-usage.sh` - Log tool usage statistics
-- `session-summary.sh` - Generate end-of-session summary
-- `python-example.py` - Python hook example
-
-**To use example hooks:** Copy to appropriate event directory and add to hooks.json
+1. **Hooks run with your user permissions** — be careful with destructive operations
+2. **Don't put secrets in hooks** — they may appear in logs/context
+3. **Validate input** — don't trust hook input blindly
+4. **Review third-party hooks** — only run hooks from trusted sources
 
 ---
 

@@ -43,6 +43,8 @@ Done when:
 1. [testable condition]
 2. [testable condition]
 3. Tests pass for the modified files
+
+Note: For multi-file features, use `/orch "description" --dry-run` to review the execution plan before any changes run.
 ```
 
 ---
@@ -84,6 +86,8 @@ Action: Investigate the full pipeline from [start] to [end].
 Do NOT propose a solution yet — diagnose first and tell me what you find.
 
 Done when: You have identified the specific step where the failure occurs.
+
+Note: If the fix touches auth, payment, migration, or encryption files, enter plan mode (`/plan`) before implementing — these areas require step-by-step approval.
 ```
 
 ---
