@@ -70,48 +70,11 @@ Uatu operates on three layers:
 
 2. **Hooks** — Fire on Claude Code lifecycle events. Score your prompts, suggest agents based on file patterns, warn about missing tests, guard branches, auto-format code, save checkpoints.
 
-3. **Commands** — 8 slash commands you type when you need explicit control. Everything else is automatic.
+3. **Commands** — 5 core slash commands you type when you need explicit control. Everything else is automatic.
 
 ---
 
-## Commands (8 + Speckit)
-
-### `/status`
-
-Full situational awareness. Run at the start of every session.
-
-```
-/status
-```
-
-**What you get:**
-```
-════════════════════════════════════════
-        PROJECT STATUS — Orion
-════════════════════════════════════════
-
-Sprint: ORI Sprint 12 (ends Apr 4)
-  In Progress: ORI-234 Trip PDF renderer
-  To Do: ORI-240 Budget calculator, ORI-241 Flight search
-  Done: 3 issues completed this sprint
-
-Branch: ORI-234/feat/trip-pdf-renderer
-  Uncommitted: 3 files
-  Ahead of main: 7 commits
-
-Worktrees:
-  ../orion-ORI-234-trip-pdf (current)
-  ../orion-ORI-237-hotel-parser (stale — 3 days)
-
-Last Checkpoint: 2026-03-28 14:30
-  Worked on: PDF renderer layout, fixed header alignment
-
-Time This Week: 12h 30m
-```
-
-Use `--all` to see all projects.
-
----
+## Commands (5 core + Speckit)
 
 ### `/orch`
 
@@ -158,67 +121,6 @@ Phase 4 — Review: Spec alignment PASS. Code quality APPROVE.
 
 ---
 
-### `/pre-flight-check`
-
-Your merge gate. Runs everything: two-stage code review + verification (build/types/lint/tests) + security scan on sensitive files. Reports results. Does NOT merge.
-
-```
-/pre-flight-check
-```
-
-**What you get:**
-```
-══════════════════════════════════════════════
-         PRE-FLIGHT CHECK — ORI-234
-══════════════════════════════════════════════
-
- Stage 1 — Spec Alignment:    PASS
- Stage 2 — Code Quality:      APPROVE
-   0 CRITICAL, 0 HIGH, 2 MEDIUM, 1 LOW
- Stage 3 — Verification:      PASS
-   Build: PASS | Types: PASS | Lint: PASS | Tests: 47/47 PASS
- Stage 4 — Security:          SKIPPED (no auth files modified)
-
-══════════════════════════════════════════════
- Verdict: READY TO MERGE
-══════════════════════════════════════════════
-```
-
-Use `--fix` to auto-fix medium/low issues before reporting.
-
----
-
-### `/pr`
-
-Full PR lifecycle — open, review, or respond to feedback. One command, three modes.
-
-```
-/pr                              # open PR from current branch
-/pr --draft                      # open as draft
-/pr --jira ORI-234               # open with Jira link
-/pr --review 342                 # review someone else's PR
-/pr --respond 338                # handle review comments on your PR
-```
-
-**Open mode (default):**
-- Builds title following conventions: `feat(scope): capability [JIRA-KEY]`
-- Generates structured body: Summary, Changes, Test Plan, Notes, Jira link
-- Auto-detects Jira key from branch name
-- Pushes branch and creates PR
-
-**Review mode (`--review`):**
-- Fetches diff, runs two-stage review (spec alignment + quality)
-- Posts inline comments on specific lines
-- Submits APPROVE or REQUEST_CHANGES
-
-**Respond mode (`--respond`):**
-- Shows each unresolved thread with the comment and code
-- You choose: fix / reply / skip for each
-- Fixes are committed, replies posted, threads resolved after your approval
-- Never auto-resolves — always waits for your decision
-
----
-
 ### `/jira`
 
 Create properly structured Jira cards. Enforces Epic (domain) → Story (user outcome) → Subtask (implementation step) hierarchy with strict writing rules.
@@ -262,12 +164,12 @@ Also handles Bugs (symptom as title), Spikes (time-boxed investigation), and Tec
 
 ---
 
-### `/frame`
+### `/shape`
 
 Rewrite a draft prompt with structure, file references, constraints, and success criteria.
 
 ```
-/frame "fix the login bug it broke after the last deploy"
+/shape "fix the login bug it broke after the last deploy"
 ```
 
 **What you get:**
@@ -276,6 +178,22 @@ Rewrite a draft prompt with structure, file references, constraints, and success
 - **Next Step** — suggested command or "say go" based on task complexity
 
 **Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting — Claude already has the context.
+
+---
+
+### `/ask`
+
+Delegate questions to a sonnet subagent instead of burning opus tokens on research.
+
+```
+/ask "how does the auth middleware work?"
+/ask "what test framework does this project use?"
+/ask "where are the API routes defined?"
+```
+
+**What you get:** A concise answer grounded in actual code, with file:line references. The research (file reading, grepping) happens on sonnet, and only the answer enters the opus context.
+
+**When to use directly instead:** Follow-up questions that need conversation context, or questions where the answer is already in your head.
 
 ---
 
@@ -316,7 +234,6 @@ A deliberate workflow for spec-driven development. Enter it when you want struct
 /speckit.plan                       # generates plan.md, data-model.md, contracts/
 /speckit.tasks                      # generates tasks.md with dependencies
 /speckit.implement                  # executes tasks with agents
-/pre-flight-check                   # before merge
 ```
 
 ---
@@ -375,30 +292,6 @@ Uatu runs: research (4 parallel agents) → plan → validate plan → wave exec
 
 Uatu creates: Epic (if new domain) → Stories (upload, share, permissions) → Subtasks (API endpoint, storage service, UI component, tests) — all in Jira.
 
-### "Review a teammate's PR"
-
-```
-/pr --review 342
-```
-
-Uatu reads diff, checks spec alignment, reviews quality, posts inline comments on GitHub.
-
-### "Handle review feedback on my PR"
-
-```
-/pr --respond 338
-```
-
-Uatu shows each comment, you decide: fix / reply / skip. Fixes are committed, replies posted, threads resolved.
-
-### "Before I merge"
-
-```
-/pre-flight-check
-```
-
-Two-stage review + build/types/lint/tests + security scan. Shows verdict: READY or NOT READY.
-
 ### "I want to review before anything changes"
 
 Use plan mode for direct work where you want step-by-step control:
@@ -424,16 +317,6 @@ For multi-file orchestrated work, use `--dry-run` instead — it shows you the f
 | Multi-file feature, want to see plan first | `/orch --dry-run` |
 | Routine work, clear task | Normal (no mode needed) |
 | Multi-agent workflow (`/orch`) | Normal — plan mode breaks agent spawning |
-
----
-
-### "Start my day"
-
-```
-/status
-```
-
-Sprint state, branches, worktrees, last checkpoint, time this week.
 
 ---
 
@@ -464,7 +347,7 @@ All checked during `uatu-setup` and `uatu-install`. Installation blocks if any a
 | jq | JSON parsing (all hooks) | `brew install jq` |
 | node 18+ | Runtime | https://nodejs.org |
 | npx | Package runner | Comes with npm |
-| gh | GitHub CLI (`/pr` command) | `brew install gh` |
+| gh | GitHub CLI | `brew install gh` |
 | prettier | Code formatting (format hook) | `npm i -g prettier` |
 | playwright-cli | E2E testing (`--e2e` flag) | `npm i -g @playwright/cli@latest` |
 
@@ -500,15 +383,12 @@ All checked during `uatu-setup` and `uatu-install`. Installation blocks if any a
 
 ### Model Routing (Cost Optimization)
 
-Commands automatically route subagents to the right model tier regardless of your session model:
+Each agent carries its own model in its `.md` file — commands do not override:
 
-| Tier | Model | Cost | Use For |
-|------|-------|------|---------|
-| **Planning** | Opus | $25/MTok out | Architecture, decomposition, security audit |
-| **Execution** | Sonnet | $15/MTok out | Code generation, tests, file operations (80% of calls) |
-| **Simple** | Haiku | $5/MTok out | Status checks, formatting, lookups |
-
-Subagents inherit the parent model by default. Uatu commands explicitly set `model="sonnet"` on execution agents and `model="opus"` on planning agents, saving ~37% vs all-Opus. This means subagent costs are consistent whether your session runs Sonnet or Opus.
+| Role | Model | Agents |
+|------|-------|--------|
+| **Judgment (3)** | Opus | planner, architect-review, security-auditor |
+| **Execution (22)** | Sonnet | coder, tester, reviewer, code-reviewer, researcher, debugger, orchestrator-task, backend-architect, cloud-architect, docs-architect, llm-architect, prompt-engineer, golang-pro, python-pro, frontend-developer, fullstack-developer, ui-ux-designer, database-expert, deployment-engineer, agile-specialist, jira-specialist, mermaid-diagrammer |
 
 ### Project Structure (After Install)
 
@@ -517,7 +397,7 @@ your-project/
 ├── .claude/
 │   ├── rules/uatu-core.md          # Behavioral rules + model routing (auto-loaded)
 │   ├── rules/typescript.md          # Language rules (auto-loaded)
-│   ├── commands/                    # 8 slash commands + speckit
+│   ├── commands/                    # 5 core + 9 speckit
 │   └── skills/                      # 20 auto-triggered skills
 ├── .uatu/
 │   ├── QUICKSTART.md                # User manual
@@ -542,11 +422,11 @@ your-project/
 
 | Component | Count |
 |-----------|-------|
-| Commands | 8 + 10 speckit |
-| Agents | 53 across 10 categories |
-| Skills | 21 (auto-triggered by context) |
+| Commands | 5 core + 9 speckit (3 archived) |
+| Agents | 25 across 7 categories |
+| Skills | 20 (auto-triggered by context) |
 | Rules | 5 (uatu-core + 4 language rules) |
-| Hooks | 17 active (installed) |
+| Hooks | 17 active |
 | Packages | 4 (SOLO, SQUAD, HIVE, WATCHER) |
 
 ---
@@ -560,7 +440,7 @@ your-project/
 | [spec-kit](https://github.com/anthropics/spec-kit) | GitHub, Inc. | Speckit command suite — specify, clarify, plan, tasks, implement, analyze, constitution | MIT |
 | [claude-flow](https://github.com/ruvnet/claude-flow) | @ruvnet | SQUAD/HIVE package model, swarm coordination MCP tools, memory persistence | MIT |
 | [awesome-claude-code-subagents](https://github.com/anthropics/awesome-claude-code-subagents) | VoltAgent Contributors | Agent library structure, YAML+frontmatter format, category organization | MIT |
-| [@anthropic-ai/sequential-thinking](https://www.npmjs.com/package/@anthropic-ai/sequential-thinking) | Anthropic | Pre-analysis structured reasoning, used in `/frame` and `/jira` | — |
+| [@anthropic-ai/sequential-thinking](https://www.npmjs.com/package/@anthropic-ai/sequential-thinking) | Anthropic | Pre-analysis structured reasoning, used in `/shape` and `/jira` | — |
 
 ### Inspiration (Patterns & Ideas)
 

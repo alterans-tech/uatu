@@ -295,7 +295,7 @@ Both let you "see before doing." The difference:
 | Multi-file, want to review plan first | `/orch --dry-run` | See plan, then autonomous execution |
 | Touching auth/payment/security/migration files | Plan mode | Step-by-step approval for risky changes |
 | First time in unfamiliar codebase area | Plan mode → then normal | Validate approach, then execute freely |
-| Quick data gathering (`/status`, `/time-report`) | Normal | Read-only, no risk |
+| Quick data gathering (`/time-report`) | Normal | Read-only, no risk |
 | Creating Jira cards (`/jira`) | Normal | Command has built-in approval gate |
 | PR review (`/pr --review`) | Normal | Read-only analysis |
 | Pre-merge check (archived) | Normal | Read-only quality gate; already has stage gates |

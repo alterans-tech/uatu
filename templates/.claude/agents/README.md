@@ -19,7 +19,7 @@
 agents/
 ├── core/                     # Workflow (12)
 │   ├── architect-review.md       [opus]
-│   ├── backend-architect.md      [opus]
+│   ├── backend-architect.md      [sonnet]
 │   ├── code-reviewer.md          [sonnet]
 │   ├── coder.md                  [sonnet]
 │   ├── frontend-developer.md     [sonnet]
@@ -36,15 +36,15 @@ agents/
 │   └── python-pro.md             [sonnet]
 │
 ├── infrastructure/           # Ops (2)
-│   ├── cloud-architect.md        [opus]
+│   ├── cloud-architect.md        [sonnet]
 │   └── deployment-engineer.md    [sonnet]
 │
 ├── specialized/              # Custom (5)
 │   ├── agile-specialist.md       [sonnet]  ← /jira review
-│   ├── docs-architect.md         [opus]
+│   ├── docs-architect.md         [sonnet]
 │   ├── jira-specialist.md        [sonnet]  ← /jira review
 │   ├── mermaid-diagrammer.md     [sonnet]  ← Mermaid Chart MCP
-│   └── prompt-engineer.md        [opus]
+│   └── prompt-engineer.md        [sonnet]
 │
 ├── quality/                  # Quality (2)
 │   ├── debugger.md               [sonnet]
@@ -52,7 +52,7 @@ agents/
 │
 └── data/                     # Data (2)
     ├── database-expert.md        [sonnet]
-    └── llm-architect.md          [opus]
+    └── llm-architect.md          [sonnet]
 ```
 
 ## Model routing
@@ -61,5 +61,5 @@ Each agent carries its own model — commands do NOT override.
 
 | Model | Role | Agents |
 |-------|------|--------|
-| **opus** (8) | Decision makers | planner, architect-review, backend-architect, cloud-architect, security-auditor, prompt-engineer, llm-architect, docs-architect |
-| **sonnet** (17) | Executors | everything else |
+| **opus** (3) | Judgment | planner, architect-review, security-auditor |
+| **sonnet** (22) | Execution | everything else |

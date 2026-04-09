@@ -49,7 +49,7 @@ All agents are located in `~/.claude/agents/` organized by category:
 | `fullstack-developer` | End-to-end features spanning frontend/backend | sonnet |
 | `frontend-developer` | React, Vue, UI components, CSS | sonnet |
 | `backend-architect` | API design, service architecture | sonnet |
-| `microservices-architect` | Distributed systems, service boundaries | opus |
+| `microservices-architect` | Distributed systems, service boundaries | sonnet |
 | `architect-review` | Architecture decisions, design patterns | opus |
 | `ui-ux-designer` | Design systems, accessibility, user flows | sonnet |
 
@@ -69,8 +69,8 @@ All agents are located in `~/.claude/agents/` organized by category:
 
 | Agent | Best For | Model |
 |-------|----------|-------|
-| `cloud-architect` | AWS/Azure/GCP, multi-cloud design | opus |
-| `kubernetes-architect` | K8s, service mesh, GitOps | opus |
+| `cloud-architect` | AWS/Azure/GCP, multi-cloud design | sonnet |
+| `kubernetes-architect` | K8s, service mesh, GitOps | sonnet |
 | `terraform-specialist` | IaC, state management, modules | sonnet |
 | `deployment-engineer` | CI/CD, GitOps, deployments | sonnet |
 | `sre-engineer` | SLOs, observability, reliability | sonnet |
@@ -82,8 +82,8 @@ All agents are located in `~/.claude/agents/` organized by category:
 |-------|----------|-------|
 | `database-expert` | Database administration, query optimization, schema design | sonnet |
 | `data-engineer` | ETL pipelines, data warehousing | sonnet |
-| `ml-engineer` | ML systems, model serving | opus |
-| `llm-architect` | LLM applications, RAG, fine-tuning | opus |
+| `ml-engineer` | ML systems, model serving | sonnet |
+| `llm-architect` | LLM applications, RAG, fine-tuning | sonnet |
 
 ### Quality & Security
 
@@ -106,14 +106,14 @@ All agents are located in `~/.claude/agents/` organized by category:
 | `planner` | Task decomposition, planning | opus |
 | `researcher` | Investigation, codebase exploration | sonnet |
 | `orchestrator-task` | Native task decomposition + multi-agent coordination (no MCP) | sonnet |
-| `multi-agent-coordinator` | Coordinating multiple agents | opus |
-| `swarm-coordinator` | SQUAD/HIVE swarm orchestration | opus |
+| `multi-agent-coordinator` | Coordinating multiple agents | sonnet |
+| `swarm-coordinator` | SQUAD/HIVE swarm orchestration | sonnet |
 
 ### Specialized
 
 | Agent | Best For | Model |
 |-------|----------|-------|
-| `prompt-engineer` | Prompt design, LLM optimization | opus |
+| `prompt-engineer` | Prompt design, LLM optimization | sonnet |
 | `refactoring-specialist` | Code improvement, tech debt | sonnet |
 | `api-documenter` | API documentation, OpenAPI | sonnet |
 | `docs-architect` | Technical documentation | sonnet |
@@ -327,12 +327,11 @@ When multiple patterns match: **task keyword > file pattern > default**. The tas
 
 ### When to Use `opus`
 
-- Architecture decisions
-- Security audits
-- Complex planning and decomposition
-- Multi-agent coordination
-- LLM/AI system design
-- High-stakes decisions
+Only 3 agents use opus: `planner`, `architect-review`, `security-auditor`.
+
+- Architecture review and ADR decisions
+- Security audits and threat modeling
+- Complex task decomposition and planning
 
 ### When to Use `sonnet`
 
@@ -363,8 +362,8 @@ Always use Sequential Thinking before selecting agents. It will recommend:
 
 ### 2. Match Agent to Task
 
-- Don't use `opus` agents for simple tasks (cost inefficient)
-- Don't use `sonnet` for critical security or architecture decisions
+- Don't use `opus` agents for simple tasks — only planner, architect-review, security-auditor use opus
+- Always set `model="sonnet"` explicitly when spawning agents to prevent opus inheritance
 - Use specialist agents for domain-specific work
 
 ### 3. Coordinate Properly

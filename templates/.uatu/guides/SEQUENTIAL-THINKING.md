@@ -56,7 +56,7 @@ Thought 4: Which package fits? (SOLO/SQUAD/HIVE/WATCHER)
 Thought 5: What's my execution plan? (Concrete steps)
 ```
 
-**Sequential Thinking is PRE-PACKAGE** — use it before any package is selected. It helps you choose the right approach. Mandatory for `/frame` and `/jira`, recommended for complex `/orch` tasks.
+**Sequential Thinking is PRE-PACKAGE** — use it before any package is selected. It helps you choose the right approach. Mandatory for `/jira`, recommended for complex `/orch` tasks. `/shape` uses sonnet only — no sequential thinking.
 
 Then set `nextThoughtNeeded: false` and execute.
 

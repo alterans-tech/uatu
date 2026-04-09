@@ -34,10 +34,9 @@ Can you give each agent everything it needs before it starts?
 
 | Task | Command |
 |------|---------|
-| Session recon | `/status` |
 | Multi-agent execution | `/orch "description"` |
 | Create Jira cards | `/jira "description"` |
-| Organize a prompt | `/frame "draft"` |
+| Organize a prompt | `/shape "draft"` |
 | Time tracking | `/time-report --week` |
 | Spec-driven workflow | `/speckit.specify`, `.plan`, `.tasks`, `.implement` |
 

@@ -58,12 +58,12 @@ Flags work with ANY detected workflow. Examples:
 
 ## Model Routing
 
-Each agent carries its own model in the `.md` file — do NOT override with `model=` when spawning.
+Each agent carries its own model in the `.md` file. Always set `model=` explicitly when spawning to prevent opus inheritance from the parent context.
 
 | Role | Model | Agents |
 |------|-------|--------|
-| **Decision makers** | `opus` | planner, architect-review, security-auditor, cloud-architect, backend-architect, prompt-engineer, llm-architect, docs-architect |
-| **Executors** | `sonnet` | coder, tester, reviewer, code-reviewer, researcher, debugger, orchestrator-task, language pros, frontend-developer, fullstack-developer, ui-ux-designer, database-expert, deployment-engineer, agile-specialist, jira-specialist, mermaid-diagrammer |
+| **Decision makers** | `opus` | planner, architect-review, security-auditor |
+| **Executors** | `sonnet` | coder, tester, reviewer, code-reviewer, researcher, debugger, orchestrator-task, backend-architect, cloud-architect, docs-architect, llm-architect, prompt-engineer, golang-pro, python-pro, frontend-developer, fullstack-developer, ui-ux-designer, database-expert, deployment-engineer, agile-specialist, jira-specialist, mermaid-diagrammer |
 
 ---
 

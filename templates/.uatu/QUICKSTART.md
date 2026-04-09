@@ -2,49 +2,39 @@
 
 ---
 
-## Commands (6 + Speckit)
+## Commands (5 core + Speckit)
 
 | Command | When to Use | Example |
 |---------|-------------|---------|
-| `/status` | Start of session — what's going on | `/status` |
+| `/shape` | Organize + sharpen a draft prompt | `/shape "fix the login thing"` |
 | `/orch` | Multi-file work, features, bugs, refactors | `/orch "add notifications" --tdd` |
 | `/jira` | Create Jira cards with proper hierarchy | `/jira "password reset"` |
-| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
+| `/ask` | Delegate questions to sonnet (saves opus tokens) | `/ask "how does the auth middleware work?"` |
 | `/time-report` | Time tracking | `/time-report --all --week` |
 
 ---
 
-## `/status`
+## `/shape`
 
-Full situational awareness. Run at the start of every session.
+Organize and sharpen a draft prompt. Sonnet only, no research — structures what you wrote, fills implied gaps, recommends what to run next.
 
 ```
-/status
-/status --all           # all projects
+/shape "fix the login bug it broke after the last deploy"
 ```
 
 **What you get:**
 ```
-════════════════════════════════════
-      PROJECT STATUS — Orion
-════════════════════════════════════
+### Original (Score: 2/10)
+fix the login bug it broke after the last deploy
 
-Sprint: ORI Sprint 12 (ends Apr 4)
-  In Progress: ORI-234 Trip PDF renderer
-  To Do: ORI-240 Budget calculator
-  Done: 3 this sprint
+### Rewritten (Score: 8/10)
+[Full structured version with headers, file refs, constraints, done-when]
 
-Branch: ORI-234/feat/trip-pdf-renderer
-  Uncommitted: 3 files
-  Ahead of main: 7 commits
-
-Worktrees:
-  ../orion-ORI-234-trip-pdf (current)
-  ../orion-ORI-237-hotel-parser (stale)
-
-Last Checkpoint: 2026-03-28 14:30
-Time This Week: 12h 30m
+### Next Step
+Say "go" or run /orch to use parallel agents.
 ```
+
+**Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command.
 
 ---
 
@@ -54,6 +44,7 @@ Smart multi-agent execution. Auto-detects the right workflow from your descripti
 - Bug keywords → 4-phase debugging
 - Refactor keywords → architect review + refactor
 - Security keywords → security audit
+- AI/LLM keywords → prompt-engineer + llm-architect
 - Everything else → feature (research → plan → wave execution)
 
 ```
@@ -69,87 +60,27 @@ Smart multi-agent execution. Auto-detects the right workflow from your descripti
 | Flag | Effect |
 |------|--------|
 | `--tdd` | Every agent writes failing tests first, then implements |
-| `--e2e` | Playwright E2E tests after all waves complete |
+| `--e2e` | Playwright E2E tests between each wave and at the end — stops on failure |
 | `--review` | Two-stage review (spec + quality) after each wave |
 | `--dry-run` | Show plan without executing — wait for your approval |
-| `--verify` | Run test suite between each wave — stop on failure |
+| `--verify` | Unit/integration tests between each wave and at the end — stops on failure |
 | `--scope <paths>` | Constrain agents to specified files/directories only |
 | `--no-commit` | Execute but don't commit — you review and commit manually |
 | `--jira <KEY>` | Link to Jira: read AC, create branch, update status |
 
 All flags composable. Example: `--tdd --verify --jira ORI-240`
 
-**What you see during execution:**
-```
-Phase 1 — Research: 4 parallel researchers spawned...
-Phase 2 — Plan: Validated (3/3 checks pass)
-Phase 3 — Waves:
-  Wave 1/3: T1, T2 — spawning...
-  Wave 1/3 complete. Tasks: 2/6 done. Commits: 2.
-  Verification: 47/47 tests PASS ✓
-  Wave 2/3: T3, T4 — spawning...
-  ...
-Phase 4 — Review: Spec alignment PASS. Quality APPROVE.
-```
-
 ---
 
 ## `/jira`
 
-Create Jira cards with proper Epic → Story → Subtask hierarchy. Uses Sequential Thinking.
+Create Jira cards with proper Epic → Story → Subtask hierarchy. Reviewed by agile-specialist + jira-specialist agents before presenting.
 
 ```
 /jira "users need to reset their password via email"
 ```
 
-**What you get:**
-```
-Epic: AUTH — User Authentication (existing)
-
-  Story: Allow users to reset their password
-    As a user, I want to reset via email,
-    so that I can regain access.
-
-    Acceptance Criteria:
-    - [ ] User can request reset from login page
-    - [ ] Reset email arrives within 30 seconds
-    - [ ] Link expires after 24 hours
-
-    Subtasks:
-    1. Create password reset endpoint
-    2. Add email template
-    3. Write migration for tokens table
-    4. Build reset form component
-    5. Add rate limiting
-
-Create in Jira? (y/n)
-```
-
 Enforces: verb-first titles, user-observable AC, technical subtasks < 1 day, 3-6 subtasks per story.
-
----
-
-## `/frame`
-
-Rewrite a draft prompt with structure, file refs, constraints, and done-conditions. Uses Sequential Thinking.
-
-```
-/frame "fix the login bug it broke after the last deploy"
-```
-
-**What you get:**
-```
-### Original (Score: 2/10)
-fix the login bug it broke after the last deploy
-
-### Rewritten (Score: 8/10)
-[Full structured version with headers, file refs, constraints, done-when]
-
-### Next Step
-Say "go" or run /orch to use parallel agents.
-```
-
-**Workflow:** Review the rewrite → correct if needed → say "go" or run the suggested command. No copy-pasting needed — Claude already has the full context.
 
 ---
 
@@ -273,14 +204,16 @@ Scope = domain/component, NOT project name.
 
 Commands route subagents to the cheapest model that can do the job:
 
-| Tier | Model | When | Savings vs Opus |
-|------|-------|------|-----------------|
-| **Planning** | Opus | Architecture, decomposition, security audit | — |
-| **Execution** | Sonnet | Code gen, tests, file ops, research | **40%** |
-| **Simple** | Haiku | Status, formatting, lookups | **80%** |
+| Tier | Model | When | Agents | Savings vs Opus |
+|------|-------|------|--------|-----------------|
+| **Judgment** | Opus | Task decomposition, arch review, security audit | planner, architect-review, security-auditor | — |
+| **Execution** | Sonnet | Everything else — code, tests, research, docs, design, infra | All other agents (22) | **40%** |
+| **Simple** | Haiku | Status, formatting, lookups, validation | Ad-hoc | **80%** |
 
-Default: **Sonnet** for 80% of subagent calls. Opus only for planning/architecture/security.
-Typical `/orch` run saves ~37% vs all-Opus default.
+Default: **Sonnet** for 90% of subagent calls. Only 3 agents use opus.
+Typical `/orch` run saves ~50% vs all-Opus default.
+
+**Token conservation:** Always set `model="sonnet"` explicitly. Use `run_in_background=true`. Compress relay briefs to ≤500 tokens.
 
 ---
 
@@ -314,11 +247,6 @@ All issues get domain **Labels** (lowercase kebab-case: `authentication`, `api`,
 ---
 
 ## Workflow Scenarios
-
-**Start your day:**
-```
-/status
-```
 
 **Build a feature:**
 ```

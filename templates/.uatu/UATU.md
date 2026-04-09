@@ -29,7 +29,7 @@ AI orchestration framework for Claude Code.
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd` |
-| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the thing"` |
+| `/shape` | Organize + sharpen a draft prompt | `/shape "fix the thing"` |
 | `/jira` | Create Jira cards (Epic/Story/Subtask) | `/jira "password reset"` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
@@ -108,7 +108,7 @@ Full user manual: `.uatu/QUICKSTART.md`
 
 | Server | Required For |
 |--------|--------------|
-| `sequential-thinking` | `/frame`, `/jira`, complex tasks |
+| `sequential-thinking` | `/shape`, `/jira`, complex tasks |
 | `claude-flow` | SQUAD/HIVE coordination |
 | `context7` | Library/framework documentation lookup |
 

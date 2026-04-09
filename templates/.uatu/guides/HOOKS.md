@@ -342,7 +342,7 @@ Uatu includes 17 active hooks:
 - Scores prompts against 5 research-backed dimensions: intent, context, specificity, scope, verifiability
 - Exempt categories excluded from scoring: slash commands, execution confirmations, follow-ups, continuations, corrections, acknowledgments
 - Low-scoring prompts (≤3/5 on prompts >12 words) get improvement suggestions
-- References `.uatu/config/prompt-templates.md` for templates and `/frame` for restructuring
+- References `.uatu/config/prompt-templates.md` for templates and `/shape` for restructuring
 
 **Required:** Recommended (standard profile)
 

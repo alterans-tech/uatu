@@ -540,7 +540,7 @@ Use cheaper models for routine work, expensive models for critical decisions:
 
 | Agent Role | Recommended Model | Cost |
 |------------|------------------|------|
-| Explore, researcher | haiku | $ |
+| Explore, researcher | sonnet | $$ |
 | coder, tester, code-reviewer | sonnet | $$ |
 | architect-review, security-auditor | opus | $$$ |
 

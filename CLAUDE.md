@@ -72,7 +72,7 @@ uatu/
 │   │   ├── hooks/                # 17 active hooks
 │   │   └── tools/                # 4 tools
 │   └── .claude/
-│       ├── commands/             # 13 active + 3 archived
+│       ├── commands/             # 14 active + 3 archived
 │       ├── skills/               # 20 skills
 │       └── agents/               # 25 agents across 7 categories
 └── README.md                     # User documentation
@@ -90,21 +90,22 @@ uatu/
 | worktree-helper | `.uatu/tools/worktree-helper.sh` | Git worktree management |
 | time-tracking | `.uatu/tools/time-tracking/worklog.py` | Work session tracking |
 
-### Commands (4 core + 9 speckit = 13 active)
+### Commands (5 core + 9 speckit = 14 active)
 
 **Core Commands:**
 | Command | Purpose |
 |---------|---------|
 | `/orch` | Smart multi-agent (--tdd, --e2e, --verify, --dry-run, --jira, --scope, --no-commit, --review) |
-| `/frame` | Organize + sharpen a draft prompt (sonnet only, no research) |
+| `/shape` | Organize + sharpen a draft prompt (sonnet only, no research) |
 | `/jira` | Create Jira cards (Epic/Story/Subtask) |
+| `/ask` | Delegate questions to sonnet (saves opus tokens on Q&A) |
 | `/time-report` | Time tracking across projects |
 
 **Archived** (in `commands/archive/`): status, pr, pre-flight-check
 
 **Speckit Commands:** specify, clarify, plan, tasks, implement, analyze, checklist, constitution, complete
 
-### Skills (21 — in `.claude/skills/`)
+### Skills (20 — in `.claude/skills/`)
 | Skill | Purpose |
 |-------|---------|
 | `react-component` | Generate TypeScript React component with tests |
@@ -308,7 +309,7 @@ chore: maintenance
 ## Current Stats
 
 - **25 agents** across 7 categories
-- **13 commands** (4 core + 9 speckit.*) — 3 archived (status, pr, pre-flight-check)
+- **14 commands** (5 core + 9 speckit.*) — 3 archived (status, pr, pre-flight-check)
 - **20 skills** (react-component, test-file, ui-ux-design + language/pattern skills)
 - **7 guides**
 - **17 active hooks**

@@ -17,7 +17,7 @@ Run all three checks and present a consolidated report. This is the quality gate
 Spawn a reviewer agent:
 
 ```
-Agent(subagent_type="reviewer", model="opus", prompt="Stage 1: SPEC ALIGNMENT REVIEW.
+Agent(subagent_type="reviewer", model="sonnet", prompt="Stage 1: SPEC ALIGNMENT REVIEW.
 
 Run git diff HEAD to see all uncommitted changes. Check for spec context:
 1. .uatu/delivery/ — tasks.md, spec.md, plan.md

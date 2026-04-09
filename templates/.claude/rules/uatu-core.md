@@ -10,7 +10,8 @@ These rules are auto-loaded by Claude Code every session. They define proactive 
 |---------|---------|---------|
 | `/orch` | Smart multi-agent execution | `/orch "add notifications" --tdd --jira ORI-240` |
 | `/jira` | Create Jira cards (Epic/Story/Task/Bug/Subtask) | `/jira "password reset feature"` |
-| `/frame` | Organize + sharpen a draft prompt | `/frame "fix the login thing"` |
+| `/shape` | Organize + sharpen a draft prompt | `/shape "fix the login thing"` |
+| `/ask` | Delegate questions to sonnet (saves opus tokens) | `/ask "how does the auth middleware work?"` |
 | `/time-report` | Time tracking across projects | `/time-report --week` |
 
 **Orch flags:** `--tdd`, `--e2e`, `--review`, `--dry-run`, `--verify`, `--scope`, `--no-commit`, `--jira`
@@ -30,7 +31,7 @@ Use `mcp__sequential-thinking__sequentialthinking` for structured reasoning.
 
 **Skip when:**
 - Simple data gathering (`/time-report`)
-- `/frame` — uses sonnet only, no sequential thinking
+- `/shape` — uses sonnet only, no sequential thinking
 - Clear single-file tasks
 
 ---
@@ -46,6 +47,7 @@ Before starting any task, SUGGEST the appropriate approach:
 | Define a new feature | `/speckit.specify "description"` |
 | Implement from existing spec | `/speckit.implement` |
 | Create Jira cards for new work | `/jira "description"` |
+| Questions about code, architecture, patterns | `/ask "question"` (saves opus tokens) |
 | Risky/unfamiliar changes, wants to validate approach first | Enter plan mode (`/plan`), or `/orch --dry-run` |
 
 If the user's task clearly matches one of these, suggest it BEFORE starting work.
@@ -154,12 +156,28 @@ Quick reference: `.uatu/QUICKSTART.md`
 ## Model Routing (Cost Optimization)
 
 When spawning subagents, use the `model` parameter to route to the right tier.
-Subagents inherit the parent model if not specified — always set it explicitly.
+Subagents inherit the parent model if not specified — **always set it explicitly**.
 
-| Tier | Model | Use For |
-|------|-------|---------|
-| **Planning** | `opus` | Architecture, decomposition, spec writing, security audit, complex debugging |
-| **Execution** | `sonnet` | Code generation, test writing, file operations, research, reviews |
-| **Simple** | `haiku` | Status checks, formatting, simple lookups |
+| Tier | Model | Use For | Agents |
+|------|-------|---------|--------|
+| **Judgment** | `opus` | Architecture review, task decomposition, security audit | planner, architect-review, security-auditor |
+| **Execution** | `sonnet` | Everything else — code, tests, research, docs, design, infra | All other agents (22) |
+| **Simple** | `haiku` | Status checks, formatting, simple lookups, validation | Ad-hoc (no dedicated agents) |
 
-**Default to `sonnet`** for 80% of subagent calls. Reserve `opus` for tasks requiring multi-file reasoning or high-stakes judgment. Sonnet delivers 98.5% of Opus quality on coding tasks at 40% lower cost.
+**Default to `sonnet`** for 90% of subagent calls. Only 3 agents use opus — those making high-stakes judgment calls where errors propagate downstream.
+
+---
+
+## Token Conservation (Opus Context Protection)
+
+The main conversation runs on opus for 1M context. Protect it by offloading work to sonnet subagents.
+
+### Rules
+
+1. **Delegate before reading** — Before exploring code in the main thread, spawn a sonnet `researcher` agent. The main thread synthesizes; it doesn't grep.
+2. **Always set `model="sonnet"`** on every `Agent()` call unless the agent is planner, architect-review, or security-auditor. Never rely on model inheritance.
+3. **Background by default** — Use `run_in_background=true` for independent agents. The main thread stays free to process other work.
+4. **Compress relay briefs** — Agent outputs entering the main thread must be ≤500 tokens. Summarize, don't relay raw output.
+5. **Batch spawns** — Launch all independent agents in ONE message. Never spawn sequentially when parallel is possible.
+6. **Use haiku for trivial ops** — Formatting, status checks, simple file lookups: `model="haiku"`.
+7. **Cap research depth** — Researchers report findings; they don't solve problems. Keep research agents focused and short-lived.

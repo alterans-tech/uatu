@@ -2,7 +2,7 @@
 description: Organize and sharpen a draft prompt. Structures what you wrote, fills gaps from context, and recommends an execution path.
 ---
 
-# Frame
+# Shape
 
 ## Arguments
 
